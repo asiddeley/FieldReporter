@@ -15,6 +15,8 @@ define(function(require, exports, module){
 
 var $=require('jquery');
 var $$=require('jquery-ui');
+var soup=window.soup;
+console.log('cell window.soup --- ',window.soup);
 
 
 ///////////////////////////////////////////////////////
@@ -48,8 +50,7 @@ $.widget ("soup.cell", {
 		idn: 'default'
 	},
 	
-	
-	_create:function() {
+		_create:function() {
 		this.options.name=this.element.attr("id");
 		this.options.text=this.element.text();
 		this.options.idi=this.options.name+'input';

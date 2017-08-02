@@ -14,7 +14,7 @@ define(function(require, exports, module){
 
 var $=require('jquery'); //load jquery
 var $$=require('jquery-ui'); //load widget
-
+var soup=window.soup;
 
 $.widget("soup.foreach", {
 	

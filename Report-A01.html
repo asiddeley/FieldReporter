@@ -23,7 +23,7 @@
 
 <!-- soup Libraries -->
 <!--script src="./require/require.js"></script-->
-<script data-main="modules/allModules.js" src="require/require.js"></script>
+<script data-main="soup/soup.js" src="require/require.js"></script>
 
 
 <style>
@@ -136,7 +136,7 @@ function testInsert() {
 }
 
 //Load and launch BIM United FC
-requirejs(['modules/all'], function(soup){
+requirejs(['soup/soup.js'], function(soup){
 
 	$(document).ready(function(){
 		$('#docName').text(soup.docName());
