@@ -1,12 +1,14 @@
 /**********************************
 S imple
-O ff-line
+O pen
 U tility
 P ackage
 
 Andrew Siddeley
+
 19-Apr-2016
-*/
+01-Aug-2017
+********************************/
 
 
 // Define a Module with Simplified CommonJS Wrapper...
@@ -15,8 +17,8 @@ define(function(require, exports, module){
 
 var $=require('jquery');
 var $$=require('jquery-ui');
-var soup=window.soup;
-console.log('cell window.soup --- ',window.soup);
+var db=require('soup/database');
+//console.log('cell - keys of module.exports...', Object.keys(module.exports));
 
 
 ///////////////////////////////////////////////////////
@@ -56,7 +58,7 @@ $.widget ("soup.cell", {
 		this.options.idi=this.options.name+'input';
 		this.options.idr=this.options.name+'result';
 		this.options.idn=this.options.name+'name';
-		this.options=$.extend(this.options, soup.dataLoad(this.options));
+		this.options=$.extend(this.options, db.load(this.options));
 		//this.styleRestore();		
 		this._on( this.element, {
 			dragstop:'stylingStop',

@@ -19,121 +19,132 @@ A Siddeley
 // see http://requirejs.org/docs/api.html#cjsmodule
 define( function(require, exports, module) {
 
-var soup={};
-soup.dataBase="base/"; //sub folder for data storage
-soup.dataCache=null; //large string
-soup.dataDoc=function(name, valu){
-	//Returns a basic data object
-	return ({
-		name:(typeof name == 'undefined')?'unnamed':name.toString(),
-		valu:(typeof valu == 'undefined')?'default-Valu':valu.toString()
-	});
+//require('soup'); //timeout - due to circular reference?
+//database part of soup...
+
+//dependencies
+var db={};
+var localPath=require('soup/localPath');
+var axLoadFile=require('soup/axLoadFile');
+var axSaveFile=require('soup/axSaveFile');
+var ieLoadFile=require('soup/ieLoadFile');
+var ieSaveFile=require('soup/ieSaveFile');
+
+//database properties & functions
+
+//sub folder for data storage
+db.base="data/"; 
+
+//large string
+db.cache=null; 
+
+//document factory - data record
+db.Doc=function(name, valu){
+	this.name=(typeof name == 'undefined')?'unnamed':name.toString();
+	this.valu=(typeof valu == 'undefined')?'unvalued':valu.toString();
 }
 
-soup.dataFile="database.txt";
-soup.dataFilename=function(name){
+db.file="database.txt";
+
+db.filename=function(name){
 	name=(!name)?"database":name;
-	return (soup.dataFile)?soup.localPath(soup.dataBase+soup.dataFile):soup.localPath(soup.dataBase+name+'.txt');
+	var filename=(db.file)?localPath(db.base+db.file):localPath(db.base+name+'.txt');
+	return filename;
 }
-soup.dataMode="ie"; //use iexplorer activeX to store data as a txt file in project subfolder
+
+db.mode="ie"; //use iexplorer activeX to store data as a txt file in project subfolder
 //soup.dataMode="ax"; //use ajax to store data at mlab.com mongo database service
 
-
-soup.dataLoad=function(dataDoc){
-	//argument may be a dataDoc (or data record), with target id and default data or
-	//a	string representing a target cell id of the cell for which data is requested.
-	if (typeof(dataDoc)=='string') dataDoc=soup.dataDoc(dataDoc);
+db.load=function(dataDoc){
+	//argument may be a dataDoc object (or data record), with target id and default data or
+	//a string representing a target cell id of the cell for which data is requested.
+	if (typeof(dataDoc)=='string') dataDoc=new db.Doc(dataDoc);
 	//var fn=soup.localPath(soup.dataBase);
-	var fn=soup.dataFilename(dataDoc['name']);
-	if (soup.dataCache === null) {
-		switch (soup.dataMode){
-			case "ax":
-				soup.dataCache=soup.axLoadFile(fn);
-			break;
-			case "ie":
-				soup.dataCache=soup.ieLoadFile(fn);
-			break;			
-			default:
-				soup.dataCache=soup.ieLoadFile(fn);
+	var fn=db.filename(dataDoc['name']);
+	if (db.cache === null) {
+		switch (db.mode){
+			case "ax":db.cache=axLoadFile(fn);break;
+			case "ie":db.cache=ieLoadFile(fn);break;			
+			default:db.cache=ieLoadFile(fn);
 		}
 	}
-	if (soup.dataCache === null) {
+	if (db.cache === null) {
 		//file not found so create file
-		var db={};
-		db[dataDoc.name]=dataDoc;
-		soup.dataCache=JSON.stringify(db);
+		var dbc={}; //collection
+		dbc[dataDoc.name]=dataDoc;
+		db.cache=JSON.stringify(dbc);
 		
-		switch (soup.dataMode){
-			case "ax":
-				soup.axSaveFile(fn, soup.dataCache);
-			break;
-			case "ie":
-				soup.ieSaveFile(fn, soup.dataCache);
-			break;			
-			default:
-				soup.ieSaveFile(fn, soup.dataCache);
+		switch (db.mode){
+			case "ax":axSaveFile(fn, db.cache);break;
+			case "ie":ieSaveFile(fn, db.cache);break;			
+			default:ieSaveFile(fn, db.cache);
 		}		
 		//soup.ieSaveFile(fn, soup.dataCache);
 		
 	} else {
 		//file found so extract name:value 
-		var db=JSON.parse(soup.dataCache);
-		if (typeof(db[dataDoc.name])=='undefined'){
+		var dbc=JSON.parse(db.cache);
+		if (typeof(dbc[dataDoc.name])=='undefined'){
 			//name:value not found so add
-			db[dataDoc.name]=dataDoc;
-			soup.dataCache=JSON.stringify(db);
-			
-			switch (soup.dataMode){
-				case "ax":
-					soup.axSaveFile(fn, soup.dataCache);
-				break;
-				
-				case "ie":
-					soup.ieSaveFile(fn, soup.dataCache);
-				break;			
-				
-				default:
-					soup.ieSaveFile(fn, soup.dataCache);
-			}			
+			dbc[dataDoc.name]=dataDoc;
+			db.cache=JSON.stringify(dbc);
+			switch (db.mode){
+				case "ax":axSaveFile(fn, db.cache);break;
+				case "ie":ieSaveFile(fn, db.cache);break;			
+				default:ieSaveFile(fn, db.cache);}			
 			//soup.ieSaveFile(fn, soup.dataCache);
 		} 
-		else { dataDoc=db[dataDoc.name];}
+		else { dataDoc=dbc[dataDoc.name];}
 	}
 	return dataDoc;
 }
 
-soup.dataSave=function(dataDoc){
+db.save=function(dataDoc){
 	
-	if (typeof(dataDoc)=='string') dataDoc=soup.dataDoc(dataDoc);
+	if (typeof(dataDoc)=='string') dataDoc=new db.Doc(dataDoc);
 	//Get text file contents which is a JSON of all cells
 	//{name1:value1, name2:value2...}
 	//var fn=soup.localPath(soup.dataBase);
-	var fn=soup.dataFilename(dataDoc['name']);
-	if (soup.dataCache === null){
-		soup.dataCache=soup.ieLoadFile(fn);
+	var fn=db.filename(dataDoc.name);
+	
+	if (db.cache === null){
+		//cache null so load it
+		db.cache=ieLoadFile(fn);
 		//soup.dataCache=soup.axLoadFile(fn);
 	}
-	if (soup.dataCache === null){
-		//file not found so create file
-		var db={}; 
-		db[dataDoc.name]=cellArg;
-		soup.dataCache=JSON.stringify(db);
-		var r=soup.ieSaveFile(fn, soup.dataCache);
-		//var r=soup.axSaveFile(fn, soup.dataCache);		
-	} else {
-		//file found so change value of name
-		var db=JSON.parse(soup.dataCache);
-		db[dataDoc.name]=dataDoc;
-		soup.dataCache=JSON.stringify(db);
-		var r=soup.ieSaveFile(fn, soup.dataCache);
+	
+	if (db.cache === null){
+		//cache still nulll means file not found so create file
+		var dbc={}; 
+		
+		//dbc[dataDoc.name]=cellArg; ///cellArg not defined and I forget what it is, guessing is should be as follows
+		dbc[dataDoc.name]=dataDoc; 
+		
+		db.cache=JSON.stringify(dbc);
+		switch (db.mode){
+			case "ax":axSaveFile(fn,db.cache);break;
+			case "ie":ieSaveFile(fn, db.cache);break;			
+			default:ieSaveFile(fn, db.cache);
+		}
+		//var r=ieSaveFile(fn, soup.dataCache);
 		//var r=soup.axSaveFile(fn, soup.dataCache);
+	} else {
+		//file found so update record (change value of item identified by name)
+		var dbc=JSON.parse(db.cache);
+		dbc[dataDoc.name]=dataDoc;
+		db.cache=JSON.stringify(dbc);
+		switch (db.mode){
+			case "ax":axSaveFile(fn, db.cache);break;
+			case "ie":ieSaveFile(fn, db.cache);break;			
+			default:ieSaveFile(fn, db.cache);
+		}
 	}
 	//return success of ieSaveFile()
 	return r; 
 }
 
-
-return data;
+//return library (object) of soup database functions
+return db;
 
 }); //define
 

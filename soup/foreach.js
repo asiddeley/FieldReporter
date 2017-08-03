@@ -1,12 +1,14 @@
 /**********************************
 S imple
-O ff-line
+O pen
 U tility
 P ackage
 
 Andrew Siddeley
-19-Apr-2016
-*/
+
+19-Apr-2016 - Early
+01-Aug-2017 - Modularized
+**************************/
 
 // Define a Module with Simplified CommonJS Wrapper...
 // see http://requirejs.org/docs/api.html#cjsmodule
@@ -14,7 +16,8 @@ define(function(require, exports, module){
 
 var $=require('jquery'); //load jquery
 var $$=require('jquery-ui'); //load widget
-var soup=window.soup;
+var db=require('soup/database');
+
 
 $.widget("soup.foreach", {
 	
@@ -50,7 +53,7 @@ $.widget("soup.foreach", {
 			}		
 		);
 
-		this.options=$.extend(this.options, soup.dataLoad(this.options));
+		this.options=$.extend(this.options, db.load(this.options));
 		this.refresh();
     },
 	
