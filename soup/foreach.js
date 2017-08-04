@@ -47,11 +47,10 @@ $.widget("soup.foreach", {
 	_create: function() {
 		//read defaults from html tag/content
 		this.template=this.element.html();
-		this.options=$.extend(this.options,{
-				name:this.element.attr('id'),
-				items:eval(this.element.attr("soup-foreach")) //convert from string to array
-			}		
-		);
+		$.extend(this.options,{
+			name:this.element.attr('id'),
+			items:eval(this.element.attr("soup-foreach")) //convert from string to array
+		});
 
 		this.options=$.extend(this.options, db.load(this.options));
 		this.refresh();
