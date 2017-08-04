@@ -106,6 +106,7 @@ db.save=function(dataDoc){
 	//{name1:value1, name2:value2...}
 	//var fn=soup.localPath(soup.dataBase);
 	var fn=db.filename(dataDoc.name);
+	var r=null; //return value represents success of data load/save
 	
 	if (db.cache === null){
 		//cache null so load it
@@ -122,8 +123,8 @@ db.save=function(dataDoc){
 		
 		db.cache=JSON.stringify(dbc);
 		switch (db.mode){
-			case "ax":axSaveFile(fn,db.cache);break;
-			case "ie":ieSaveFile(fn, db.cache);break;			
+			case "ax":r=axSaveFile(fn,db.cache);break;
+			case "ie":r=ieSaveFile(fn, db.cache);break;			
 			default:ieSaveFile(fn, db.cache);
 		}
 		//var r=ieSaveFile(fn, soup.dataCache);
@@ -134,14 +135,16 @@ db.save=function(dataDoc){
 		dbc[dataDoc.name]=dataDoc;
 		db.cache=JSON.stringify(dbc);
 		switch (db.mode){
-			case "ax":axSaveFile(fn, db.cache);break;
-			case "ie":ieSaveFile(fn, db.cache);break;			
-			default:ieSaveFile(fn, db.cache);
+			case "ax":r=axSaveFile(fn, db.cache);break;
+			case "ie":r=ieSaveFile(fn, db.cache);break;			
+			default:r=ieSaveFile(fn, db.cache);
 		}
 	}
 	//return success of ieSaveFile()
 	return r; 
-}
+};
+
+console.log("database loaded");
 
 //return library (object) of soup database functions
 return db;

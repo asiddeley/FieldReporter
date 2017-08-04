@@ -29,15 +29,6 @@ var db=require('soup/database');
 // NOTE: DO NOT USE '-' FOR ID NAMES, CELL WONT WORK.  USE '_' INSTEAD
 // NOTE: Cell Ids cannot be Kebab-case, use snake_case or camelCase instead 
 
-var cell=function(el){
-	/**********
-	Turns the provided element into a cell, I.e. savable and editable
-	A cell has normally hidden heading and input fields as well as a normally showing result field.
-	Cell text can be edited when the mouse is over it,
-	*********/
-	$(el).cell();
-	return soup;
-};
 
 
 $.widget ("soup.cell", {
@@ -104,7 +95,7 @@ $.widget ("soup.cell", {
 			if (this.options.undo.length > 10) {this.options.undo.shift();}
 			this.options.text=ntxt;
 			$("#"+this.options.idr).text(this._process(ntxt));	
-			soup.dataSave(this.options);
+			db.save(this.options);
 		}
 		//$("#"+this.options.idn).hide();
 		$("#"+this.options.idi).hide();
@@ -174,18 +165,24 @@ $.widget ("soup.cell", {
 		var c=window.getComputedStyle(this.element[0],null);
 		this.options=$.extend(this.options, this.styleGet(c));
 		//console.log (soup.anything(this.options));
-		soup.dataSave(this.options);
+		db.save(this.options);
 		//return false;
 	}
 
 });
 
+/**********
+Turns the provided element into a cell, I.e. savable and editable
+A cell has normally hidden heading and input fields as well as a normally showing result field.
+Cell text can be edited when the mouse is over it,
+*********/
+var cell=function(el){	$(el).cell(); return soup; };
+
 //apply widgets to elements of certain class
+//$(document).ready(function(){	$(".soup-cell").cell();});
+$( function(){	$(".soup-cell").cell(); }); //execute when ready
 
-//to make foreach nestable, apply foreach widget in reverse order ie. bottom to top of selection
-
-$(document).ready(function(){	$(".soup-cell").cell();});
-
+console.log("cell loaded");
 return cell;
 
 }); //define

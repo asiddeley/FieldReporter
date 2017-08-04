@@ -32,7 +32,9 @@ var localFileEnum=function(){
 	var fo = fso.GetFolder(spec);
 	var fe = new Enumerator(fo.files);
 	return fe;
-}
+};
+
+console.log("localFileEnum loaded");
 
 return localFileEnum;
 

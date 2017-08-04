@@ -25,6 +25,8 @@ var isPic=function(path){
 	return r;
 };
 
+console.log("isPic loaded");
+
 return isPic;
 
 }); //define

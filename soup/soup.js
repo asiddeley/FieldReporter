@@ -10,12 +10,21 @@ Andrew Siddeley
 03-Aug-2017
 ********************************/
 
+requirejs.config({
+	//baseUrl default (if not defined here) will be same as HTML.  
+	//paths below are relative to baseURL
+	//jquery special requirement - baseUrl must be the same url as jquery for jquery to work
+	baseUrl: "jquery",
+	paths: {soup:"../soup"}
+}); 
+
 
 // Define a Module with Simplified CommonJS Wrapper...
 // see http://requirejs.org/docs/api.html#cjsmodule
 define( function(require, exports, module) {
 
 var soup={};
+window.soup=soup;
 var $=require('jquery');
 var $$=require('jquery-ui');
 
@@ -66,13 +75,10 @@ soup.anything$=function(obj){
 }
 
 
-soup.autoHeight=function (el) {
-	//Thanks http://stephanwagner.me/auto-resizing-textarea
-    $(el).css('height', 'auto').css('height', el.scrollHeight + 5);
-}
 
+//Thanks http://stephanwagner.me/auto-resizing-textarea
+soup.autoHeight=function (el) { $(el).css('height', 'auto').css('height', el.scrollHeight + 5); }
 
-soup.db=require('soup/database');
 
 soup.docName=require('soup/docName');
 
@@ -92,17 +98,12 @@ soup.edit=function(list, index, remove, ins){
 		}
 	}
 }
-
-	
-///////////////////////////////////////////////////////////////
 	
 soup.isJpg=function(path){
 	var ext=path.substring(path.lastIndexOf('.')+1); 
 	if (ext.toUpperCase()=="JPG") return true;
 	else return false;
 }
-
-
 
 soup.isPic=require('soup/isPic');
 
@@ -122,26 +123,21 @@ soup.localPath=require('soup/localPath');
 soup.localPicArray=require('soup/localPicArray');
 soup.localPicItem=function(){return picItem;}
 
-
 soup.result=function(id){
 	//returns the result from soup widget of given id
 	//console.log('get returns:'+key);
 	return $(id).cell('result')||$(id).pocket('result');
 }
 
-
-//exports.soup=soup;
-//console.log('soup window.soup --- ',window.soup);
-
 //blend in database functions...
-//$.extend(soup, require('soup/database'));
+$.extend(soup, require('soup/database'));
 
+//jquery-ui widget setup
 soup.cell=require('soup/cell');
 soup.foreach=require('soup/foreach');
 
-console.log('all SOUP modules loaded');
-
-
+//success
+console.log('soup loaded');
 return soup;
 
 }); //define

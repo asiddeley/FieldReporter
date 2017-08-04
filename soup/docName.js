@@ -19,7 +19,9 @@ var docName=function() {
 	var name=path.substring(path.lastIndexOf('/')+1); //eg file.html
 	name=name.replace(/%20/g," ");
 	return name.substring(0,name.lastIndexOf('.'));
-}
+};
+
+console.log("docName loaded");
 
 return docName;
 

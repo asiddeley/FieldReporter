@@ -8,15 +8,15 @@
 <!-- this site includes icons as well as css -->
 <!--link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"-->
 
-<script src="./dependencies/jquery-1.10.2.js"></script>
-<script src="./dependencies/jquery-ui.js"></script>
+<script src="./jquery/jquery-1.10.2.js"></script>
+<script src="./jquery/jquery-ui.js"></script>
 
 <!-- bootstrap Libraries (after jQuery) -->
-<script src="./dependencies/bootstrap.min.js"></script>
-<link rel="stylesheet" href="./dependencies/bootstrap.min.css">
+<script src="./bootstrap/bootstrap.min.js"></script>
+<link rel="stylesheet" href="./bootstrap/bootstrap.min.css">
 
 <!-- soup Libraries -->
-<script src="soup.js"></script>
+<script data-main="./soup/soup.js" src="./require.js"></script>
 <!--script src="soupWidgets.js"></script-->
 
 <style>
@@ -41,6 +41,8 @@ p, h2, h3, strong {font-family:'Book Antiqua';}
 //$(document).ready(function(){	$(".soup-for").for();});
 
 $(document).ready(function(){
+	var soup=require("soup/soup");
+	console.log('HTML soup', soup);
 	$('#docName').text(soup.docName());
 	$('#browserTab').text(soup.docName());
 	$('#rowPopup').dialog( {'autoOpen':false} );
@@ -102,7 +104,7 @@ $(document).ready(function(){
 <!--div>PAGE STARTS HERE</div-->
 
 <div class='container'>
-	<img src='./dependencies/NORRlogo.png' style='width:100px; float:left;'>
+	<img src='./images/private/logo.png' style='width:100px; float:left;'>
 	<h2  style='float:right;' >Field Review Report</h2><div style='clear:both'></div>
 	<br><br>
 

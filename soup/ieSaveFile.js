@@ -28,8 +28,9 @@ var ieSaveFile=function(filePath, content){
 	file.Write(content);
 	file.Close();
 	return true;
-}
-///////////////////////////////////////////
+};
+
+console.log("ieSaveFile loaded");
 
 return ieSaveFile;
 

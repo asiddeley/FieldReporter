@@ -27,7 +27,9 @@ var ieLoadFile=function(filePath){
 	}
 	
 	return content;
-}
+};
+
+console.log("ieLoadFile loaded");
 
 return ieLoadFile;
 

@@ -21,9 +21,9 @@
 <script src="./bootstrap/bootstrap.min.js"></script>
 <link rel="stylesheet" href="./bootstrap/bootstrap.min.css">
 
-<!-- soup Libraries -->
+<!-- soup Library -->
 <!--script src="./require/require.js"></script-->
-<script data-main="soup/requireJsConfig.js" src="require/require.js"></script>
+<script data-main="soup/soup.js" src="require/require.js"></script>
 
 
 <style>
@@ -135,10 +135,10 @@ function testInsert() {
 	CM2.hide();
 }
 
-//Load and launch BIM United FC
-requirejs(['soup/soup.js'], function(soup){
 
-	$(document).ready(function(){
+requirejs(['soup/soup.js'], function(soup){
+	$().ready(function(){
+	
 		$('#docName').text(soup.docName());
 		$('#browserTab').text(soup.docName());
 		CM2=$('#rowOptions').contextMenu('instance');
@@ -147,9 +147,10 @@ requirejs(['soup/soup.js'], function(soup){
 			'drop': function(e){ e=e||event; e.preventDefault(); false;},
 			'dragover':function(e){ e=e||event; e.preventDefault(); false;}
 		});
-	}); //ready
+	}); 
 
-}); //require
+}); 
+
 
 </script>
 
@@ -187,7 +188,7 @@ requirejs(['soup/soup.js'], function(soup){
 <!--div>PAGE STARTS HERE</div-->
 
 <div class='container'>
-	<img src='./images/private/NORRlogo.png' style='width:100px; float:left;'>
+	<img src='./images/private/logo.png' style='width:100px; float:left;'>
 	<h2  style='float:right;' >Field Review Report</h2><div style='clear:both'></div>
 	<br><br>
 
@@ -315,8 +316,9 @@ requirejs(['soup/soup.js'], function(soup){
 					class='pocket'
 					ondragenter='$(this).css("background-color","pink");'
 					ondragleave='$(this).css("background-color","white");'			
-					soup-action='soup.idfix(this.child, this.item).pocket(this.child);'
-					soup-imgpath='photos/'
+					soup-action-HOLD='soup.idfix(this.child, this.item).pocket(this.child);'
+					soup-action='soup.idfix(this.child, this.item);'
+					soup-imgpath='albums/'
 				></div>
 				<p
 					id='caption_pocket_a' class='pocket-caption'
@@ -330,8 +332,9 @@ requirejs(['soup/soup.js'], function(soup){
 					class='pocket'
 					ondragenter='$(this).css("background-color","pink");'
 					ondragleave='$(this).css("background-color","white");'			
-					soup-action='soup.idfix(this.child, this.item).pocket(this.child);'
-					soup-imgpath='photos/'
+					soup-action-HOLD='soup.idfix(this.child, this.item).pocket(this.child);'
+					soup-action='soup.idfix(this.child, this.item);'
+					soup-imgpath='albums/'
 				></div>
 				<p
 					id='caption_pocket_b' class='pocket-caption'
@@ -345,8 +348,9 @@ requirejs(['soup/soup.js'], function(soup){
 					class='pocket'
 					ondragenter='$(this).css("background-color","pink");'
 					ondragleave='$(this).css("background-color","white");'			
-					soup-action='soup.idfix(this.child, this.item).pocket(this.child);'
-					soup-imgpath='photos/'
+					soup-action-HOLD='soup.idfix(this.child, this.item).pocket(this.child);'
+					soup-action='soup.idfix(this.child, this.item);'
+					soup-imgpath='albums/'
 				></div>
 				<p
 					id='caption_pocket_c' class='pocket-caption'

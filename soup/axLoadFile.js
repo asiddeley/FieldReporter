@@ -38,6 +38,7 @@ var axLoadFile=function(col){
 	} catch(ex) { console.log("axLoadFile failed ", ex);	return null;	}
 }
 
+console.log("axLoadFile loaded");
 return axLoadFile;
 
 }); //define

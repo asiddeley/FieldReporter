@@ -31,9 +31,9 @@ var ieCopyFile=function(dest, source){
 		return false;
 	}
 	return true;
-}
+};
 
-
+console.log("ieCopyFile loaded");
 
 return ieCopyFile;
 

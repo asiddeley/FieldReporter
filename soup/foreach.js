@@ -144,6 +144,8 @@ $.widget("soup.foreach", {
 
 $(document).ready(function(){	$(".soup-foreach").foreach(); });
 
+console.log("foreach loaded");
+
 //no need to return anything, foreach widget now defined in jquery-ui and accessed by $(...).foreach
 return null;
 

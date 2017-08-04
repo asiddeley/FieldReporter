@@ -13,7 +13,6 @@ Andrew Siddeley
 // see http://requirejs.org/docs/api.html#cjsmodule
 define( function(require, exports, module) {
 
-var soup={};
 var $=require('jquery');
 var $$=require('jquery-ui');
 
@@ -91,6 +90,7 @@ $.widget("soup.pocket", {
 	
 });
 
+console.log("pocket loaded");
 
 return null;
 

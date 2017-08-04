@@ -22,6 +22,8 @@ var localPath=function(name){
 	return fn;
 };
 
+console.log("localPath");
+
 return localPath;
 
 }); //define

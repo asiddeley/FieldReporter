@@ -26,6 +26,8 @@ var localPicArray=function(name){
 	return r;
 };
 
+console.log("localPicArray loaded");
+
 return localPicArray;
 
 }); //define

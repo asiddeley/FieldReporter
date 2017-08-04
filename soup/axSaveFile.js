@@ -20,6 +20,7 @@ var axSaveFile=function(filePath, content){
 
 }
 
+console.log("axSaveFile loaded.  Work to do.");
 
 return axSaveFile;
 

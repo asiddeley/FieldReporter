@@ -43,8 +43,9 @@ var ieCreatePath=function(path) {
 		}
 	}
 	return true;
-}
+};
 
+console.log("ieCreatePath loaded");
 
 return ieCreatePath;
 
