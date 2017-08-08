@@ -87,7 +87,12 @@ function rowInsert(offset){
 	var index = parseInt(CM2.caller('foreachIndex'));
 	var newId = CM2.caller('foreach').items('max')+1;
 	items=soup.edit(items, index + offset, 0, [newId]);
+	
 	//set items, apply effect via callback
+	//contextMenu.caller('foreach') returns a ref to the foreach widget (which created the row)  
+	//then set the items with an added id for the new entry
+	//item() then refreshes the foreach widget which adds the new row 
+	//callback function then highlights the newly created row once displayed
 	CM2.caller('foreach').items(items, function(i, e){ 
 		//highlight and reveal inserted row
 		if (i == index + offset) {$(e).css('background','gold').hide().show(500);}
@@ -95,8 +100,16 @@ function rowInsert(offset){
 	CM2.hide();
 }
 
+function rowDelete(ev){
+//var k=Object.keys(ev);
+//console.log(ev);
+var caller=CM2.menu("option", 'caller');
+console.log("caller", $(caller).attr("id")); 
 
-function rowDelete(){
+
+};
+
+function rowDeleteDEP(){
 	var items = CM2.caller("foreach").items(); //get
 	var index = parseInt(CM2.caller("foreachIndex"));
 	//Hide and delete unless it's the last item. 
@@ -130,12 +143,22 @@ function testInsert() {
 };
 
 
-function showMenu(cm, ev){
-	cm.zIndex(1000); 
-	cm.show().position({my:'left top',	at:'left bottom', of:ev});
+function showMenu(cm$, ev){
+	cm$.zIndex(1000); 
+	cm$.show().position({my:'left top',	at:'left bottom', of:ev});
+	cm$.menu('option', 'caller', ev.target); //remember caller - div element or row that launched the contextMenu
 	//console.log("ev", ev);
 	return false;
 };
+
+function selectFolder(e) {
+    var theFiles = e.target.files;
+    var relativePath = theFiles[0].webkitRelativePath;
+    var folder = relativePath.split("/");
+    alert(folder[0]);
+};
+
+
 
 //Execute when Page READY...
 $(function(){
@@ -149,7 +172,8 @@ $(function(){
 
 		//$('.soup-contextMenu').contextMenu(); //DEPRECATED
 		$('.soup-cell').cell();
-		$('.soup-foreach').foreach();
+		//select all elements with a soup-foreach attribute and wigetize...
+		$('[soup-foreach]').foreach();
 
 		$('#docName').text(soup.docName());
 		$('#browserTab').text(soup.docName());
@@ -173,14 +197,14 @@ $(function(){
 <body>
 
 <!--div>MENUS</div-->
-<div id='rowOptions' onmouseleave='CM2.hide()'>
+<div id='rowOptions' onmouseleave='CM2.hide()' style='display:none'>
 	<p onclick='rowInsert(0)'>Insert before</p>
 	<p onclick='rowInsert(1)'>Insert after</p>
 	<hr>
 	<p onclick='console.log("Move up");$("#rowOptions").hide();'>Move up</p>
 	<p onclick='console.log("Move dn");$("#rowOptions").hide();'>Move dn</p>
 	<hr>
-	<p onclick='rowDelete();'>Delete</p>
+	<p onclick='rowDelete(event);'>Delete</p>
 	<hr>
 	<p onclick='console.log("hide");'>Hide</p>
 	<p onclick='console.log("show");'>Show hidden</p>
@@ -252,8 +276,9 @@ $(function(){
 		<h3 class='col-xs-1'>Pic.</h3>
 	</div>
 	
-	<div id='comments' class='soup-foreach' soup-foreach='[1, 2, 3]'  >
-		<div class='row row_' 
+	<div id='comments'   soup-foreach='[1, 2, 3]'  >
+		<div id='commentNumber-' class='row row_' 
+			soup-action='soup.idfix(this.child, this.item)'
 			onmouseenter='$(this).css("background-color","pink")'
 			onmouseleave='$(this).css("background-color","white")'
 			oncontextmenu='showMenu(CM2, event);'
@@ -288,8 +313,8 @@ $(function(){
 		<h3 class='col-xs-10'>Issues Outstanding</h3>
 		<h3 class='col-xs-1'>Ref</h3>
 	</div>
-	<div id='outstanding' class='soup-foreach' soup-foreach='[1]'  >
-		<div class='row row_' 
+	<div id='outstanding' soup-foreach='[1]'  >
+		<div class='row row_'  soup-template='+1'
 			onmouseenter='$(this).css("background-color","pink")'
 			onmouseleave='$(this).css("background-color","white")'
 			oncontextmenu='showMenu(CM2, event)'
@@ -308,7 +333,7 @@ $(function(){
 		<h3 class='col-xs-1'>Pic.</h3>
 	</div>
 	
-	<div id='pictures' class='soup-foreach' soup-foreach='[1, 2]'  >
+	<div id='pictures'  soup-foreach='[1, 2]'  >
 		<div 
 			class='row' 
 			style='height:300px; display:block'
