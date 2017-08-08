@@ -15,9 +15,14 @@ requirejs.config({
 	//paths below are relative to baseURL
 	//jquery special requirement - baseUrl must be the same url as jquery for jquery to work
 	baseUrl: "jquery",
+	waitSeconds:10, 
+	/*Load timeout for modules: soup/soup.js...
+	In case others have this issue and still struggling with it (like I was), this problem can also arise from circular dependencies, e.g. A depends on B, and B depends on A.
+	The RequireJS docs don't mention that circular dependencies can cause the "Load timeout" error, but I've now observed it for two different circular dependencies.
+	https://stackoverflow.com/questions/14279962/require-js-error-load-timeout-for-modules-backbone-jquerymobile
+	*/
 	paths: {soup:"../soup"}
 }); 
-
 
 // Define a Module with Simplified CommonJS Wrapper...
 // see http://requirejs.org/docs/api.html#cjsmodule
@@ -28,115 +33,65 @@ window.soup=soup;
 var $=require('jquery');
 var $$=require('jquery-ui');
 
-
-soup.ver="16.06.25";
+soup.ver="20160825";
 soup.pageCount=0;
 soup.picItem="1";
 soup.rowCount=0;
 
-//console.log("loading soup");
-
-//soup.anything=function(input){return this.mayNotBeStr(input);}
-
-soup.anything=function(obj){
-	//returns anything as a string, with HTML markups
-	var r="";  //$(".sandboxResult"+soup.sandbox.name).val()+"<br>";
-	switch(typeof obj){
-		case "object":
-			r="<u>Object or Array:</u><br>";
-			for (var i in obj) {
-				//if (obj.hasOwnProperty(i)){
-					r+=i +":"+soup.anything(obj[i])+"<br>";
-				//}
-			}
-		break;
-		default:
-			//r="<u>"+ typeof (obj)+"</u><br>"+obj;
-			r=obj;
-	}
-	return r;
-}
-
-soup.anything$=function(obj){
-	//returns anything as a string, with escaped markups
-	var r="";  
-	switch(typeof obj){
-		case "object":
-			r="Object or Array:\n";
-			for (var i in obj) {
-					r+=i +" => "+soup.anything(obj[i])+"   ";
-			}
-		break;
-		default:
-			//r="<u>"+ typeof (obj)+"</u><br>"+obj;
-			r=obj;
-	}
-	return r;
-}
-
+//soup.anything=require('soup/anything').anything;
+//soup.anything$=require('soup/anything').anything$;
 
 
 //Thanks http://stephanwagner.me/auto-resizing-textarea
-soup.autoHeight=function (el) { $(el).css('height', 'auto').css('height', el.scrollHeight + 5); }
-
+soup.autoHeight=function (el) { 
+	$(el).css('height', 'auto').css('height', el.scrollHeight + 5);
+};
 
 soup.docName=require('soup/docName');
 
-soup.edit=function(list, index, remove, ins){
-	//similar to splice, which seems to be wonky in iexplorer
-	if (Array.isArray(list)) {
-		if (typeof ins=='undefined') ins=[];
-		if (!Array.isArray(ins)) ins=[ins];
-		if (typeof index != 'number') return list;
-		if (typeof remove != 'number') return list;
-		if (index <= 0){
-			return(ins.concat(list.slice(remove)));
-		} else if(index < list.length){			
-			return (list.slice(0,index).concat(ins).concat(list.slice(index+remove)));		
-		} else {
-			return (list.concat(ins));		
-		}
-	}
-}
+soup.edit=require('soup/edit');
 	
 soup.isJpg=function(path){
 	var ext=path.substring(path.lastIndexOf('.')+1); 
 	if (ext.toUpperCase()=="JPG") return true;
 	else return false;
-}
+};
 
 soup.isPic=require('soup/isPic');
+//console.log(soup.isPic);
 
 soup.idfix=function(el, suffix){
 	var id=$(el).attr('id');
 	$(el).attr('id', id + suffix);
 	return soup; //to allow chaining
-}
+};
 
 soup.idfixx=function(el, prefix, suffix){
 	var id=$(el).attr('id');
 	$(el).attr('id', prefix + id + suffix);
 	return soup; //to allow chaining
-}
+};
 
 soup.localPath=require('soup/localPath');
 soup.localPicArray=require('soup/localPicArray');
-soup.localPicItem=function(){return picItem;}
+soup.localPicItem=function(){return picItem;};
 
 soup.result=function(id){
 	//returns the result from soup widget of given id
 	//console.log('get returns:'+key);
 	return $(id).cell('result')||$(id).pocket('result');
-}
+};
 
 //blend in database functions...
-$.extend(soup, require('soup/database'));
+var db=require('soup/database');
+$.extend(soup, db);
 
 //jquery-ui widget setup
 soup.cell=require('soup/cell');
 soup.foreach=require('soup/foreach');
 
-//success
+//soup.contextMenu=require('soup/contextMenu'); //DEPRECATED
+
 console.log('soup loaded');
 return soup;
 

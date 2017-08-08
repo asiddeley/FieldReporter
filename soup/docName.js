@@ -15,13 +15,14 @@ Andrew Siddeley
 define(function(require, exports, module){
 
 var docName=function() {
+	//console.log('docName executed...');
 	var path=window.location.pathname; //eg c:/documents/folder/file.html
 	var name=path.substring(path.lastIndexOf('/')+1); //eg file.html
 	name=name.replace(/%20/g," ");
 	return name.substring(0,name.lastIndexOf('.'));
 };
 
-console.log("docName loaded");
+//console.log("docName loaded");
 
 return docName;
 

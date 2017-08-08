@@ -14,7 +14,7 @@ Andrew Siddeley
 define( function(require, exports, module) {
 
 var $=require('jquery');
-var $$=require('jquery-ui');
+//var $$=require('jquery-ui');
 
 //////////////////////////////////////////////////////
 // contextMenu
@@ -26,6 +26,7 @@ $.widget("soup.contextMenu", {
 	options:{	},
 	
 	_create: function(){
+		console.log('contextMenu Create...');
 		$(this.element).hide();
 		this.options.caller=null; //caller set by show()
 	},
@@ -47,7 +48,7 @@ $.widget("soup.contextMenu", {
 		else if (arguments[0]=='foreachIndex1') {
 			//r=$.data(this.options.caller,'foreachIndex');
 			r=this.options.caller.foreachIndex1;
-		}
+		};
 		return r;
 	},
 	
@@ -81,8 +82,12 @@ $.widget("soup.contextMenu", {
 	
 });
 
-$( function(){	$(".soup-contextMenu").cell(); }); //execute when ready
-console.log("contectMenu loaded");
+//Execute on ready...
+//$(function(){$(".soup-contextMenu").contextMenu();}); 
+//Execute on ready may be too late, execute now instead...
+//$(".soup-contextMenu").contextMenu();
+
+//console.log("contextMenu loaded");
 return null;
 
 }); //define

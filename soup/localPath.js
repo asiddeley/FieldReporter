@@ -22,7 +22,7 @@ var localPath=function(name){
 	return fn;
 };
 
-console.log("localPath");
+console.log("localPath loaded");
 
 return localPath;
 

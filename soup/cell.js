@@ -16,7 +16,7 @@ Andrew Siddeley
 define(function(require, exports, module){
 
 var $=require('jquery');
-var $$=require('jquery-ui');
+//var $$=require('jquery-ui');
 var db=require('soup/database');
 //console.log('cell - keys of module.exports...', Object.keys(module.exports));
 
@@ -179,10 +179,9 @@ Cell text can be edited when the mouse is over it,
 var cell=function(el){	$(el).cell(); return soup; };
 
 //apply widgets to elements of certain class
-//$(document).ready(function(){	$(".soup-cell").cell();});
-$( function(){	$(".soup-cell").cell(); }); //execute when ready
+//$().ready(function(){	$(".soup-cell").cell(); }); //execute when ready
 
-console.log("cell loaded");
+//console.log("cell loaded");
 return cell;
 
 }); //define

@@ -15,7 +15,7 @@ Andrew Siddeley
 define(function(require, exports, module){
 
 var $=require('jquery'); //load jquery
-var $$=require('jquery-ui'); //load widget
+//var $$=require('jquery-ui'); //load widget
 var db=require('soup/database');
 
 
@@ -46,6 +46,7 @@ $.widget("soup.foreach", {
 	
 	_create: function() {
 		//read defaults from html tag/content
+		//console.log('foreach create...');
 		this.template=this.element.html();
 		$.extend(this.options,{
 			name:this.element.attr('id'),
@@ -80,7 +81,7 @@ $.widget("soup.foreach", {
 			if (Array.isArray (arg)) {
 				console.log('foreach items changed');
 				this.options.items=arg;
-				soup.dataSave(this.options);
+				db.save(this.options);
 				this.refresh();
 				if (typeof callback=='function') {
 					for (var i=0; i<this.options.items.length; i++){
@@ -127,7 +128,7 @@ $.widget("soup.foreach", {
 				//el[this.name+'Item']=this.item; //to allow nested foreach
 				if (action) {
 					try { eval( action ); } 
-					catch(er) { console.log( er.toString() );}
+					catch(er) { console.log( er );}
 				}
 			}
 			this._trigger("foreach-refresh", null, {'foreach':this} );
@@ -138,15 +139,13 @@ $.widget("soup.foreach", {
 }); //widget
 
 
+//TO DO make foreach nestable
+
 //apply widgets to elements of certain class
+//$(function(){$(".soup-foreach").foreach()}); //wigetize when ready
 
-//to make foreach nestable, apply foreach widget in reverse order ie. bottom to top of selection
+//console.log("foreach loaded");
 
-$(document).ready(function(){	$(".soup-foreach").foreach(); });
-
-console.log("foreach loaded");
-
-//no need to return anything, foreach widget now defined in jquery-ui and accessed by $(...).foreach
 return null;
 
 }); //define

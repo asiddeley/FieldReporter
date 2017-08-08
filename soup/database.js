@@ -42,7 +42,7 @@ db.cache=null;
 db.Doc=function(name, valu){
 	this.name=(typeof name == 'undefined')?'unnamed':name.toString();
 	this.valu=(typeof valu == 'undefined')?'unvalued':valu.toString();
-}
+};
 
 db.file="database.txt";
 
@@ -50,7 +50,7 @@ db.filename=function(name){
 	name=(!name)?"database":name;
 	var filename=(db.file)?localPath(db.base+db.file):localPath(db.base+name+'.txt');
 	return filename;
-}
+};
 
 db.mode="ie"; //use iexplorer activeX to store data as a txt file in project subfolder
 //soup.dataMode="ax"; //use ajax to store data at mlab.com mongo database service
@@ -97,7 +97,7 @@ db.load=function(dataDoc){
 		else { dataDoc=dbc[dataDoc.name];}
 	}
 	return dataDoc;
-}
+};
 
 db.save=function(dataDoc){
 	
@@ -144,7 +144,7 @@ db.save=function(dataDoc){
 	return r; 
 };
 
-console.log("database loaded");
+//console.log("database loaded");
 
 //return library (object) of soup database functions
 return db;
