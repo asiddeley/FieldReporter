@@ -89,6 +89,7 @@ $.extend(soup, db);
 //jquery-ui widget setup
 soup.cell=require('soup/cell');
 soup.foreach=require('soup/foreach');
+soup.pocketize=require('soup/pocket');
 
 //soup.contextMenu=require('soup/contextMenu'); //DEPRECATED
 

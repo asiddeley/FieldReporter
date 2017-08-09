@@ -79,51 +79,46 @@ p, h2, h3, strong {font-family:'Book Antiqua';}
 </style>
 
 <script>
-var CM2={}; //Context Menu for Section 2, 3 & 4.  Initialized later
+var CM2; //Global variable reserved for Context Menu for Section 2, 3 & 4.  Initialized later
 
 function rowInsert(offset){
 	//after=0,1: insert before, insert after
-	var items = CM2.caller('foreach').items(); //get items
-	var index = parseInt(CM2.caller('foreachIndex'));
-	var newId = CM2.caller('foreach').items('max')+1;
-	items=soup.edit(items, index + offset, 0, [newId]);
+	var caller=CM2.menu("option", 'caller'); //get row that called the menu, caller is set by showMenu() function below
+	var rows = caller.foreach.items(); //get list of all rows from row's parent 'foreach' element 
+	var index=parseInt(caller.index); //get index of selected item or row for deletion
+	var newid = caller.foreach.items().length+1; //this is not a good method - will easily refer to previoulsy deleted rows 
+	rowsRevised=soup.edit(rows, index, 0, [newid]);
 	
 	//set items, apply effect via callback
 	//contextMenu.caller('foreach') returns a ref to the foreach widget (which created the row)  
 	//then set the items with an added id for the new entry
 	//item() then refreshes the foreach widget which adds the new row 
 	//callback function then highlights the newly created row once displayed
-	CM2.caller('foreach').items(items, function(i, e){ 
+	caller.foreach.items(rowsRevised, function(i, e){ 
 		//highlight and reveal inserted row
 		if (i == index + offset) {$(e).css('background','gold').hide().show(500);}
+		
 	}); 
 	CM2.hide();
 }
 
 function rowDelete(ev){
-//var k=Object.keys(ev);
-//console.log(ev);
-var caller=CM2.menu("option", 'caller');
-console.log("caller", $(caller).attr("id")); 
-
-
-};
-
-function rowDeleteDEP(){
-	var items = CM2.caller("foreach").items(); //get
-	var index = parseInt(CM2.caller("foreachIndex"));
-	//Hide and delete unless it's the last item. 
-	//Removing last item would make it impossible to add rows in future. 
-	if (items.length>1){	
-		$(CM2.caller()).css('background','gold').hide(500,
-			//to do after hide...
-			function(){
-				items=soup.edit(items, index, 1);
-				CM2.caller("foreach").items(items); //set
-				CM2.hide();
+	var caller=CM2.menu("option", 'caller'); //get row that called the menu, caller is set by showMenu() function below
+	var rows=caller.foreach.items(); //get list of all rows from row's parent 'foreach' element 
+	var index=parseInt(caller.index); //get index of selected item or row for deletion
+	//console.log('caller index', index);
+	//Ensure at least 1 row is kept since removing last item would make it impossible to add rows in future. 
+	if (rows.length>1){	
+		$(caller).css('background','gold').hide(500,
+			function(){	
+				//this callback function is executed after row is hidden
+				var rowsRevised=soup.edit(rows, index, 1);
+				caller.foreach.items(rowsRevised); //update rows and refresh 'foreach' elements on page
+				//TO DO... purge database
+				CM2.hide(); //done with contecMenu
 			}
 		);
-	}
+	};
 };
 
 function highlightCaller(on) {
@@ -168,12 +163,14 @@ $(function(){
 	//inhibit the browser's right-click context menu
 	$(document).on('contextmenu', false);
 
-	requirejs(['soup'], function(){
+	requirejs(['soup', 'camanjs/dist-4.1.1/caman.full.min.js'], function(soup, caman){
 
 		//$('.soup-contextMenu').contextMenu(); //DEPRECATED
 		$('.soup-cell').cell();
 		//select all elements with a soup-foreach attribute and wigetize...
 		$('[soup-foreach]').foreach();
+		soup.pocketize(); //turn into an image pocket, all elements with a soup-pocket attribute
+		
 
 		$('#docName').text(soup.docName());
 		$('#browserTab').text(soup.docName());
@@ -346,10 +343,11 @@ $(function(){
 					id='pocket_a'
 					class='pocket'
 					ondragenter='$(this).css("background-color","pink");'
-					ondragleave='$(this).css("background-color","white");'			
+					ondragleave='$(this).css("background-color","white");'
+					soup-pocket
 					soup-action-HOLD='soup.idfix(this.child, this.item).pocket(this.child);'
 					soup-action='soup.idfix(this.child, this.item);'
-					soup-imgpath='albums/'
+					soup-imgpath='albums/test/'
 				></div>
 				<p
 					id='caption_pocket_a' class='pocket-caption'
@@ -362,10 +360,11 @@ $(function(){
 					id='pocket_b'
 					class='pocket'
 					ondragenter='$(this).css("background-color","pink");'
-					ondragleave='$(this).css("background-color","white");'			
+					ondragleave='$(this).css("background-color","white");'		
+					soup-pocket
 					soup-action-HOLD='soup.idfix(this.child, this.item).pocket(this.child);'
 					soup-action='soup.idfix(this.child, this.item);'
-					soup-imgpath='albums/'
+					soup-imgpath='albums/test/'
 				></div>
 				<p
 					id='caption_pocket_b' class='pocket-caption'
@@ -380,8 +379,9 @@ $(function(){
 					ondragenter='$(this).css("background-color","pink");'
 					ondragleave='$(this).css("background-color","white");'			
 					soup-action-HOLD='soup.idfix(this.child, this.item).pocket(this.child);'
+					soup-pocket
 					soup-action='soup.idfix(this.child, this.item);'
-					soup-imgpath='albums/'
+					soup-imgpath='albums/test/'
 				></div>
 				<p
 					id='caption_pocket_c' class='pocket-caption'

@@ -92,7 +92,7 @@ $.widget("soup.foreach", {
 			} 			
 			break;
 		case 'string':
-			if (arg=='max'){
+			if (arg=='max' || arg=='count'){
 				var r=0;
 				this.options.items.forEach(function(i){r=(r<i)?i:r;});
 				return r;
@@ -120,6 +120,7 @@ $.widget("soup.foreach", {
 				//What about nested foreach's
 				el.foreach=this;
 				//el[this.name]=this; //to allow nested foreach
+				el.index=this.index;
 				el.foreachIndex=this.index;
 				//el[this.name+'Index']=this.index; //to allow nested foreach
 				el.foreachIndex1=this.index1;

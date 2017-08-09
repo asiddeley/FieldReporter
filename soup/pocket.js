@@ -16,15 +16,6 @@ define( function(require, exports, module) {
 var $=require('jquery');
 var $$=require('jquery-ui');
 
-/////////////////////////////////////////////////////////
-//
-// pocket
-soup.pocket=function(el){
-	$(el).pocket();
-	return soup;
-};
-
-
 $.widget("soup.pocket", {
 
 	_template:'<div></div>',
@@ -48,7 +39,7 @@ $.widget("soup.pocket", {
 			dragover:'_dragover',
 			drop:'_dropimg'
 		});
-		this.options=$.extend(this.options, soup.dataLoad(this.options));
+		this.options=$.extend(this.options, soup.load(this.options));
 		this.refresh();
 	},
 	
@@ -64,7 +55,7 @@ $.widget("soup.pocket", {
 			console.log(p+':'+event.originalEvent.dataTransfer.files[0][p]);
 		}
 		this.options.file.name=event.originalEvent.dataTransfer.files[0].name;
-		soup.dataSave(this.options);
+		soup.save(this.options);
 		this.refresh();
 	},
 	
@@ -92,7 +83,12 @@ $.widget("soup.pocket", {
 
 console.log("pocket loaded");
 
-return null;
+pocketize=function(el){
+	$('[soup-pocket]').pocket();
+	return soup;
+};
+
+return pocketize;
 
 }); //define
 
