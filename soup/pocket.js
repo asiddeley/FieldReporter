@@ -83,7 +83,7 @@ $.widget("soup.pocket", {
 
 console.log("pocket loaded");
 
-pocketize=function(el){
+pocketize=function(){
 	$('[soup-pocket]').pocket();
 	return soup;
 };

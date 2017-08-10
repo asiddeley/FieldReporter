@@ -101,7 +101,7 @@ db.load=function(dataDoc){
 
 db.save=function(dataDoc){
 	
-	if (typeof(dataDoc)=='string') dataDoc=new db.Doc(dataDoc);
+	if (typeof(dataDoc)=='string') dataDoc=new db.Doc('unnamed', dataDoc);
 	//Get text file contents which is a JSON of all cells
 	//{name1:value1, name2:value2...}
 	//var fn=soup.localPath(soup.dataBase);

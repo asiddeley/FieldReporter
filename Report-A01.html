@@ -165,12 +165,10 @@ $(function(){
 
 	requirejs(['soup', 'camanjs/dist-4.1.1/caman.full.min.js'], function(soup, caman){
 
-		//$('.soup-contextMenu').contextMenu(); //DEPRECATED
-		$('.soup-cell').cell();
-		//select all elements with a soup-foreach attribute and wigetize...
-		$('[soup-foreach]').foreach();
-		soup.pocketize(); //turn into an image pocket, all elements with a soup-pocket attribute
-		
+		//widgetize tagged elements...
+		soup.cell();
+		soup.foreach();
+		soup.pocket(); 
 
 		$('#docName').text(soup.docName());
 		$('#browserTab').text(soup.docName());
@@ -180,6 +178,9 @@ $(function(){
 			'drop': function(e){ e=e||event; e.preventDefault(); false;},
 			'dragover':function(e){ e=e||event; e.preventDefault(); false;}
 		});
+
+		//save soup distributable
+		soup.distro(  'soup/dist/soup.js', soup);
 	});
 }); 
 
@@ -254,6 +255,12 @@ $(function(){
 		<p id='reportDate' class='col-xs-4 soup-cell'>Jun 17, 2016</p>
 	</div>
 	
+	<div class='row row_'>
+		<p class='col-xs-1'>1.1</p>
+		<p id='generalStatement' class='col-xs-10' soup-cell >This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by NORR Limited.  Refer also to Mechanical and Electrical field reports issued separately.  
+		</p>
+	</div>	
+	
 	<br><br>
 
 	<div class='row row__'>
@@ -263,7 +270,7 @@ $(function(){
 
 	<div class='row row_'>
 		<p class='col-xs-1'>1.1</p>
-		<p id='generalStatement' class='col-xs-10 soup-cell'>This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by NORR Limited.  Refer also to Mechanical and Electrical field reports issued separately.  
+		<p id='generalComment' class='col-xs-10' soup-cell >general comment
 		</p>
 	</div>
 

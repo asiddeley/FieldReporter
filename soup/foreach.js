@@ -142,12 +142,11 @@ $.widget("soup.foreach", {
 
 //TO DO make foreach nestable
 
-//apply widgets to elements of certain class
-//$(function(){$(".soup-foreach").foreach()}); //wigetize when ready
+//apply foreach widgets to elements containing the soup-foreach tag 
+//<div   class='something' soup-foreach>
+var foreach=function(){$('[soup-cell]').cell(); return soup;}
 
-//console.log("foreach loaded");
-
-return null;
+return foreach;
 
 }); //define
 

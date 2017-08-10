@@ -47,6 +47,7 @@ soup.autoHeight=function (el) {
 	$(el).css('height', 'auto').css('height', el.scrollHeight + 5);
 };
 
+soup.distro=require('soup/distro');
 soup.docName=require('soup/docName');
 
 soup.edit=require('soup/edit');
@@ -85,11 +86,15 @@ soup.result=function(id){
 //blend in database functions...
 var db=require('soup/database');
 $.extend(soup, db);
+//axLoadFile=require('soup/axLoadFile');
+//axSaveFile=require('soup/axSaveFile');
+soup.ieLoadFile=require('soup/ieLoadFile');
+soup.ieSaveFile=require('soup/ieSaveFile');
 
 //jquery-ui widget setup
 soup.cell=require('soup/cell');
 soup.foreach=require('soup/foreach');
-soup.pocketize=require('soup/pocket');
+soup.pocket=require('soup/pocket');
 
 //soup.contextMenu=require('soup/contextMenu'); //DEPRECATED
 
