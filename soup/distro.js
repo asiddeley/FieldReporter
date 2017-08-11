@@ -35,12 +35,15 @@ define(function(require, exports, module){
 	**********/
 	
 	var replacer=function(key, valu){	
-		if (typeof valu == 'function'){ return valu;	}
+		if (typeof valu == 'function'){ return "FUNC000 "+valu.toString()+" FUNC999";	}
 		return valu; 
 	};
 	
 	var distro=function(){
-		ieSaveFile(localPath('soup/dist/soup.js'), JSON.stringify(soup, replacer, ' '));
+		var str=JSON.stringify(soup, replacer, ' ');
+		str=str.replace(/"FUNC000/g,"");
+		str=str.replace(/FUNC999"/g,"");
+		ieSaveFile(localPath('soup/dist/soup.js'), str);
 	};
 	
 	//console.log("distro loaded");
