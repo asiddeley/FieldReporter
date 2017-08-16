@@ -1,5 +1,5 @@
 /**********************************
-S imple
+S iddeley's
 O pen
 U tility
 P ackage
@@ -47,7 +47,6 @@ soup.autoHeight=function (el) {
 	$(el).css('height', 'auto').css('height', el.scrollHeight + 5);
 };
 
-soup.distro=require('soup/distro');
 soup.docName=require('soup/docName');
 
 soup.edit=require('soup/edit');
@@ -64,14 +63,17 @@ soup.isPic=require('soup/isPic');
 soup.idfix=function(el, suffix){
 	var id=$(el).attr('id');
 	$(el).attr('id', id + suffix);
+	//console.log(el, id+suffix);
 	return soup; //to allow chaining
 };
 
 soup.idfixx=function(el, prefix, suffix){
 	var id=$(el).attr('id');
 	$(el).attr('id', prefix + id + suffix);
+	//console.log(el, prefix+id+suffix);
 	return soup; //to allow chaining
 };
+
 
 soup.localPath=require('soup/localPath');
 soup.localPicArray=require('soup/localPicArray');
@@ -82,6 +84,8 @@ soup.result=function(id){
 	//console.log('get returns:'+key);
 	return $(id).cell('result')||$(id).pocket('result');
 };
+
+soup.stringifyFunc=require('soup/stringifyFunc');
 
 //blend in database functions...
 var db=require('soup/database');

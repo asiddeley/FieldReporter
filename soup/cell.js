@@ -176,7 +176,10 @@ Turns the provided element into a cell, I.e. savable and editable
 A cell has normally hidden heading and input fields as well as a normally showing result field.
 Cell text can be edited when the mouse is over it,
 *********/
-var cell=function(){	$('[soup-cell]').cell(); return soup; };
+var cell=function(selector){
+	selector=(typeof selector =='undefined')?'[soup-cell]':selector
+	$(selector).cell(); return soup; 
+};
 
 //apply widgets to elements of certain class
 //$().ready(function(){	$(".soup-cell").cell(); }); //execute when ready

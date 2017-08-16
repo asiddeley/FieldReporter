@@ -117,6 +117,7 @@ $.widget("soup.foreach", {
 				this.child=all[ all.length-j ];
 				el=all[ all.length-j ];
 				action=$(el).attr('soup-action');
+				//console.log(action);
 				//What about nested foreach's
 				el.foreach=this;
 				//el[this.name]=this; //to allow nested foreach
@@ -144,7 +145,7 @@ $.widget("soup.foreach", {
 
 //apply foreach widgets to elements containing the soup-foreach tag 
 //<div   class='something' soup-foreach>
-var foreach=function(){$('[soup-cell]').cell(); return soup;}
+var foreach=function(){$('[soup-foreach]').foreach(); return soup;}
 
 return foreach;
 

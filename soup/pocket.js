@@ -65,7 +65,7 @@ $.widget("soup.pocket", {
 	
 	refresh: function(){
 		var s=(this.options.file.name!=null)?('src="./'+this._imgpath+this.options.file.name+'"'):' ';
-		this.element.html('<img '+ s +' style="max-width:100%; max-height:100%;" >');
+		this.element.html('<img class="testImg" '+ s +' style="max-width:100%; max-height:100%;" >');
 		//this.element.html('<img '+ s + '>');
 		//console.log(this.element.html());
 	},
