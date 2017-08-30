@@ -12,6 +12,8 @@
 <script src="./jquery/jquery-ui.js"></script>
 
 <link rel="stylesheet" href="./jquery/jquery-ui.css">
+<link rel="stylesheet" type="text/css" href="./jquery/jquery-ui.theme.css">
+<link rel="stylesheet" type="text/css" href="./jquery/jquery-ui.structure.css">
 
 <!-- bootstrap Libraries (after jQuery) -->
 <script src="./bootstrap/bootstrap.min.js"></script>
@@ -19,8 +21,11 @@
 
 <!-- soup Library -->
 <script data-main="soup/soup" src="require/require.js"></script>
-<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.theme.css">
-<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.structure.css">
+
+
+<!-- caman - canvas manipulation Library -->
+<script src="./camanjs/dist-4.1.1/caman.full.min.js"></script>
+
 
 <style>
 fieldset {border: 0;}
@@ -32,34 +37,6 @@ select {width: 200px; }
 .row_{border-bottom:1px solid #aaa;}
 .row__{border-top:2px solid #000; border-bottom:1px solid #aaa;}
 p, h2, h3, strong {font-family:'Book Antiqua';}
-
-.contextMenuDEP {
-	display:none;
-	position:absolute;
-	width:200px;
-	border:1px solid black;
-	font-size:12px;
-	background-color:beige;
-	cursor:default;
-	padding:5;
-	margin:5;
-}
- 
-.contextMenuDEP > p{
-	margin:0;
-}
- 
-.contextMenuDEP > p:hover {
-	background-color:pink;
-}
-
-.contextMenuDEP > hr {
-	border-top: 1px solid black;
-	border-bottom: 1px solid #ffffff;
-	height: 0;
-	padding: 0;
-	margin: 0;
-}
 
 .pocket-row{
 	height:300px;
@@ -113,7 +90,8 @@ function rowDelete(ev){
 			function(){	
 				//this callback function is executed after row is hidden
 				var rowsRevised=soup.edit(rows, index, 1);
-				caller.foreach.items(rowsRevised); //update rows and refresh 'foreach' elements on page
+				//update rows and refresh 'foreach' elements on page
+				caller.foreach.items(rowsRevised); 
 				//TO DO... purge database
 				CM2.hide(); //done with contecMenu
 			}
@@ -153,22 +131,66 @@ function selectFolder(e) {
     alert(folder[0]);
 };
 
-
+var S1$, S2$, M1$;
 
 //Execute when Page READY...
 $(function(){
+
+
+	//initialize camanjs control dialog
+	S1$=$("#brightness-slider").slider({min:0, max:100, step:1});
+	S1$.on( "slide", function( event, ui ) {
+		$("#brightness-value").text(S1$.slider("value"));
+	});
+	
+	S1$.on( "slidechange", function( event, ui ) {
+		$("#brightness-value").text(S1$.slider("value"));
+		//'#pocket_a1'
+		var img$=$('.testImg').first();
+		//console.log(typeof Caman);
+		Caman(img$[0], function () {
+			this.brightness(S1$.slider("value"));
+			//this.contrast(30);
+			//this.sepia(60);
+			//this.saturation(-30);
+			this.render();
+		});
+	
+	});	
+	
+	S2$=$("#exposure-slider").slider({min:0, max:100, step:1});
+	
+	S2$.on( "slide", function( event, ui ) {
+		$("#exposure-value").text(S2$.slider("value"));
+	});
+	
+	S2$.on( "slidechange", function( event, ui ) {
+		$("#exposure-value").text(S2$.slider("value"));
+		//'#pocket_a1'
+		//Caman('#pocket_a1', function () {
+		//	this.brightness(S2$.slider("value"));
+			//this.contrast(30);
+			//this.sepia(60);
+			//this.saturation(-30);
+			//this.render();
+		//});
+	});
+  
+	M1$=$("#camanMenu").dialog().zIndex(999);
+	//m1$.show().position({my:'left top', at:'left bottom', of:ev});
+
+	
 
 	//initialize context menu...
 	CM2=$("#rowOptions").menu().css("position","absolute", "width", "200px").hide();
 	//inhibit the browser's right-click context menu
 	$(document).on('contextmenu', false);
 
-	requirejs(['soup', 'camanjs/dist-4.1.1/caman.full.min.js'], function(soup, caman){
-
+	requirejs(['soup'], function(soup){
+		
 		//widgetize tagged elements...
 		soup.cell();
 		soup.foreach();
-		soup.pocket(); 
 
 		$('#docName').text(soup.docName());
 		$('#browserTab').text(soup.docName());
@@ -178,9 +200,12 @@ $(function(){
 			'drop': function(e){ e=e||event; e.preventDefault(); false;},
 			'dragover':function(e){ e=e||event; e.preventDefault(); false;}
 		});
-
+		
+		
 		//save soup distributable
-		soup.distro(  'soup/dist/soup.js', soup);
+		soup.ieSaveFile(soup.localPath('soup/dist/soup.js'), soup.stringifyFunc(soup));
+
+
 	});
 }); 
 
@@ -211,6 +236,17 @@ $(function(){
 	<hr>
 	<p onclick='CM2.hide()'>Exit</p>
 </div>
+
+<!--div>CAMAN DIALOG</div-->
+<div id='camanMenu' style='width:200px; height:100px; zindex:999'>
+	<span id='brightness'>brightness:</span>
+	<span id='brightness-value'>0</span>
+	<div id='brightness-slider' class='slider' style='margin:5px;'></div>
+	<span id='exposure'>exposure:</span>
+	<span id='exposure-value'>0</span>
+	<div id='exposure-slider' class='slider' style='margin:5px;'></div>
+</div>
+
 
 
 <!--div>PAGE STARTS HERE</div-->
@@ -256,8 +292,7 @@ $(function(){
 	</div>
 	
 	<div class='row row_'>
-		<p class='col-xs-1'>1.1</p>
-		<p id='generalStatement' class='col-xs-10' soup-cell >This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by NORR Limited.  Refer also to Mechanical and Electrical field reports issued separately.  
+		<p id='generalStatement' class='col-xs-12' soup-cell >This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by NORR Limited.  Refer also to Mechanical and Electrical field reports issued separately.  
 		</p>
 	</div>	
 	
@@ -299,7 +334,7 @@ $(function(){
 		<h3 class='col-xs-10'>Issues Resolved</h3>
 		<h3 class='col-xs-1'>Ref</h3>
 	</div>
-	<div id='resolved' class='soup-foreach' soup-foreach='[1]'  >
+	<div id='resolved' soup-foreach='[1]'  >
 		<div class='row row_' 
 			onmouseenter='$(this).css("background-color","pink")'
 			onmouseleave='$(this).css("background-color","white")'
@@ -352,8 +387,8 @@ $(function(){
 					ondragenter='$(this).css("background-color","pink");'
 					ondragleave='$(this).css("background-color","white");'
 					soup-pocket
-					soup-action-HOLD='soup.idfix(this.child, this.item).pocket(this.child);'
-					soup-action='soup.idfix(this.child, this.item);'
+					soup-action='soup.idfix(this.child, this.item).pocket(this.child);'
+					soup-action-NOT='soup.idfix(this.child, this.item);'
 					soup-imgpath='albums/test/'
 				></div>
 				<p
@@ -367,10 +402,10 @@ $(function(){
 					id='pocket_b'
 					class='pocket'
 					ondragenter='$(this).css("background-color","pink");'
-					ondragleave='$(this).css("background-color","white");'		
-					soup-pocket
-					soup-action-HOLD='soup.idfix(this.child, this.item).pocket(this.child);'
-					soup-action='soup.idfix(this.child, this.item);'
+					ondragleave='$(this).css("background-color","white");'
+					soup-pocket					
+					soup-action='soup.idfix(this.child, this.item).pocket(this.child);'
+					soup-action-NOT='soup.idfix(this.child, this.item);'
 					soup-imgpath='albums/test/'
 				></div>
 				<p
@@ -384,10 +419,10 @@ $(function(){
 					id='pocket_c'
 					class='pocket'
 					ondragenter='$(this).css("background-color","pink");'
-					ondragleave='$(this).css("background-color","white");'			
-					soup-action-HOLD='soup.idfix(this.child, this.item).pocket(this.child);'
+					ondragleave='$(this).css("background-color","white");'
 					soup-pocket
-					soup-action='soup.idfix(this.child, this.item);'
+					soup-action='soup.idfix(this.child, this.item).pocket(this.child);'
+					soup-action-NOT='soup.idfix(this.child, this.item);'
 					soup-imgpath='albums/test/'
 				></div>
 				<p
