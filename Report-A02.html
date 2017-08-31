@@ -10,8 +10,9 @@
 
 <script type='text/javascript' src="./jquery/jquery.js"></script>
 <script type='text/javascript' src="./jquery/jquery-ui.js"></script>
-
-<link rel="stylesheet" href="./jquery/jquery-ui.css">
+<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.theme.css">
+<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.structure.css">
+<link rel="stylesheet" type="text/css" href="./jquery/jquery-ui.css">
 
 <!-- bootstrap Libraries (after jQuery) -->
 <script type='text/javascript' src="./bootstrap/bootstrap.min.js"></script>
@@ -19,8 +20,12 @@
 
 <!-- soup Library -->
 <!--script type='text/javascript' data-main="soup/soup" src="require/require.js"></script-->
-<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.theme.css">
-<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.structure.css">
+
+<!-- Handlebars Template engine -->
+<script type='text/javascript' src="handlebars/handlebars-v4.0.10.js"></script>
+<!--script type='text/javascript' src="./handlebars/handlebars.min-latest.js" ></script-->
+<!--script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.min.js"></script-->
+<!--script type = "text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.js"></script-->
 
 <style>
 fieldset {border: 0;}
@@ -33,38 +38,6 @@ select {width: 200px; }
 .row__{border-top:2px solid #000; border-bottom:1px solid #aaa;}
 p, h2, h3, strong {font-family:'Book Antiqua';}
 
-.contextMenuDEP {
-	display:none;
-	position:absolute;
-	width:200px;
-	border:1px solid black;
-	font-size:12px;
-	background-color:beige;
-	cursor:default;
-	padding:5;
-	margin:5;
-}
- 
-.contextMenuDEP > p{
-	margin:0;
-}
- 
-.contextMenuDEP > p:hover {
-	background-color:pink;
-}
-
-.contextMenuDEP > hr {
-	border-top: 1px solid black;
-	border-bottom: 1px solid #ffffff;
-	height: 0;
-	padding: 0;
-	margin: 0;
-}
-
-.pocket-row{
-	height:300px;
-}
-
 .pocket {
 	margin:5px;
 	padding:5px;
@@ -72,27 +45,16 @@ p, h2, h3, strong {font-family:'Book Antiqua';}
 	display:block;
 	border:1px solid gray;
 }
-.pocket-caption{
-	height:20px;
-}
-
+.pocket-caption{height:20px;}
+.pocket-row{height:300px;}
 </style>
-
-<script src="/handlebars/handlebars-v4.0.10.js"></script>
-<!--script type='text/javascript' src="./handlebars/handlebars.min-latest.js" ></script-->
-<!--script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.min.js"></script-->
 
 <script id='comments-template' type="text/x-handlebars-template">
 
-	{{#each comment}}
-	<div id='commentNumber-' class='row row_' 
-		soup-action='soup.idfix(this.child, this.item)'
-		onmouseenter='$(this).css("background-color","pink")'
-		onmouseleave='$(this).css("background-color","white")'
-		oncontextmenu='showMenu(CM2, event);'
-	>
-		<p id='itemNo' class='col-xs-1 itemNo'>{{@index +1}}</p>
-		<p id='comment' class='col-xs-10 comment'>{{comment}}</p>
+	{{#each comments}}
+	<div class='row row_'>
+		<p id='itemNo' class='col-xs-1 itemNo'>{{@index}}</p>
+		<p id='comment' class='col-xs-10 comment'>{{msg}}</p>
 		<p id='picNo' class='col-xs-1 picNo'>{{picRef}}</p>
 	</div>
 	{{/each}}
@@ -217,28 +179,41 @@ $(window).on({
 
 
 
-$(function () {
-  // Grab the template script
-  var theTemplateScript = $("#comments-template").html();
+$(function() { 
+//requirejs(['hb', 'soup/soup'], function(Handlebars,soup){
 
-  // Compile the template
-  var theTemplateFn = Handlebars.compile(theTemplateScript);
+	//console.log(window.soup);
 
-  // Define our data object
-  var context={
-    comment:[
-	 {itemNo:"1", comment:"comment 1 goes here", picRef:"1, 2, 3"},
-	 {itemNo:"2", comment:"this is comment 2", picRef:"4 & 5"},
-	 {itemNo:"3", comment:"last comment", picRef:"6"}
+	//initialize context menu...
+	CM2=$("#rowOptions").menu().css("position","absolute", "width", "200px").hide();
+	//inhibit the browser's right-click context menu
+	$(document).on('contextmenu', false);
+
+
+	// Grab the template script
+	var theTemplateScript = $("#comments-template").html();
+
+	// Compile the template
+	var theTemplateFn = Handlebars.compile(theTemplateScript);
+
+	// Define our data object
+	var context={
+	comments:[
+		{itemNo:"1", msg:"comment 1 goes here", picRef:"1, 2, 3"},
+		{itemNo:"2", msg:"this is comment 2", picRef:"4 & 5"},
+		{itemNo:"3", msg:"last comment", picRef:"6"}
 	]
-  };
+	};
 
-  // Pass our data to the template
-  var theCompiledHtml = theTemplateFn(context);
+	// Pass our data to the template
+	var theCompiledHtml = theTemplateFn(context);
 
-  // Add the compiled html to the page
-  $('.coments-placeholder').html(theCompiledHtml);
-});
+	// Add the compiled html to the page
+	$('#comments-placeholder').html(theCompiledHtml);
+
+//}); //require
+}); //ready
+
 
 
 </script>

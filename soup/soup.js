@@ -14,14 +14,20 @@ requirejs.config({
 	//baseUrl default (if not defined here) will be same as HTML.  
 	//paths below are relative to baseURL
 	//jquery special requirement - baseUrl must be the same url as jquery for jquery to work
-	baseUrl: "jquery",
+
+	//baseUrl: "jquery",
+	baseUrl: "jquery/",
 	waitSeconds:10, 
 	/*Load timeout for modules: soup/soup.js...
 	In case others have this issue and still struggling with it (like I was), this problem can also arise from circular dependencies, e.g. A depends on B, and B depends on A.
 	The RequireJS docs don't mention that circular dependencies can cause the "Load timeout" error, but I've now observed it for two different circular dependencies.
 	https://stackoverflow.com/questions/14279962/require-js-error-load-timeout-for-modules-backbone-jquerymobile
 	*/
-	paths: {soup:"../soup"}
+	paths: {
+		soup:"../soup",
+		hb:"../handlebars/handlebars-v4.0.10"
+	}
+	
 }); 
 
 // Define a Module with Simplified CommonJS Wrapper...
@@ -97,12 +103,14 @@ soup.ieSaveFile=require('soup/ieSaveFile');
 
 //jquery-ui widget setup
 soup.cell=require('soup/cell');
-soup.foreach=require('soup/foreach');
+soup.foreach=require('soup/foreach'); //DEPRECATED - Use handlebars instead
 soup.pocket=require('soup/pocket');
 
 //soup.contextMenu=require('soup/contextMenu'); //DEPRECATED
 
 console.log('soup loaded');
+window.soup=soup;
+document.soup=soup;
 return soup;
 
 }); //define
