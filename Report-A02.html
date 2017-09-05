@@ -5,28 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title id='browserTab' >browserTab</title>
 
-<!-- this site includes icons as well as css -->
-<!--link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"-->
-
-<script type='text/javascript' src="./jquery/jquery.js"></script>
-<script type='text/javascript' src="./jquery/jquery-ui.js"></script>
-<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.theme.css">
-<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.structure.css">
-<link rel="stylesheet" type="text/css" href="./jquery/jquery-ui.css">
-
-<!-- bootstrap Libraries (after jQuery) -->
-<script type='text/javascript' src="./bootstrap/bootstrap.min.js"></script>
-<link rel="stylesheet" href="./bootstrap/bootstrap.min.css">
-
-<!-- soup Library -->
-<!--script type='text/javascript' data-main="soup/soup" src="require/require.js"></script-->
-
-<!-- Handlebars Template engine -->
-<script type='text/javascript' src="handlebars/handlebars-v4.0.10.js"></script>
-<!--script type='text/javascript' src="./handlebars/handlebars.min-latest.js" ></script-->
-<!--script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.min.js"></script-->
-<!--script type = "text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.js"></script-->
-
 <style>
 fieldset {border: 0;}
 .savable {width:200px;}
@@ -49,45 +27,63 @@ p, h2, h3, strong {font-family:'Book Antiqua';}
 .pocket-row{height:300px;}
 </style>
 
-<script id='comments-template' type="text/x-handlebars-template">
 
-	{{#each comments}}
-	<div class='row row_'>
-		<p id='itemNo' class='col-xs-1 itemNo'>{{@index}}</p>
-		<p id='comment' class='col-xs-10 comment'>{{msg}}</p>
-		<p id='picNo' class='col-xs-1 picNo'>{{picRef}}</p>
-	</div>
-	{{/each}}
-	
-</script>
+<!-- this site includes icons as well as css -->
+<!--link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"-->
+<script type='text/javascript' src="./jquery/jquery.js"></script>
+<script type='text/javascript' src="./jquery/jquery-ui.js"></script>
+<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.theme.css">
+<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.structure.css">
+<link rel="stylesheet" type="text/css" href="./jquery/jquery-ui.css">
+
+<!-- bootstrap Libraries (after jQuery) -->
+<script type='text/javascript' src="./bootstrap/bootstrap.min.js"></script>
+<link rel="stylesheet" href="./bootstrap/bootstrap.min.css">
+
+<!-- soup Library -->
+<!--script type='text/javascript' data-main="soup/soup" src="require/require.js"></script-->
+
+<!-- Handlebars Template engine -->
+<script type='text/javascript' src="handlebars/handlebars-v4.0.10.js"></script>
+<!--script type='text/javascript' src="./handlebars/handlebars.min-latest.js" ></script-->
+<!--script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.min.js"></script-->
+<!--script type = "text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.js"></script-->
+
+
 
 
 
 <script type='text/javascript'>
-var CM2; //Global variable reserved for Context Menu for Section 2, 3 & 4.  Initialized later
+var CM$; //Global variable reserved for Context Menu for Section 2, 3 & 4.  Initialized later
 
-function rowInsert(offset){
-	//after=0,1: insert before, insert after
-	var caller=CM2.menu("option", 'caller'); //get row that called the menu, caller is set by showMenu() function below
-	var rows = caller.foreach.items(); //get list of all rows from row's parent 'foreach' element 
-	var index=parseInt(caller.index); //get index of selected item or row for deletion
-	var newid = caller.foreach.items().length+1; //this is not a good method - will easily refer to previoulsy deleted rows 
-	rowsRevised=soup.edit(rows, index, 0, [newid]);
-	
-	//set items, apply effect via callback
-	//contextMenu.caller('foreach') returns a ref to the foreach widget (which created the row)  
-	//then set the items with an added id for the new entry
-	//item() then refreshes the foreach widget which adds the new row 
-	//callback function then highlights the newly created row once displayed
-	caller.foreach.items(rowsRevised, function(i, e){ 
-		//highlight and reveal inserted row
-		if (i == index + offset) {$(e).css('background','gold').hide().show(500);}
-		
-	}); 
-	CM2.hide();
+
+var ieSplice=function(list, index, remove, ins){
+	//similar to splice, which seems to be wonky in iexplorer
+	if (Array.isArray(list)) {
+		if (typeof ins=='undefined') ins=[];
+		if (!Array.isArray(ins)) ins=[ins];
+		if (typeof index != 'number') return list;
+		if (typeof remove != 'number') return list;
+		if (index <= 0){
+			return(ins.concat(list.slice(remove)));
+		} else if(index < list.length){			
+			return (list.slice(0,index).concat(ins).concat(list.slice(index+remove)));		
+		} else {
+			return (list.concat(ins));		
+		}
+	}
 }
 
-function rowDelete(ev){
+// Define our data object
+var commentsData={
+	comments:[
+		{itemNo:"1", msg:"comment 1 goes here", picRef:"1, 2, 3"},
+		{itemNo:"2", msg:"this is comment 2", picRef:"4 & 5"},
+		{itemNo:"3", msg:"last comment", picRef:"6"}
+	]
+};
+
+function commentsDelete(ev){
 	var caller=CM2.menu("option", 'caller'); //get row that called the menu, caller is set by showMenu() function below
 	var rows=caller.foreach.items(); //get list of all rows from row's parent 'foreach' element 
 	var index=parseInt(caller.index); //get index of selected item or row for deletion
@@ -106,6 +102,43 @@ function rowDelete(ev){
 	};
 };
 
+function commentsInsert(offset, commentsData){
+
+	//offset=0,1: insert before, insert after
+	var caller=CM$.menu("option", 'caller'); //get row that called the menu, caller is set by showMenu() function below
+	var index=parseInt($(caller).attr("indexx"));
+	//console.log("commentsData.comments", commentsData.comments);
+	
+	//Prep new data. Note that commentsData is global
+	var newid=commentsData.comments.length+1;	
+	var newComment={itemNo:newid, msg:"new comment", picRef:"-"};
+	
+	var comments=ieSplice(commentsData.comments, index+offset, 0, [newComment]); //splice in new default item into commentsData
+	commentsData.comments=comments;
+	//console.log("commentsData.comments", JSON.stringify(commentsData.comments));
+
+	commentsRefresh();
+	//console.log("caller, indexx:", caller, $(caller).attr("indexx"));
+	
+	//grand reveal for the new row
+	$('#comments-placeholder').children('[indexx="'+index+'"]').css('background','gold').hide().show(500);
+
+	CM$.hide();
+}
+
+function commentsRefresh(){
+	console.log('refresh', JSON.stringify(commentsData.comments));
+
+	// Pass our data to the template
+	var compiledHtml = commentsTemplate(commentsData);
+	// Add the compiled html to the page
+	$('#comments-placeholder').html(compiledHtml);
+}
+
+var commentsTemplate;
+
+/////////////////////////////////////////
+
 function highlightCaller(on) {
 	//if (on==1) $(CM2.caller()).css('background-color','pink');
 	//else $(CM2.caller()).css('background-color','white');
@@ -122,11 +155,12 @@ function testInsert() {
 	CM2.hide();
 };
 
-
 function showMenu(cm$, ev){
-	cm$.zIndex(1000); 
+	cm$.zIndex(1000);
 	cm$.show().position({my:'left top',	at:'left bottom', of:ev});
-	cm$.menu('option', 'caller', ev.target); //remember caller - div element or row that launched the contextMenu
+	//remember caller, that is the <div> or <p> element that launched the contextMenu
+	//later on, caller element can be retrieved thus... var caller=CM2.menu('option', 'caller')
+	cm$.menu('option', 'caller', ev.target);
 	//console.log("ev", ev);
 	return false;
 };
@@ -184,33 +218,22 @@ $(function() {
 
 	//console.log(window.soup);
 
+
+
 	//initialize context menu...
-	CM2=$("#rowOptions").menu().css("position","absolute", "width", "200px").hide();
+	CM$=$("#commentsMenu").menu().css("position","absolute", "width", "200px").hide();
+	
 	//inhibit the browser's right-click context menu
 	$(document).on('contextmenu', false);
+	
+	// Setup Handlebars
+	Handlebars.registerHelper("indexPlusOne", function(zeroIndex, content){return Number(zeroIndex)+1;});
+	
+	// get template html then Compile it to a function, commentsTemplateFn is global
+	commentsTemplate = Handlebars.compile($("#comments-template").html());
+	commentsRefresh();
 
-
-	// Grab the template script
-	var theTemplateScript = $("#comments-template").html();
-
-	// Compile the template
-	var theTemplateFn = Handlebars.compile(theTemplateScript);
-
-	// Define our data object
-	var context={
-	comments:[
-		{itemNo:"1", msg:"comment 1 goes here", picRef:"1, 2, 3"},
-		{itemNo:"2", msg:"this is comment 2", picRef:"4 & 5"},
-		{itemNo:"3", msg:"last comment", picRef:"6"}
-	]
-	};
-
-	// Pass our data to the template
-	var theCompiledHtml = theTemplateFn(context);
-
-	// Add the compiled html to the page
-	$('#comments-placeholder').html(theCompiledHtml);
-
+	
 //}); //require
 }); //ready
 
@@ -224,26 +247,44 @@ $(function() {
 
 <body>
 
-<!--div>MENUS</div-->
-<div id='rowOptions' onmouseleave='CM2.hide()' style='display:none'>
-	<p onclick='rowInsert(0)'>Insert before</p>
-	<p onclick='rowInsert(1)'>Insert after</p>
+
+<!-- TEMPLATES               -->
+<template id='comments-template' type="text/x-handlebars-template">
+
+	{{#each comments}}
+	<div class='row row_'
+			indexx={{@index}}
+			onmouseenter='$(this).css("background-color","pink")'
+			onmouseleave='$(this).css("background-color","white")'
+			oncontextmenu='showMenu(CM$, event)'>
+		<p id='itemNo'  indexx={{@index}} class='col-xs-1 itemNo'>{{#indexPlusOne @index}}{{/indexPlusOne}}</p>
+		<p id='comment' indexx={{@index}} class='col-xs-10 comment'>{{msg}}</p>
+		<p id='picNo' indexx={{@index}} class='col-xs-1 picNo'>{{picRef}}</p>
+	</div>
+	{{/each}}
+	
+</template>
+
+
+<!-- MENUS               -->
+<div id='commentsMenu' onmouseleave='CM$.hide()' style='display:none'>
+	<p onclick='commentsInsert(0, commentsData)'>Insert before</p>
+	<p onclick='commentsInsert(1, commentsData)'>Insert after</p>
 	<hr>
 	<p onclick='console.log("Move up");$("#rowOptions").hide();'>Move up</p>
 	<p onclick='console.log("Move dn");$("#rowOptions").hide();'>Move dn</p>
 	<hr>
-	<p onclick='rowDelete(event);'>Delete</p>
+	<p onclick='commentsDelete(event);'>Delete</p>
 	<hr>
 	<p onclick='console.log("hide");'>Hide</p>
 	<p onclick='console.log("show");'>Show hidden</p>
 	<hr>
 	<p onclick='testInsert();'>Test insert</p>
 	<hr>
-	<p onclick='CM2.hide()'>Exit</p>
+	<p onclick='CM$.hide()'>Exit</p>
 </div>
 
-
-<!--div>PAGE STARTS HERE</div-->
+<!-- PAGE STARTS HERE        -->
 
 <div class='container'>
 	<img src='./images/private/logo.png' style='width:100px; float:left;'>
@@ -310,10 +351,12 @@ $(function() {
 		<h3 class='col-xs-1'>Pic.</h3>
 	</div>
 	
-	<div id='comments-placeholder'   soup-foreach='[1, 2, 3]'  >
+	<!-- Placeholder for comments -->
+	<div id='comments-placeholder'></div>
 
-	</div>
-
+	
+	
+	
 	<br>
 	
 	<div class='row row__'>
@@ -321,6 +364,9 @@ $(function() {
 		<h3 class='col-xs-10'>Issues Resolved</h3>
 		<h3 class='col-xs-1'>Ref</h3>
 	</div>
+	
+
+
 	<div id='resolved' class='soup-foreach' soup-foreach='[1]'  >
 		<div class='row row_' 
 			onmouseenter='$(this).css("background-color","pink")'
