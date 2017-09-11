@@ -15,9 +15,9 @@ Andrew Siddeley
 // see http://requirejs.org/docs/api.html#cjsmodule
 define(function(require, exports, module){
 
-var $=require('jquery');
+//var $=require('jquery');
 //var $$=require('jquery-ui');
-var db=require('soup/database');
+//var db=require('soup/database');
 //console.log('cell - keys of module.exports...', Object.keys(module.exports));
 
 
@@ -30,7 +30,8 @@ var db=require('soup/database');
 // NOTE: Cell Ids cannot be Kebab-case, use snake_case or camelCase instead 
 
 
-
+function cell_define(){
+var db=soup;	
 $.widget ("soup.cell", {
 	
     options: {
@@ -168,8 +169,9 @@ $.widget ("soup.cell", {
 		db.save(this.options);
 		//return false;
 	}
+}); //$.widget
+}; //cell_define
 
-});
 
 /**********
 Turns the provided element into a cell, I.e. savable and editable
@@ -177,6 +179,7 @@ A cell has normally hidden heading and input fields as well as a normally showin
 Cell text can be edited when the mouse is over it,
 *********/
 var cell=function(selector){
+	if (typeof $.cell == 'undefined') {soup.cell_define();}
 	selector=(typeof selector =='undefined')?'[soup-cell]':selector
 	$(selector).cell(); return soup; 
 };
@@ -185,7 +188,7 @@ var cell=function(selector){
 //$().ready(function(){	$(".soup-cell").cell(); }); //execute when ready
 
 //console.log("cell loaded");
-return cell;
+return {"cell":cell, "cell_define":cell_define};
 
 }); //define
 

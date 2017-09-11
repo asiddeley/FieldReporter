@@ -24,8 +24,8 @@ requirejs.config({
 	https://stackoverflow.com/questions/14279962/require-js-error-load-timeout-for-modules-backbone-jquerymobile
 	*/
 	paths: {
-		soup:"../soup",
-		hb:"../handlebars/handlebars-v4.0.10"
+		soup:"../soup"
+		//hb:"../handlebars"
 	}
 	
 }); 
@@ -35,7 +35,7 @@ requirejs.config({
 define( function(require, exports, module) {
 
 var soup={};
-window.soup=soup;
+//window.soup=soup;
 var $=require('jquery');
 var $$=require('jquery-ui');
 
@@ -80,6 +80,7 @@ soup.idfixx=function(el, prefix, suffix){
 	return soup; //to allow chaining
 };
 
+soup.ieSplice=require('soup/ieSplice');
 
 soup.localPath=require('soup/localPath');
 soup.localPicArray=require('soup/localPicArray');
@@ -101,16 +102,30 @@ $.extend(soup, db);
 soup.ieLoadFile=require('soup/ieLoadFile');
 soup.ieSaveFile=require('soup/ieSaveFile');
 
-//jquery-ui widget setup
-soup.cell=require('soup/cell');
+//jquery-ui widget setup.  Note that require('soup/cell') returns a function
+//soup.cell=require('soup/cell');
+
+//jquery-ui widget setup.  Note that require('soup/cell') now returns a hash of functions
+//soup.cell_define() for defining cell widget.
+//soup.cell() for wigetizing a HTML element 
+$.extend(soup, require('soup/cell')); //blend in hash of functions 
+
 soup.foreach=require('soup/foreach'); //DEPRECATED - Use handlebars instead
 soup.pocket=require('soup/pocket');
 
 //soup.contextMenu=require('soup/contextMenu'); //DEPRECATED
 
-console.log('soup loaded');
+////////////////////////////////////////
+//Distributable soup
+soup.ieSaveFile(soup.localPath('soup/dist/soup.js'), "var soup="+soup.stringifyFunc(soup));
+
+/////////////////////////////////////
+//Global soup
 window.soup=soup;
-document.soup=soup;
+//document.soup=soup;
+
+console.log('soup loaded');
+
 return soup;
 
 }); //define

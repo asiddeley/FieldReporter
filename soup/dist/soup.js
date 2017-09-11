@@ -1,4 +1,4 @@
-{
+var soup={
  "ver": "20160825",
  "pageCount": 0,
  "picItem": "1",
@@ -56,6 +56,22 @@
 	//console.log(el, prefix+id+suffix);
 	return soup; //to allow chaining
 } ,
+ "ieSplice":  function(list, index, remove, ins){
+	//similar to splice, which seems to be wonky in iexplorer
+	if (Array.isArray(list)) {
+		if (typeof ins=='undefined') ins=[];
+		if (!Array.isArray(ins)) ins=[ins];
+		if (typeof index != 'number') return list;
+		if (typeof remove != 'number') return list;
+		if (index <= 0){
+			return(ins.concat(list.slice(remove)));
+		} else if(index < list.length){			
+			return (list.slice(0,index).concat(ins).concat(list.slice(index+remove)));		
+		} else {
+			return (list.concat(ins));		
+		}
+	}
+} ,
  "localPath":  function(name){
 	var path=window.location.pathname; //eg c:/documents/folder/file.html
 	var dir=path.substring(1, path.lastIndexOf('/'))+"/" + name; //eg c:/documents/folder
@@ -80,14 +96,14 @@
  "stringifyFunc":  function(str){
 		var funcReplacer=function(key, func){	
 			if (typeof func == 'function'){ 
-				//add easily identifiable wrappers to funciton string 
+				//add easily identifiable markers to funciton string 
 				func= "FUNC000 "+func.toString()+" FUNC999";	
 				return encodeURI(func.toString());
 			} else {return func; }
 		};
 		
 		var str=JSON.stringify(str, funcReplacer, ' ');
-		//get rid of wrappers  "FUNC000 function(){...} FUNC999" 
+		//get rid of markers 
 		str=str.replace(/"FUNC000|FUNC999"/g,"");
 		return(decodeURI(str));
 	} ,
@@ -219,8 +235,150 @@
 	return true;
 } ,
  "cell":  function(selector){
+	if (typeof $.cell == 'undefined') {soup.cell_define();}
 	selector=(typeof selector =='undefined')?'[soup-cell]':selector
 	$(selector).cell(); return soup; 
+} ,
+ "cell_define":  function cell_define(){
+var db=soup;	
+$.widget ("soup.cell", {
+	
+    options: {
+		name: 'unnamed',
+		text: 'default',
+		xtxt: 'default', //existing text
+		undo: [],
+		idi: 'default',
+		idr: 'default',
+		idn: 'default'
+	},
+	
+		_create:function() {
+		this.options.name=this.element.attr("id");
+		this.options.text=this.element.text();
+		this.options.idi=this.options.name+'input';
+		this.options.idr=this.options.name+'result';
+		this.options.idn=this.options.name+'name';
+		this.options=$.extend(this.options, db.load(this.options));
+		//this.styleRestore();		
+		this._on( this.element, {
+			dragstop:'stylingStop',
+			resizestop:'stylingStop',
+			mouseenter:'_highlight', 
+			mouseleave:'_highlightoff' ,
+			contextmenu:'_contextmenu'
+			//click:'_contentEdit'
+		});
+		this.render();
+    },
+	
+
+	_contextmenu:function(event) {
+		//var c=window.getComputedStyle(this.element[0],null);
+		//var c=this.element.data("ui-draggable"); //long running script
+		//$("#dialog").dialog('open').html(soup.anything(c));
+		//return false;
+		//alert('Cell context menu');
+		return false; //cancel other context menus
+	},
+	
+	_destroy: function() {
+        //this.element.removeClass( "savable" ).text( "" );
+    },
+	
+	_highlight:function(event) {
+		//this.element.css('background-color','silver'); 
+		this.options.xtxt=$("#" + this.options.idi).val();
+		//$("#"+this.options.idn).show();
+		$("#"+this.options.idi).show().css({'position':'relative', 'z-index':10000, 'background':'silver'});
+		$("#"+this.options.idr).hide();	
+	},
+	
+	_highlightoff:function(event) {
+		//this.element.css('background-color','white'); 
+		var ntxt=$("#" + this.options.idi).val();
+		//text has changed so 
+		if( ntxt != this.options.xtxt) {
+			//text changed so save
+			ntxt=(ntxt=='')?'--':ntxt;
+			this.options.undo.push(this.options.xtxt);
+			if (this.options.undo.length > 10) {this.options.undo.shift();}
+			this.options.text=ntxt;
+			$("#"+this.options.idr).text(this._process(ntxt));	
+			db.save(this.options);
+		}
+		//$("#"+this.options.idn).hide();
+		$("#"+this.options.idi).hide();
+		$("#"+this.options.idr).show();	
+	},
+	
+	
+	_process: function( valu ) {
+		//check for and evaluate code in cell content
+		if (valu.substr(0,1) == '=') {
+			try{valu=eval(valu.substr(1));}
+			catch(er){valu=er.toString();}
+		}
+        return valu;
+    },
+	
+	render: function() {		
+		//wrap text so it can be saved & edited
+		//console.log('cell foreachItem:'+this.element.foreachItem); //undefined
+		this.element.html(
+			"<p id='"+ this.options.idn + "' style='display:none;' >"+ this.options.name +"</p>"+
+			"<textarea id='"+this.options.idi+"' type='text' style='z-index=10001; "+
+			"display:none;width:100%;height:auto;'"+
+			"onclick='soup.autoHeight(this)' onkeyup='soup.autoHeight(this)' >"+
+			this.options.text+
+			"</textarea>"+
+			"<p id='"+this.options.idr+"' class='cellresult'>"+
+			this._process(this.options.text)+
+			"</p>"	
+		);
+		//this._trigger( "refreshed", null, { text: this.options.text } );
+    },
+	
+	result: function(){
+		return this._process(this.options.text);
+	},
+	
+    _setOption: function( key, valu ) {
+       //if ( key === "valu" ) { valu = this._checkValu( valu );  }
+       this._super( key, valu );
+	},
+	
+	_setOptions: function( options ) {
+        this._super( options );
+    },	
+	
+	
+	styleGet:function(c){
+		//return an object with only drag properties from a given object
+		return	$.extend( { }, 
+			{ 'position': c['position'] },
+			{ 'left': c['left'] },
+			//{ 'right': c['right'] },
+			{ 'top': c['top'] },
+			//{ 'bottom': c['bottom'] },
+			{ 'height': c['height'] },
+			{ 'width': c['width'] }
+		);	
+	},
+	
+	styleRestore:function(c){
+		this.element.css(this.styleGet(this.options));
+	},			
+		
+	stylingStop:function(event, ui){
+		//save position
+		var c=window.getComputedStyle(this.element[0],null);
+		this.options=$.extend(this.options, this.styleGet(c));
+		//console.log (soup.anything(this.options));
+		db.save(this.options);
+		//return false;
+	}
+}); //$.widget
 } ,
  "foreach":  function(){$('[soup-foreach]').foreach(); return soup;} ,
  "pocket":  function(){

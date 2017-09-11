@@ -20,8 +20,7 @@
 <link rel="stylesheet" href="./bootstrap/bootstrap.min.css">
 
 <!-- soup Library -->
-<script data-main="soup/soup" src="require/require.js"></script>
-
+<script data-main="soup/__compileSoup" src="require/require.js"></script>
 
 <!-- caman - canvas manipulation Library -->
 <script src="./camanjs/dist-4.1.1/caman.full.min.js"></script>
@@ -136,7 +135,6 @@ var S1$, S2$, M1$;
 //Execute when Page READY...
 $(function(){
 
-
 	//initialize camanjs control dialog
 	S1$=$("#brightness-slider").slider({min:0, max:100, step:1});
 	S1$.on( "slide", function( event, ui ) {
@@ -182,11 +180,12 @@ $(function(){
 	
 
 	//initialize context menu...
-	CM2=$("#rowOptions").menu().css("position","absolute", "width", "200px").hide();
+	CM2=$("#commentsMenu").menu().css("position","absolute", "width", "200px").hide();
+	
 	//inhibit the browser's right-click context menu
 	$(document).on('contextmenu', false);
 
-	requirejs(['soup'], function(soup){
+	requirejs(['__compileSoup'], function(soup){
 		
 		//widgetize tagged elements...
 		soup.cell();
@@ -200,10 +199,9 @@ $(function(){
 			'drop': function(e){ e=e||event; e.preventDefault(); false;},
 			'dragover':function(e){ e=e||event; e.preventDefault(); false;}
 		});
-		
-		
+
 		//save soup distributable
-		soup.ieSaveFile(soup.localPath('soup/dist/soup.js'), soup.stringifyFunc(soup));
+		//soup.ieSaveFile(soup.localPath('soup/dist/soup.js'), soup.stringifyFunc(soup));
 
 
 	});
@@ -219,8 +217,8 @@ $(function(){
 
 <body>
 
-<!--div>MENUS</div-->
-<div id='rowOptions' onmouseleave='CM2.hide()' style='display:none'>
+<!-- MENUS -->
+<div id='commentsMenu' onmouseleave='CM2.hide()' style='display:none'>
 	<p onclick='rowInsert(0)'>Insert before</p>
 	<p onclick='rowInsert(1)'>Insert after</p>
 	<hr>
@@ -237,7 +235,7 @@ $(function(){
 	<p onclick='CM2.hide()'>Exit</p>
 </div>
 
-<!--div>CAMAN DIALOG</div-->
+<!-- CAMAN DIALOG -->
 <div id='camanMenu' style='width:200px; height:100px; zindex:999'>
 	<span id='brightness'>brightness:</span>
 	<span id='brightness-value'>0</span>
@@ -249,7 +247,7 @@ $(function(){
 
 
 
-<!--div>PAGE STARTS HERE</div-->
+<!-- PAGE STARTS HERE -->
 
 <div class='container'>
 	<img src='./images/private/logo.png' style='width:100px; float:left;'>

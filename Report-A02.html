@@ -41,10 +41,11 @@ p, h2, h3, strong {font-family:'Book Antiqua';}
 <link rel="stylesheet" href="./bootstrap/bootstrap.min.css">
 
 <!-- soup Library -->
-<!--script type='text/javascript' data-main="soup/soup" src="require/require.js"></script-->
+
+<script type='text/javascript' data-main="soup/soup" src="require/require.js"></script>
 
 <!-- Handlebars Template engine -->
-<script type='text/javascript' src="handlebars/handlebars-v4.0.10.js"></script>
+<!--script type='text/javascript' src="handlebars/handlebars-v4.0.10.js"></script-->
 <!--script type='text/javascript' src="./handlebars/handlebars.min-latest.js" ></script-->
 <!--script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.min.js"></script-->
 <!--script type = "text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.js"></script-->
@@ -212,12 +213,12 @@ $(window).on({
 });
 
 
+//requirejs(['soup/soup'], function(soup){ });
+
 
 $(function() { 
-//requirejs(['hb', 'soup/soup'], function(Handlebars,soup){
-
+	requirejs(['handlebars-v4.0.10', 'soup'], function(Handlebars, soup){
 	//console.log(window.soup);
-
 
 
 	//initialize context menu...
@@ -234,7 +235,7 @@ $(function() {
 	commentsRefresh();
 
 	
-//}); //require
+}); //require
 }); //ready
 
 
