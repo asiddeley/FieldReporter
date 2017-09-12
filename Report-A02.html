@@ -157,6 +157,7 @@ function testInsert() {
 };
 
 function showMenu(cm$, ev){
+	//ev.stopPropagation();
 	cm$.zIndex(1000);
 	cm$.show().position({my:'left top',	at:'left bottom', of:ev});
 	//remember caller, that is the <div> or <p> element that launched the contextMenu
