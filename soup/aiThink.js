@@ -29,6 +29,17 @@ define(function(require, exports, module){
 //fn(1,2,3,4) returns 10
 //var fn=FC("how are you", function(ai){(ai.states.mood>=0.5)?"Good":"Not so good";}, ai );
 
+//analogous to AIML
+//Core Text Responses
+responses=[
+new PR(["you", "hi", "hello", "hail"], "hi" ), //simple substitution
+new PR([/how are you ?/], function(ai){return (ai.status.mood >= 0.5)?"Good":"Not so good";} ),
+new PR([/do you like */], function(ai){return ai.goodness(ai.input.pattern.star)?"yes":"no";} ),
+]
+
+
+
+
 /*
 Syntax
 new Function ([arg1[, arg2[, ...argN]],] functionBody)
@@ -77,19 +88,32 @@ function think(input, output, ai){
 }
 
 
-//Core Text Responses
-responses=[
-new PR(["you", "hi", "hello", "hail"], "hi" ), //simple substitution
-new PR([/how are you ?/], function(ai){return (ai.status.mood >= 0.5)?"Good":"Not so good";} ),
-new PR([/do you like */], function(ai){return ai.goodness(ai.input.pattern.star)?"yes":"no";} ),
 
-]
+/////////////////////
+//English syntax
+
+function Word(){
+	//part of a sentence, grouping of letters 
+	this.extends=function(){};
+};
+
+function Noun(){
+	//people place or thing
+	//extends word...
+	Word.call(this); 
+	this.prototype=Object.create(Word.prototype); 
+	this.prototype.constructor=Noun; 
+
+	
+};
+
+
 
 
 
 
 //console.log("growBot loaded");
 
-return ieSplice;
+return think;
 
 }); //define

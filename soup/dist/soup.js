@@ -116,47 +116,47 @@ var soup={
  "file": "database.txt",
  "filename":  function(name){
 	name=(!name)?"database":name;
-	var filename=(db.file)?localPath(db.base+db.file):localPath(db.base+name+'.txt');
+	var filename=(soup.file)?soup.localPath(soup.base+soup.file):soup.localPath(soup.base+name+'.txt');
 	return filename;
 } ,
  "mode": "ie",
  "load":  function(dataDoc){
 	//argument may be a dataDoc object (or data record), with target id and default data or
 	//a string representing a target cell id of the cell for which data is requested.
-	if (typeof(dataDoc)=='string') dataDoc=new db.Doc(dataDoc);
+	if (typeof(dataDoc)=='string') dataDoc=new soup.Doc(dataDoc);
 	//var fn=soup.localPath(soup.dataBase);
-	var fn=db.filename(dataDoc['name']);
-	if (db.cache === null) {
-		switch (db.mode){
-			case "ax":db.cache=axLoadFile(fn);break;
-			case "ie":db.cache=ieLoadFile(fn);break;			
-			default:db.cache=ieLoadFile(fn);
+	var fn=soup.filename(dataDoc['name']);
+	if (soup.cache === null) {
+		switch (soup.mode){
+			case "ax":soup.cache=soup.axLoadFile(fn);break;
+			case "ie":soup.cache=soup.ieLoadFile(fn);break;			
+			default:soup.cache=soup.ieLoadFile(fn);
 		}
 	}
-	if (db.cache === null) {
+	if (soup.cache === null) {
 		//file not found so create file
 		var dbc={}; //collection
 		dbc[dataDoc.name]=dataDoc;
-		db.cache=JSON.stringify(dbc);
+		soup.cache=JSON.stringify(dbc);
 		
-		switch (db.mode){
-			case "ax":axSaveFile(fn, db.cache);break;
-			case "ie":ieSaveFile(fn, db.cache);break;			
-			default:ieSaveFile(fn, db.cache);
+		switch (soup.mode){
+			case "ax":soup.axSaveFile(fn, soup.cache);break;
+			case "ie":soup.ieSaveFile(fn, soup.cache);break;			
+			default:soup.ieSaveFile(fn, soup.cache);
 		}		
 		//soup.ieSaveFile(fn, soup.dataCache);
 		
 	} else {
 		//file found so extract name:value 
-		var dbc=JSON.parse(db.cache);
+		var dbc=JSON.parse(soup.cache);
 		if (typeof(dbc[dataDoc.name])=='undefined'){
 			//name:value not found so add
 			dbc[dataDoc.name]=dataDoc;
-			db.cache=JSON.stringify(dbc);
-			switch (db.mode){
-				case "ax":axSaveFile(fn, db.cache);break;
-				case "ie":ieSaveFile(fn, db.cache);break;			
-				default:ieSaveFile(fn, db.cache);}			
+			soup.cache=JSON.stringify(dbc);
+			switch (soup.mode){
+				case "ax":soup.axSaveFile(fn, soup.cache);break;
+				case "ie":soup.ieSaveFile(fn, soup.cache);break;			
+				default:soup.ieSaveFile(fn, soup.cache);}			
 			//soup.ieSaveFile(fn, soup.dataCache);
 		} 
 		else { dataDoc=dbc[dataDoc.name];}
@@ -169,12 +169,12 @@ var soup={
 	//Get text file contents which is a JSON of all cells
 	//{name1:value1, name2:value2...}
 	//var fn=soup.localPath(soup.dataBase);
-	var fn=db.filename(dataDoc.name);
+	var fn=soup.filename(dataDoc.name);
 	var r=null; //return value represents success of data load/save
 	
-	if (db.cache === null){
+	if (soup.cache === null){
 		//cache null so load it
-		db.cache=ieLoadFile(fn);
+		soup.cache=ieLoadFile(fn);
 		//soup.dataCache=soup.axLoadFile(fn);
 	}
 	
@@ -185,27 +185,61 @@ var soup={
 		//dbc[dataDoc.name]=cellArg; ///cellArg not defined and I forget what it is, guessing is should be as follows
 		dbc[dataDoc.name]=dataDoc; 
 		
-		db.cache=JSON.stringify(dbc);
+		soup.cache=JSON.stringify(dbc);
 		switch (db.mode){
-			case "ax":r=axSaveFile(fn,db.cache);break;
-			case "ie":r=ieSaveFile(fn, db.cache);break;			
-			default:ieSaveFile(fn, db.cache);
+			case "ax":r=soup.axSaveFile(fn,db.cache);break;
+			case "ie":r=soup.ieSaveFile(fn, db.cache);break;			
+			default:soup.ieSaveFile(fn, db.cache);
 		}
 		//var r=ieSaveFile(fn, soup.dataCache);
 		//var r=soup.axSaveFile(fn, soup.dataCache);
 	} else {
 		//file found so update record (change value of item identified by name)
-		var dbc=JSON.parse(db.cache);
+		var dbc=JSON.parse(soup.cache);
 		dbc[dataDoc.name]=dataDoc;
-		db.cache=JSON.stringify(dbc);
-		switch (db.mode){
-			case "ax":r=axSaveFile(fn, db.cache);break;
-			case "ie":r=ieSaveFile(fn, db.cache);break;			
-			default:r=ieSaveFile(fn, db.cache);
+		soup.cache=JSON.stringify(dbc);
+		switch (soup.mode){
+			case "ax":r=soup.axSaveFile(fn, soup.cache);break;
+			case "ie":r=soup.ieSaveFile(fn, soup.cache);break;			
+			default:r=soup.ieSaveFile(fn, soup.cache);
 		}
 	}
 	//return success of ieSaveFile()
 	return r; 
+} ,
+ "ieCopyFile":  function(dest, source){
+	// copyright tiddly-wiki
+	this.ieCreatePath(dest);
+	try {
+		var fso = new ActiveXObject("Scripting.FileSystemObject");
+		fso.GetFile(source).Copy(dest);
+	} catch(ex) {
+		return false;
+	}
+	return true;
+} ,
+ "ieCreatePath":  function(path) {
+	// copyright tiddly-wiki
+	try {	var fso = new ActiveXObject("Scripting.FileSystemObject");	} 
+	catch(ex) {	return null; }
+
+	var pos = path.lastIndexOf("\\");
+	if(pos==-1) pos = path.lastIndexOf("/");
+	if(pos!=-1) path = path.substring(0,pos+1);
+
+	var scan = [path];
+	var parent = fso.GetParentFolderName(path);
+	while(parent && !fso.FolderExists(parent)) {
+		scan.push(parent);
+		parent = fso.GetParentFolderName(parent);
+	}
+
+	for(var i=scan.length-1;i>=0;i--) {
+		if(!fso.FolderExists(scan[i])) {
+			fso.CreateFolder(scan[i]);
+		}
+	}
+	return true;
 } ,
  "ieLoadFile":  function(filePath){
 	// copyright tiddly-wiki
@@ -222,8 +256,8 @@ var soup={
 	return content;
 } ,
  "ieSaveFile":  function(filePath, content){
-	// copyright tiddly wiki
-	ieCreatePath(filePath);
+	//Thanks to tiddly wiki
+	soup.ieCreatePath(filePath);
 	try {
 		var fso = new ActiveXObject("Scripting.FileSystemObject");
 	} catch(ex) {

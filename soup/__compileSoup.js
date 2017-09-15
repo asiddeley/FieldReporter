@@ -35,7 +35,8 @@ requirejs.config({
 define( function(require, exports, module) {
 
 var soup={};
-//window.soup=soup;
+window.soup=soup; //needs to be at top
+
 var $=require('jquery');
 var $$=require('jquery-ui');
 
@@ -95,10 +96,11 @@ soup.result=function(id){
 soup.stringifyFunc=require('soup/stringifyFunc');
 
 //blend in database functions...
-var db=require('soup/database');
-$.extend(soup, db);
+$.extend(soup, require('soup/database'));
 //axLoadFile=require('soup/axLoadFile');
 //axSaveFile=require('soup/axSaveFile');
+soup.ieCopyFile=require('soup/ieCopyFile');
+soup.ieCreatePath=require('soup/ieCreatePath');
 soup.ieLoadFile=require('soup/ieLoadFile');
 soup.ieSaveFile=require('soup/ieSaveFile');
 
@@ -118,12 +120,6 @@ soup.pocket=require('soup/pocket');
 ////////////////////////////////////////
 //Distributable soup
 soup.ieSaveFile(soup.localPath('soup/dist/soup.js'), "var soup="+soup.stringifyFunc(soup));
-
-/////////////////////////////////////
-//Global soup
-window.soup=soup;
-//document.soup=soup;
-
 console.log('soup loaded');
 
 return soup;

@@ -14,11 +14,9 @@ Andrew Siddeley
 // see http://requirejs.org/docs/api.html#cjsmodule
 define(function(require, exports, module){
 
-var ieCreatePath=require('soup/ieCreatePath');
-
-var ieSaveFile=function(filePath, content){
-	// copyright tiddly wiki
-	ieCreatePath(filePath);
+return function(filePath, content){
+	//Thanks to tiddly wiki
+	soup.ieCreatePath(filePath);
 	try {
 		var fso = new ActiveXObject("Scripting.FileSystemObject");
 	} catch(ex) {
@@ -29,9 +27,5 @@ var ieSaveFile=function(filePath, content){
 	file.Close();
 	return true;
 };
-
-console.log("ieSaveFile loaded");
-
-return ieSaveFile;
 
 }); //define

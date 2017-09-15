@@ -29,51 +29,42 @@ p, h2, h3, strong {font-family:'Book Antiqua';}
 
 
 <!-- this site includes icons as well as css -->
-<!--link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"-->
-<script type='text/javascript' src="./jquery/jquery.js"></script>
-<script type='text/javascript' src="./jquery/jquery-ui.js"></script>
+<!-- link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" -->
+<script type='text/javascript' src="jquery/jquery.js"></script>
+<script type='text/javascript' src="jquery/jquery-ui.js"></script>
 <link rel="stylesheet" type="text/css" href="jquery/jquery-ui.theme.css">
 <link rel="stylesheet" type="text/css" href="jquery/jquery-ui.structure.css">
-<link rel="stylesheet" type="text/css" href="./jquery/jquery-ui.css">
+<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.css">
 
 <!-- bootstrap Libraries (after jQuery) -->
 <script type='text/javascript' src="./bootstrap/bootstrap.min.js"></script>
 <link rel="stylesheet" href="./bootstrap/bootstrap.min.css">
 
 <!-- soup Library -->
-
-<script type='text/javascript' data-main="soup/soup" src="require/require.js"></script>
+<script type='text/javascript' src="./soup/dist/soup.js"></script>
+<!--script type='text/javascript' data-main="soup/soup" src="require/require.js"></script>
 
 <!-- Handlebars Template engine -->
-<!--script type='text/javascript' src="handlebars/handlebars-v4.0.10.js"></script-->
+<script type='text/javascript' src="handlebars/handlebars-v4.0.10.js"></script>
+
 <!--script type='text/javascript' src="./handlebars/handlebars.min-latest.js" ></script-->
 <!--script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.min.js"></script-->
 <!--script type = "text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.js"></script-->
 
 
-
-
-
 <script type='text/javascript'>
-var CM$; //Global variable reserved for Context Menu for Section 2, 3 & 4.  Initialized later
 
+//prevent accidental image drop
+$(window).on({
+	'drop': function(e){ e=e||event; e.preventDefault(); false;},
+	'dragover':function(e){ e=e||event; e.preventDefault(); false;}
+});
 
-var ieSplice=function(list, index, remove, ins){
-	//similar to splice, which seems to be wonky in iexplorer
-	if (Array.isArray(list)) {
-		if (typeof ins=='undefined') ins=[];
-		if (!Array.isArray(ins)) ins=[ins];
-		if (typeof index != 'number') return list;
-		if (typeof remove != 'number') return list;
-		if (index <= 0){
-			return(ins.concat(list.slice(remove)));
-		} else if(index < list.length){			
-			return (list.slice(0,index).concat(ins).concat(list.slice(index+remove)));		
-		} else {
-			return (list.concat(ins));		
-		}
-	}
-}
+//inhibit the browser's right-click context menu
+$(document).on('contextmenu', false);
+
+//Global variable reserved for Context Menu for Section 2, 3 & 4.  Initialized later
+var CM$; 
 
 // Define our data object
 var commentsData={
@@ -114,7 +105,7 @@ function commentsInsert(offset, commentsData){
 	var newid=commentsData.comments.length+1;	
 	var newComment={itemNo:newid, msg:"new comment", picRef:"-"};
 	
-	var comments=ieSplice(commentsData.comments, index+offset, 0, [newComment]); //splice in new default item into commentsData
+	var comments=soup.ieSplice(commentsData.comments, index+offset, 0, [newComment]); //splice in new default item into commentsData
 	commentsData.comments=comments;
 	//console.log("commentsData.comments", JSON.stringify(commentsData.comments));
 
@@ -127,13 +118,15 @@ function commentsInsert(offset, commentsData){
 	CM$.hide();
 }
 
-function commentsRefresh(){
-	console.log('refresh', JSON.stringify(commentsData.comments));
+function commentsRefresh(template, dataObj){
 
+	//console.log('refresh', JSON.stringify(commentsData.comments));
 	// Pass our data to the template
 	var compiledHtml = commentsTemplate(commentsData);
 	// Add the compiled html to the page
 	$('#comments-placeholder').html(compiledHtml);
+	
+	//soup.cell(".comment-cell"); //doesn't work with handlebars,shows {{msg}}
 }
 
 var commentsTemplate;
@@ -145,25 +138,12 @@ function highlightCaller(on) {
 	//else $(CM2.caller()).css('background-color','white');
 };
 
-function testInsert() {
-	console.log('[1,2,3] 0 0 [99] = '+soup.edit([1,2,3],0,0,99));
-	console.log('[1,2,3] 1 0 [99] = '+soup.edit([1,2,3],1,0,99));
-	console.log('[1,2,3] 2 0 [99] = '+soup.edit([1,2,3],2,0,99));
-	console.log('[1,2,3] 3 0 [99] = '+soup.edit([1,2,3],3,0,99));
-	console.log('[1,2,3] 0 1 [99] = '+soup.edit([1,2,3],0,1,99));
-	console.log('[1,2,3] 1 2 [99] = '+soup.edit([1,2,3],1,2,99));
-	console.log('[1,2,3] 1 2  = '+soup.edit([1,2,3],1,2));
-	CM2.hide();
-};
 
 function showMenu(cm$, ev){
-	//ev.stopPropagation();
 	cm$.zIndex(1000);
 	cm$.show().position({my:'left top',	at:'left bottom', of:ev});
 	//remember caller, that is the <div> or <p> element that launched the contextMenu
-	//later on, caller element can be retrieved thus... var caller=CM2.menu('option', 'caller')
 	cm$.menu('option', 'caller', ev.target);
-	//console.log("ev", ev);
 	return false;
 };
 
@@ -175,68 +155,21 @@ function selectFolder(e) {
 };
 
 
-
-//Execute when Page READY...
-/**************
-$(function(){
-
-	//initialize context menu...
-	CM2=$("#rowOptions").menu().css("position","absolute", "width", "200px").hide();
-	//inhibit the browser's right-click context menu
-	$(document).on('contextmenu', false);
-
-	requirejs(['soup', 'camanjs/dist-4.1.1/caman.full.min.js'], function(soup, caman){
-
-		//widgetize tagged elements...
-		soup.cell();
-		soup.foreach();
-		soup.pocket(); 
-
-		$('#docName').text(soup.docName());
-		$('#browserTab').text(soup.docName());
-
-		//prevent accidental image drop
-		$(window).on({
-			'drop': function(e){ e=e||event; e.preventDefault(); false;},
-			'dragover':function(e){ e=e||event; e.preventDefault(); false;}
-		});
-
-		//save soup distributable
-		soup.distro(  'soup/dist/soup.js', soup);
-	});
-}); 
-******************/
-
-//prevent accidental image drop
-$(window).on({
-	'drop': function(e){ e=e||event; e.preventDefault(); false;},
-	'dragover':function(e){ e=e||event; e.preventDefault(); false;}
-});
-
-
-//requirejs(['soup/soup'], function(soup){ });
-
-
 $(function() { 
-	requirejs(['handlebars-v4.0.10', 'soup'], function(Handlebars, soup){
-	//console.log(window.soup);
 
+	//requirejs(['handlebars-v4.0.10', 'soup'], function(Handlebars, soup){ //Handlebars undefined error
 
 	//initialize context menu...
 	CM$=$("#commentsMenu").menu().css("position","absolute", "width", "200px").hide();
 	
-	//inhibit the browser's right-click context menu
-	$(document).on('contextmenu', false);
-	
 	// Setup Handlebars
 	Handlebars.registerHelper("indexPlusOne", function(zeroIndex, content){return Number(zeroIndex)+1;});
 	
-	// get template html then Compile it to a function, commentsTemplateFn is global
+	// get template html then Compile it to a function, commentsTemplate is global
 	commentsTemplate = Handlebars.compile($("#comments-template").html());
 	commentsRefresh();
-
+	soup.cell('[soup-cell]');
 	
-}); //require
 }); //ready
 
 
@@ -260,7 +193,7 @@ $(function() {
 			onmouseleave='$(this).css("background-color","white")'
 			oncontextmenu='showMenu(CM$, event)'>
 		<p id='itemNo'  indexx={{@index}} class='col-xs-1 itemNo'>{{#indexPlusOne @index}}{{/indexPlusOne}}</p>
-		<p id='comment' indexx={{@index}} class='col-xs-10 comment'>{{msg}}</p>
+		<p id='comment' indexx={{@index}} class='col-xs-10 comment-cell'>{{msg}}</p>
 		<p id='picNo' indexx={{@index}} class='col-xs-1 picNo'>{{picRef}}</p>
 	</div>
 	{{/each}}
