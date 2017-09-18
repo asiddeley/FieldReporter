@@ -5,15 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title id='browserTab' >aisBot</title>
 
+
 <!-- bootstrap v4 -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" 
+	integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
 
 <!-- soup Library -->
 <script type='text/javascript' src="./soup/dist/soup.js"></script>
-<!--script type='text/javascript' data-main="soup/soup" src="require/require.js"></script>
+<!--script type='text/javascript' data-main="soup/soup" src="require/require.js"></script-->
 
 <!-- Handlebars Template engine -->
 <script type='text/javascript' src="handlebars/handlebars-v4.0.10.js"></script>
@@ -22,6 +24,15 @@
 <!--script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.min.js"></script-->
 <!--script type = "text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.js"></script-->
 
+<!-- match Library -->
+<script type='text/javascript' src="./match/matcher.js"></script>
+
+<!--link rel="stylesheet" href="./soup/turnDialogStyle.css" -->
+
+<style rel="stylesheet">
+.row-bot {background:CORNSILK;}
+.row-user {background:LAVENDER;}
+</style>
 
 <script type='text/javascript'>
 
@@ -34,18 +45,79 @@ $(window).on({
 //inhibit the browser's right-click context menu
 $(document).on('contextmenu', false);
 
-//load file
-//var script=document.createElement("script");
-//script.type="text/javascript";
-//script.src="./soup/private/dbAPI.js";    
-//var dbAPI=document.head.appendChild(script);
-	
-$.getScript("./soup/private/dbAPI.js", function(val) {
-  console.log('api', val);
-});
+//load script
+var script=document.createElement("script");
+script.type="text/javascript";
+script.src="./soup/private/dbAPI.js";    
+var dbAPI=document.head.appendChild(script);
+
+//load script	
+//$("head").appendChild($("script src='./soup/private/dbAPI.js' type='text/javascript'/script")[0]);
+
 
 $(function() { 
-	console.log(dbAPI);
+
+	//console.log(window.dbAPI);
+	
+/*************
+mapMatch(patterns, test_object, fail_token)
+patterns=[[item, filter_optional, success_token][item, success_token]...  ]
+
+
+
+eg. mapMatch([[["hello"  rest], 1]], ["hello", ]
+*************/
+
+	var patt=['$a', rest];
+	var test="Andrew is at home, reading a book".split(" ");
+	
+	//filters
+	var people=["Andrew"];
+	var places=["home"];
+	var things=["book"];
+	var nouns=people.concat(places.concat(things));
+	var isNoun=function(w){console.log(w); return (nouns.indexOf(w) == -1)?false:true;}
+	
+	
+	
+	console.log("match test", match(patt, test, ['$a', isNoun])); //returns Andrew
+	
+/*****************
+match(pattern, obj, filterObj)
+
+pattern - the pattern to match against.
+obj - object to match against the pattern.
+filterObj optional - filter to run apply bindings to after isMatch runs.
+
+returns - object that is the variable bindings when obj matches the pattern.  null when obj doesn't match the pattern. match is very similar to isMatch but instead of returning true or false returns what the variables are bound to in the match. compare with regex `exec`*
+
+Examples - var matcher = require('js-matcher'), match = matcher.match, rest = matcher.rest
+
+match(['$v',2], [1,2]) //{ '$v': 1 }
+match(
+	{ '$v':'$y', $x:[1,2,'$v'], i:'$x'},
+	{ i:'d', b:[23, 44], a:3, c:3, d:[1,2,'b']}
+)
+
+//{ '$x': 'd', '$v': 'b', '$y': [ 23, 44 ] }
+*******************/
+
+	
+	
+/********
+filter(filterObj, bindings)
+filterObj - Mapping of varnames to filters.
+bindings - Mapping of varnames to values.
+returns - true if all passed, false if at least one did not pass. Filter iterates through the the mappings making sure that each value passes its associated filter.  A filter consists of either a function that takes the value and returns true if it passes the filter false if it doesn't, or an array that contains a list of acceptable values.
+Example - var matcher = require('js-matcher'),filter = matcher.filter
+function isOdd(x) {return x % 2;}
+filter({ $a: [1,2] }, { $a: 1 }) // true
+filter({ $a: isOdd }, { $a: 99 }) //true
+filter({ $a: isOdd }, { $a: 106 }) //false
+*********************/
+	
+	
+	
 	
 }); //ready
 
@@ -123,20 +195,68 @@ $(function() {
     </form>
   </div>
 </nav>
-<div class="card" style="width: 20rem;">
+<br>
+
+<!-- CARD -->
+<div class="card" style="-width: 30rem;">
+  <!--div class="card-header">header</div-->
+
   <div class="card-body">
-    <h4 class="card-title">Card title</h4>
-    <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+	<h4 class="card-title">Card title</h4>
+	<h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
+	<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
     <a href="#" class="card-link">Card link</a>
     <a href="#" class="card-link">Another link</a>
   </div>
+  
+
+	<ul class="list-group list-group-flush">
+	<li class="list-group-item row-user">hello</li>
+	<li class="list-group-item row-bot">hi</li>
+	<li class="list-group-item row-user">what is the meaning of life?</li>
+	<li class="list-group-item row-bot" >long or short answer?</li>
+	</ul>
+
+  
+  <!--div class="card-footer">footer</div-->
 </div>				
 		
 		
 		
 </div>
 
+<!-- TURN DIALOG TEST  
+<div class="line-container"> 
+    <ul> 
+       <li class="place-right right-msg-container"> 
+       <span class="msg-box-right" data-timestamp=" 9:19 PM" data-readed="read">Hello</span> 
+       </li> 
+      <li class="place-right clear-fix right-msg-container"> 
+        <span class="msg-box-right" data-timestamp=" 9:19 PM" data-readed="read">You are awesome</span> 
+       </li> 
+      <li class="place-left clear-fix left-msg-container"> 
+       <span class="msg-box-left" data-timestamp="9:20 PM">Thanks:)</span> 
+       </li> 
+      <li class="place-left clear-fix left-msg-container"> 
+         <span class="msg-box-left" data-timestamp="9:20 PM">You, too.</span> 
+       </li> 
+       <li class="place-left clear-fix left-msg-container"> 
+         <span class="msg-box-left" data-timestamp="9:20 PM">Ism.</span> 
+       </li> 
+ 
+ 
+      <li class="place-right clear-fix right-msg-container"> 
+         <span class="msg-box-right" data-timestamp="9:20  PM" data-readed="read">Espn test msg.</span> 
+       </li> 
+       <li class="place-left clear-fix left-msg-container"> 
+         <span class="msg-box-left" data-timestamp="9:21 PM">Wonderful</span> 
+       </li> 
+     </ul> 
+ 
+ 
+   </div> 
+
+-->
 
 </body>
 

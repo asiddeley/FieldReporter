@@ -1,3 +1,5 @@
+if (typeof module =='undefined') module={};
+
 var m = module.exports = 
   { match: match
   , isMatch: isMatch
@@ -6,7 +8,7 @@ var m = module.exports =
   , isVar: isVar
   , filter: filter
   }
-    
+   
 
 function mapMatch(matchList, obj, defaultVal) {
   var i = 0
