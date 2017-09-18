@@ -30,7 +30,8 @@ var axLoadFile=function(col){
 		var db="soupdb";
 		var api="get this from mlab";
 		return ($.ajax({
-			url: "https://api.mlab.com/api/1/databases/"+db+"/collections/"+col+"?apiKey="+api,
+			//url: "https://api.mlab.com/api/1/databases/"+db+"/collections/"+col+"?apiKey="+api,
+			url: "mongodb://<dbuser>:<dbpassword>@ds015909.mlab.com:15909/soupdb"
 			type: "GET",
 			contentType: "application/json"
 		}));
