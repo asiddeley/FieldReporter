@@ -25,7 +25,7 @@
 <!--script type = "text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.js"></script-->
 
 <!-- match Library -->
-<script type='text/javascript' src="./match/matcher.js"></script>
+<script type="text/javascript" src="./match/matcher.js"></script>
 
 <!--link rel="stylesheet" href="./soup/turnDialogStyle.css" -->
 
@@ -34,16 +34,16 @@
 .row-user {background:LAVENDER;}
 </style>
 
-<script type='text/javascript'>
+<script type="text/javascript">
 
 //prevent accidental image drop
 $(window).on({
-	'drop': function(e){ e=e||event; e.preventDefault(); false;},
-	'dragover':function(e){ e=e||event; e.preventDefault(); false;}
+	"drop": function(e){ e=e||event; e.preventDefault(); false;},
+	"dragover":function(e){ e=e||event; e.preventDefault(); false;}
 });
 
 //inhibit the browser's right-click context menu
-$(document).on('contextmenu', false);
+$(document).on("contextmenu", false);
 
 //load script
 var script=document.createElement("script");
@@ -54,51 +54,86 @@ var dbAPI=document.head.appendChild(script);
 function WordPattern(options){
 	if (this===window) return new WordPattern(options);
 	
-	this.patts=[];//["["function(words){return true;}, "hello",...][...][...]]
+	this.patterns=[];//["["function(words){return true;}, "hello",...][...][...]]
 	this.score=0;//0 to 1
-	this.test=[];
+	this.fn={}; //function storage 
+	this.fn["fnNotFound"]=function(word){
+		//filter to handle a common error
+		return this.result({exit:true, msg:"error, ["+word+"] not defined"});
+	};
+	//this actually works!
+	this.fn["..."]=function(word){
+		//filter similar to * that matches any word
+		return this.result({match:true, word:word});
+	};
+	
+	
+	this.result=function(options){
+		//returns a new result object with all default field:vlaues and allows specified fields to be overidden via options object
+		//Object.create({});
+		return $.extend({},{
+			exit:false,
+			msg:"",
+			match:false,
+			word:"",
+			wordindex:0,
+			testStr:""
+		}, options);	
+	};
 	
 	this.add=function(patternStr){
 		//[...] hello [punc] my name is [properNoun arg1][...]
 		//split at: space spaces comma square-brackets
 		var patts.push(patternStr.split(/\s|,|\x5b|\x5d/gm));
 	};
-	this.check=function(patt, word){
-		var r, p; 
-		for (var i=0, i<patt.length; i++){
-			p=patt[i];
+	
+	this.slideCheck=function(pattern, word){
+		var f, fn, i, name, r;
+		//itterate over words
+		
+		
+		//itterate over filters 	
+		for (i=0, i<pattern.length; i++){
+			f=pattern[i];
 			//p starts and ends with [] then it's a function without extra args
-			if (p.charAt(0)=="[" && p.chatAt(p.length)=="]"){
+			if (f.charAt(0)=="[" && f.chatAt(p.length)=="]"){
 				//function with no extra arguments besides word
-				p=p.replace(/^[\s\x5b]+|[\s\x5d]+$/g, ''); //remove brackets
-				r=this.fn[p](word);
-				if (r.continue==true) continue; //skip
+				name=f.replace(/^[\s\x5b]+|[\s\x5d]+$/g, ''); //remove brackets
+				fn=this.fn[name];
+				fn=(typeof fn == "undefined")?this.fnNotFound:fn;
+				r=this.fn[name](word);
+				//if (r.cont==true) continue; //skip
 			}
 			//p starts with [ then it's a function with extra arguments
-			else if (p.charAt(0)=="[" ){ 
-				r=p(word);			}
+			else if (f.charAt(0)=="[" ){ 
+
+
 			//p ends with ] then it's the end of a function
 			else if ( ){	}
+
 			//just a word
-			else {r=(p==w);}
+			else {			
+				r=new this.result(f==word);
+			}
+			//request to exit
 			if (r.exit==true) return r;
 		}
 		return r;
 	};
 	
 	this.test=function(testStr){
-		this.test=testStr.split(" ");
-		var patt, i, j, k, r;
-		for (i=0; i<this.patts.length; i++){
-			patt=patts[i];
-			for (j=0; j<patt.length; j++){
-				for (k=0; k<test.length; k++){
-					word=test[k];				
-					r=this.check(patt, word);			
-				};			
-			};	
+		var testWords=testStr.split(" ");
+		var pattern, result, i, j;
+		//itterate through patterns
+		for (i=0; i<this.patterns.length; i++){
+			pattern=this.patterns[i];
+			//itterate through test words
+			for (j=0; j<testWords.length; j++){		
+				result=this.check(pattern, testWords[j]);
+				if (result.exit==true) return result;
+			};
 		};
-		return r;		
+		return result;		
 	};
 	
 	this.bestTest=function(listOftestStrings){
@@ -115,8 +150,16 @@ $(function() {
 
 	//console.log(window.dbAPI);
 	
-
-
+	var NOUNS="Andrew home book car cat".split(" ");
+	
+	var pr=new PatternResponder();
+	pr.pattern("[noun] is at [noun][verb] a [noun]", 1);
+	pr.define("[noun]", function(w){return(NOUNS.indexOf(w)!= -1);});
+	pr.define("[verb]", "read|reading|run|running");
+	pr.filter("[phrase]", "[pronoun][noun]|[noun]")
+	pr.test=("Andrew is at home, reading a book") // {match:true, score:0.1, response:1, msg:""}
+	
+	
 	var patt=['$a', rest];
 	var test="Andrew is at home, reading a book".split(" ");
 	
@@ -130,37 +173,7 @@ $(function() {
 	
 	
 	console.log("match test", match(patt, test, ['$a', isNoun])); //returns Andrew
-	
-/*****************
-match(pattern, obj, filterObj)
 
-pattern - the pattern to match against.
-obj - object to match against the pattern.
-filterObj optional - filter to run apply bindings to after isMatch runs.
-
-returns - object that is the variable bindings when obj matches the pattern.  null when obj doesn't match the pattern. match is very similar to isMatch but instead of returning true or false returns what the variables are bound to in the match. compare with regex `exec`*
-
-Examples - var matcher = require('js-matcher'), match = matcher.match, rest = matcher.rest
-
-match(['$v',2], [1,2]) //{ '$v': 1 }
-match(
-	{ '$v':'$y', $x:[1,2,'$v'], i:'$x'},
-	{ i:'d', b:[23, 44], a:3, c:3, d:[1,2,'b']}
-) //returns { '$x': 'd', '$v': 'b', '$y': [ 23, 44 ] }
-
-filter(filterObj, bindings)
-filterObj - Mapping of varnames to filters.
-bindings - Mapping of varnames to values.
-returns - true if all passed, false if at least one did not pass. Filter iterates through the the mappings making sure that each value passes its associated filter.  A filter consists of either a function that takes the value and returns true if it passes the filter false if it doesn't, or an array that contains a list of acceptable values.
-Example - var matcher = require('js-matcher'),filter = matcher.filter
-function isOdd(x) {return x % 2;}
-filter({ $a: [1,2] }, { $a: 1 }) // true
-filter({ $a: isOdd }, { $a: 99 }) //true
-filter({ $a: isOdd }, { $a: 106 }) //false
-*********************/
-	
-	
-	
 	
 }); //ready
 
