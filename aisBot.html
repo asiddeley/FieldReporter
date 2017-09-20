@@ -61,7 +61,7 @@ function WordPattern(options){
 		//filter to handle a common error
 		return this.result({exit:true, msg:"error, ["+word+"] not defined"});
 	};
-	//this actually works!
+	//name as ... actually works!
 	this.fn["..."]=function(word){
 		//filter similar to * that matches any word
 		return this.result({match:true, word:word});
@@ -89,9 +89,6 @@ function WordPattern(options){
 	
 	this.slideCheck=function(pattern, word){
 		var f, fn, i, name, r;
-		//itterate over words
-		
-		
 		//itterate over filters 	
 		for (i=0, i<pattern.length; i++){
 			f=pattern[i];
@@ -121,6 +118,19 @@ function WordPattern(options){
 		return r;
 	};
 	
+	this.mapComp=function(pattern, input){
+		var f, fn, i, name, r;
+		//pattern=[f,f,w,w,f] 
+		//input  =[w,w,w,w,w,w,w,w,w,w,w,w]
+		//where f=filter Function & w=word
+		input.map(pattern,function(w){
+			
+		
+		
+		});
+		return r;
+	};
+	
 	this.test=function(testStr){
 		var testWords=testStr.split(" ");
 		var pattern, result, i, j;
@@ -129,12 +139,15 @@ function WordPattern(options){
 			pattern=this.patterns[i];
 			//itterate through test words
 			for (j=0; j<testWords.length; j++){		
-				result=this.check(pattern, testWords[j]);
+				result=this.slideCheck(pattern, testWords[j]);
 				if (result.exit==true) return result;
 			};
 		};
 		return result;		
 	};
+	
+	
+	
 	
 	this.bestTest=function(listOftestStrings){
 	
