@@ -168,6 +168,7 @@ function WordMatcher(options){
 		return this.defaultResult({match:true, word:word});
 	};
 	
+	/**************
 	this.mapComp=function(pattern, range, level){
 		//pattern=    [d,w,  f,w,  f] 
 		//range  =[w,w,w,w,w,w,w,w,w,w,w,w]
@@ -193,6 +194,7 @@ function WordMatcher(options){
 		console.log("pattern map result:",JSON.stringify(rm));
 		return this.resultDefault({"result":result});
 	};
+	***********************/
 	
 	this.match=function(rangeStr){
 		var match=this.match;
@@ -200,7 +202,7 @@ function WordMatcher(options){
 		var pattern, result, i;
 		//itterate through patterns
 		for (i=0; i<this.patterns.length; i++){
-			result=this.mapComp(patterns[i], range);
+			result=this.matchRegexes(patterns[i], range);
 			if (result.exit==true) return result;
 		};
 		return result;		
