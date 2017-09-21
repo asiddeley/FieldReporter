@@ -21,6 +21,10 @@
 <link rel="stylesheet" type="text/css" href="jquery/jquery-ui.structure.css">
 <link rel="stylesheet" type="text/css" href="jquery/jquery-ui.css">
 
+<!-- bootstrap Libraries (after jQuery) -->
+<script type='text/javascript' src="./bootstrap/bootstrap.min.js"></script>
+<link rel="stylesheet" href="./bootstrap/bootstrap.min.css">
+
 
 
 <!-- soup Library -->
@@ -65,8 +69,9 @@ function WordMatcher(options){
 	if (this===window) {return new WordPattern(options)};
 
 	this.createResult=function(options){
-		//returns a new result object with all default field:vlaues and allows specified fields to be overidden via options object
-		//Object.create({});
+		/***
+		returns a new result object with all default field:vlaues and allows specified fields to be overidden via options object.  Non-jQuery code - Object.create({options});
+		***/
 		options=(typeof options == "undefined")?{}:options;
 		return $.extend({},{
 			matched:false,
@@ -76,7 +81,7 @@ function WordMatcher(options){
 		}, options);	
 	};
 	
-	this.def=function(left, right){
+	this.define=function(left, right){
 		//eg. ("[noun]", "[person]|[place]|[thing]")
 		//resolve definitions here, not at match time! 
 		//if definition is a function, make sure it returns T/F within 6 recurrsions then store it.
@@ -89,7 +94,7 @@ function WordMatcher(options){
 		}
 		else if (typeof right == "function") { 
 			this.fn[left]=right;
-			console.log(this.fn[left]);
+			//console.log(this.fn[left]);
 		}
 		else if ((typeof right == "string")&&(right.search("|")!=-1)){
 			//definition contains an operator	
@@ -97,16 +102,15 @@ function WordMatcher(options){
 			var rightWords=right.split("|");
 			this.fn[left]=function(word, index, range){
 				//loops through matches until true (matched), otherwise returns false
-				console.log("inside wordDef function created from:", matches);
 				return rightWords.some(function(rw){return (word==rw);});
 			}
-			console.log(this.fn[left]);
+			//console.log(this.fn[left]);
 		} 
 		else if (typeof right == "string"){	
 			//definition right value is just a string so
 			//create simple function that compares it to the word provided from range 
 			this.fn[left]=function(word, index, range){return(word==right);};
-			console.log(this.fn[left]);
+			//console.log(this.fn[left]);
 		};		
 			
 	};
@@ -118,16 +122,16 @@ function WordMatcher(options){
 	//and be expected to return a result object based on this.resultDefault({match:true...})
 	this.fn={};  
 	
-	//this.fn["fnNotFound"]=function(word){
+	this.fn["fnNotFound"]=function(word){
 		//filter to handle a common error
 		//return this.resultDefault({exit:true, msg:"error, ["+word+"] not defined"});
-	//};
+	};
 	
 	//name of "..." actually works!
-	//this.fn["elipsis"]=function(word){
+	this.fn["..."]=function(word){
 		//filter similar to * that matches any word
 		//return this.defaultResult({match:true, word:word});
-	//};
+	};
 	
 	////////////////////////////////////////	
 	this.match=function(rangeStr){
@@ -135,13 +139,15 @@ function WordMatcher(options){
 		var that=this;
 		var range=rangeStr.split(" ");
 		//itterate through patterns until match found
-		var r=this.patterns.some(function(p, i){
-			return that.matchSome(p, range, 0);
+		var r;
+		var r1=this.patterns.some(function(p, i){
+			r=that.matchPatternToRange(p, range, 0);
+			return r;
 		});
-		return this.createResult({matched:r});		
+		return r;		
 	};
 	
-	this.matchSome=function(pattern, range, level){
+	this.matchPatternToRange=function(pattern, range, level){
 		/********************
 		.some tests the parts of the pattern against the range, continue if matched, exit at first mismatch. Note that some() exits when callback returns true (so need to negate match result).  
 		.map on the other hand, tests all parts whether match is true or false.
@@ -150,7 +156,8 @@ function WordMatcher(options){
 		result =[1,1,1,1,0]
 		where d=function derived in define, f=function directly defined & w=function derived from word
 		*****************/
-		level=(typeof level=="undefined")?0:level++;
+		level=(typeof level=="undefined")?0:level++; //recursion level if required
+		
 		var that=this;
 		//var that=this;
 		var move=0; //mover offset, so that 'star' or '...' funtion can move the pattern along the range
@@ -159,20 +166,19 @@ function WordMatcher(options){
 		//all functions of a pattern must be true (and) so exit after first false 
 		var matched=true; 	
 		
-		var r=pattern.some(function(fname, i, a){
+		var r=pattern.map(function(fname, i, a){
 			//f, i, a - pattern match function, index, array ie. pattern
-			console.log("inside matchSome, pattern fn:", fname);
-			var r;
+			console.log("matching pattern/range:", fname, " / " , range[move+i] );
+			var r=false;
 			if (move+i < range.length){
 				var f=that.fn[fname];
 				if (typeof f == "function"){ r=f(range[move+i], i, a);}
 				//matched=matched && r.matched; //calculate overall result 	
 			} 
-			else { r=false; } //exit some
+			else { r=null; } //dummy result for map
 			//Note, return false to continue and true to exit the .some() loop	
 			return r;
 		});
-		console.log("pattern map result:",JSON.stringify(r));
 		return this.createResult({matched:r});
 	};
 	
@@ -184,7 +190,7 @@ function WordMatcher(options){
 		
 		//grooming...
 		//separate adjoining end & start brackets '][' to '] ['
-		patternStr.replace(/\x5d\x5b/,"] [");
+		patternStr.replace(/\]\[/g,"] [");
 		//pad around periods
 		patternStr.replace(/\./," . ");
 		//what about ampersand&, comma, exclamation!, question mark?, quote"  
@@ -208,26 +214,30 @@ function WordMatcher(options){
 $(function() { 
 
 	//console.log(window.dbAPI);
-	
-	var NOUNS="Andrew home book car cat".split(" ");
+
+	var NOUNS="Andrew home book car cat magazine".split(" ");
 	
 	var wm=new WordMatcher();
 	//adds a pattern/token to the PM
-	wm.pattern("[noun] is at [noun][verb] a [noun]", "pattern1"); //wm.createToken({val:1})   );
+	wm.pattern("[noun] is at [noun] [verb] a [noun]", "pattern1"); //wm.createToken({val:1})   );
 	
 	//resolved definition I.e it is a function that returns true or false within 5 recursions
-	wm.def("[noun]", function(w, ic){return(NOUNS.indexOf(w)!= -1);}); 
+	wm.define("[noun]", function(w, ic){
+		//console.log(w, NOUNS.indexOf(w)); 
+		return(NOUNS.indexOf(w)!= -1);
+	}); 
 	//unresolved definition - right string has OR operators, words are endpoints since no definitions found 
-	wm.def("[verb]", "read|reading|run|running");
+	wm.define("[verb]", "read|reading|run|running");
 	//resolved definition I.e reference made to a hash/dictionary eg. {... read:{meaning:"", sim:[]}...]}}
 	//wm.define("[adverb]", "#ADVERB_DICTIONARY");
 	
 	//unresolved definition - right string has OR operators and words that are definitions 
 	//wm.define("[phrase]", "[pronoun][noun]|[noun]")
-	var r=wm.match("Andrew is at home, reading a magazine") // {match:true, score:0.1, response:1, msg:""}
+	var r=wm.match("Andrew is at home , reading a magazine") // {match:true, score:0.1, response:1, msg:""}
 	
-	console.log(r);
-	
+	//console.log(r);
+	console.log("pattern map result:",JSON.stringify(r));
+
 
 	
 }); //ready
