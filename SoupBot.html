@@ -214,8 +214,57 @@ function WordMatcher(options){
 $(function() { 
 
 	//console.log(window.dbAPI);
+	
+	//Oxford Guide to English Grammar
+	//Word Classes 8
+	var wordClasses={
+		adjective:"good, british, cold, quick".split(", "),
+		adverb:"quickly always approximately".split(" "),
+		conjunction:"and but so".split(" "),
+		determiner:"the, his, some, forty-five".split(", "),
+		noun:"Andrew, home, book, car, cat, magazine".split(", "),
+		preposition:"to of at on".split(" "),
+		pronoun:"we you them myself".split(" "),
+		verb:"climb, eat, welcome, be".split(" "),
+	};
+	
+	//Phrases 5
+	var phrases={
+		//adjective phrase
+		adjective:"pleasant, very late".split(", "),
+		adverb:"quickly, always certainly".split(", "),
+		//noun phrase - adjective* noun+ determiner
+		noun:"a good flight, his crew".split(", "),
+		verb:"come, had thought, was left, will be climbing".split(", "),
+		//prepositional phrase - praposition + noun phrase
+		preposition:"after lunch, on the aircraft".split(", ")
+	};
+	
+	/*********************
+	Monolito decorators
+	
+	In Turn-Dialog for Teaching:
+	question	word ?
+	hint clue	word ??
+	statement 	word !
+	example		word !!
+	False		word ^
+	F example	word ^^
 
-	var NOUNS="Andrew home book car cat magazine".split(" ");
+	In Patterns:
+	literal		[name]
+	literal args[exp_hello_world]	
+	value		[exp$a$b]
+	id		 	[exp#101]
+	class		[exp.class]
+	and 		[exp&exp]
+	or			[exp|exp]
+	from/to 	[exp~1~10]
+	math		[exp:1-2*3/4%1(+$a+$b)]
+	conditional	[res:true=false]
+	skipto/rest	[...]
+	seed		[
+	******************/
 	
 	var wm=new WordMatcher();
 	//adds a pattern/token to the PM
@@ -227,7 +276,7 @@ $(function() {
 		return(NOUNS.indexOf(w)!= -1);
 	}); 
 	//unresolved definition - right string has OR operators, words are endpoints since no definitions found 
-	wm.define("[verb]", "read|reading|run|running");
+	wm.define("[verb]", "read|reading|run|running", "also");
 	//resolved definition I.e reference made to a hash/dictionary eg. {... read:{meaning:"", sim:[]}...]}}
 	//wm.define("[adverb]", "#ADVERB_DICTIONARY");
 	
