@@ -96,21 +96,23 @@ window.aiWordMatcher=function(options){
 		var that=this;
 		var range=this.groom(rangeStr);
 		//itterate through patterns until match found
-		var result=[];
+		this.results=[];
 		var innerResult=[];
 		//[].some stops at first true, needs false to continue
-		this.patterns.some(function(p, i){
-			innerResult=that.matchPatternToRange(p.pattern, range, 0);
-			result.push(innerResult);
+		this.pairs.some(function(pair, i){
+			innerResult=that.matchPatternToRange(pair, range, 0);
+			that.results.push(innerResult);
 			//match patterns with input range, exit on first positive match 
 			//returning true will exit the some loop
 			//pattern positive only if all terms are true
-			return innerResult.reduce(function(a,i){return (a & i.match);});
+			var irr=innerResult.reduce(function(a, i){return (a && i.match);}, true);
+			//console.log("ir", JSON.stringify(ir));
+			return irr;
 		});
-		return result;		
+		return this.results;		
 	};
 	
-	this.matchPatternToRange=function(pattern, range, level){
+	this.matchPatternToRange=function(pair, range, level){
 		/********************
 		.some tests the parts of the pattern against the range, continue if matched, exit at first mismatch. Note that some() exits when callback returns true (so need to negate match result).  
 		.map on the other hand, tests all parts whether match is true or false.
@@ -128,27 +130,21 @@ window.aiWordMatcher=function(options){
 		//start off true, anding 1 false will negate all. 
 		//all functions of a pattern must be true (and) so exit after first false 
 		
-		var result=pattern.map(function(term, i, a){
+		var result=pair.pattern.map(function(term, i, a){
 			//f, i, a - pattern match function, index, array ie. pattern
-			console.log("matching pattern/range:", term, " / " , range[move+i] );
-			var match=false, valu=null;
+			var match=false; 
+			var target=range[move+i];
 			if (move+i < range.length){
 				var fn=that.fn[term];
-				if (typeof fn == "function"){
-					valu=range[move+i];
-					match=fn(valu, i, a);
-				}
+				if (typeof fn == "function"){ match=fn(target, i, a);}
 				//function fn not found so just compare strings 
-				else {
-					valu=range[move+i];
-					match=(term==valu);
-				}
+				else {match=(term==target);}
 			} 
 			else { match=null; } //dummy result for map
-			return {term:term, valu:valu, match:match};
+			return {term:term, target:target, match:match};
 		});
 		//return this.createResult({matches:r});
-		//result=[{term:noun, valu:Andrew, match:true}]
+		//result=[{term:noun, target:Andrew, match:true}]
 		return result;
 	};
 	
@@ -160,13 +156,14 @@ window.aiWordMatcher=function(options){
 		//split at: space spaces comma square-brackets
 		//this.patterns.push(patternStr.split(/\s|,|\x5b|\x5d/gm));
 		
-		this.patterns.push({pattern:this.groom(patternStr), response:response});
+		this.pairs.push({pattern:this.groom(patternStr), response:response});
 
 	};
 	
 	//Pattern Storage
 	//["["function(words){return true;}, "hello",...][...][...]]
-	this.patterns=[];
+	this.pairs=[];
+	this.results=[];
 
 	//this.report=function(){return JSON.stringify(this.result);};
 	//this.result=resultDefault();
@@ -182,7 +179,7 @@ if (typeof define=="function"){
 
 else { 
 	//console.log("window.aiWordMatcher", aiWordMatcher);
-	//window.aiWordMatcher=aiWordMatcher;
+	window.aiWordMatcher=aiWordMatcher;
 }
 
 
