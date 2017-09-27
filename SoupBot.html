@@ -6,15 +6,6 @@
 <title id='browserTab' >aisBot</title>
 
 
-<!-- bootstrap v4 -->
-<!--
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" 
-	integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
--->
-
 <script type='text/javascript' src="jquery/jquery.js"></script>
 <script type='text/javascript' src="jquery/jquery-ui.js"></script>
 <link rel="stylesheet" type="text/css" href="jquery/jquery-ui.theme.css">
@@ -25,18 +16,8 @@
 <script type='text/javascript' src="./bootstrap/bootstrap.min.js"></script>
 <link rel="stylesheet" href="./bootstrap/bootstrap.min.css">
 
-
-
 <!-- soup Library -->
 <script type='text/javascript' src="./soup/dist/soup.js"></script>
-<!--script type='text/javascript' data-main="soup/soup" src="require/require.js"></script-->
-
-<!-- Handlebars Template engine -->
-<!--script type='text/javascript' src="handlebars/handlebars-v4.0.10.js"></script-->
-
-<!--script type='text/javascript' src="./handlebars/handlebars.min-latest.js" ></script-->
-<!--script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.min.js"></script-->
-<!--script type = "text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.js"></script-->
 
 
 <script type="text/javascript" src="./soup/aiEnglishGrammar.js"></script>
@@ -76,6 +57,7 @@ function aiSubmit(rangeStr){
 	var r=wm.getBestResponse();	
 	ul$=$("<ul></ul>").attr("class","row-bot").text(r);
 	$("#turnDialog").append(ul$);
+	$("#results").text(JSON.stringify(wm.results));
 	$(window).scrollTop(ul$.offset().top);
 
 }
@@ -98,6 +80,13 @@ $(function() {
 	//Add pattern responses...
 	//respond to "hello" with a string "Hi..."
 	wm.pattern("hello", "Hi, my name is Monolito."); 
+	
+	
+	//
+	var pp=$("pairs").find("patt").map(function(i){return $(i).text();}).get();
+	$("#extra").append(pp.join());
+	console.log("pairs/patt", pp.join());
+	
 	//respond to pattern with a function
 	wm.pattern("[noun] is [verb] a [noun]", function(result, ai){return "That's good"} ); 
 
@@ -135,51 +124,31 @@ $(function() {
 </script>
 
 </head>
-
-
-
 <body>
 
-
-<!-- TEMPLATES               -->
-<template id='comments-template' type="text/x-handlebars-template">
-
-	{{#each comments}}
-	<div class='row row_'
-			indexx={{@index}}
-			onmouseenter='$(this).css("background-color","pink")'
-			onmouseleave='$(this).css("background-color","white")'
-			oncontextmenu='showMenu(CM$, event)'>
-		<p id='itemNo'  indexx={{@index}} class='col-xs-1 itemNo'>{{#indexPlusOne @index}}{{/indexPlusOne}}</p>
-		<p id='comment' indexx={{@index}} class='col-xs-10 comment-cell'>{{msg}}</p>
-		<p id='picNo' indexx={{@index}} class='col-xs-1 picNo'>{{picRef}}</p>
-	</div>
-	{{/each}}
+<!-- AI PROGRAMMING -->
+<!-- pairs <patt></patt><resp></resp> -->
+<pairs>
+<patt>[hi]</patt><resp>Hello [user]</resp>
+<patt>what are you</patt><resp>I'm a soupBot called monolito</resp>
+<patt>what do you do</patt><resp>I can learn and answer questions in English</resp>
+<patt>what is [a] [known]</patt><resp>It is a like a $get @kindOf @known</resp>
+<patt>[ditto]</patt><resp>a sort of $get @kindOf @known</resp>
+<patt>what is [UNKNOWN]</patt><resp>
+</pairs>
+<!-- pairs <left></left><right></right> -->
+<defs>
+<left>[user]</left><right>getUser()</right>
+<left>[VERBS]</left><right>read reading look looking run running</right>
+<left>[NOUNS]</left><right>[people][places][things][AI]</right>
+<left>[people]</left><right>andrew</right>
+<left>[get]</left><right>this.get()</right>
+<left>[known]</left><right>this.known()</right>
+<left class="indefinate-article">[a]</left><right>a an</right>
+</defs>
 	
-</template>
 
-	
-<!-- MENUS               -->
-<div id='commentsMenu' onmouseleave='CM$.hide()' style='display:none'>
-	<p onclick='commentsInsert(0, commentsData)'>Insert before</p>
-	<p onclick='commentsInsert(1, commentsData)'>Insert after</p>
-	<hr>
-	<p onclick='console.log("Move up");$("#rowOptions").hide();'>Move up</p>
-	<p onclick='console.log("Move dn");$("#rowOptions").hide();'>Move dn</p>
-	<hr>
-	<p onclick='commentsDelete(event);'>Delete</p>
-	<hr>
-	<p onclick='console.log("hide");'>Hide</p>
-	<p onclick='console.log("show");'>Show hidden</p>
-	<hr>
-	<p onclick='testInsert();'>Test insert</p>
-	<hr>
-	<p onclick='CM$.hide()'>Exit</p>
-</div>
-
-<!-- PAGE STARTS HERE        -->
-
-
+<!-- PAGE STARTS HERE -->
 <nav class="navbar navbar-fixed-top navbar-default">
   <div class="container-fluid">
     <div class="navbar-header">
@@ -214,12 +183,12 @@ $(function() {
 	</ul>
 
 	<div class="panel-footer panel-primary">
-		<p>Session 101</p>
 		<div class="btn-group btn-group-xs" role="group" aria-label="...">
 		<button type="button" class="btn btn-default">yes</button>
 		<button type="button" class="btn btn-default">no</button>
 		<button type="button" class="btn btn-default">quit Session</button>
 		</div>
+		<p id="results"></p>
 		<!--a href="#" class="card-link">Card link</a -->
 		<!--a href="#" class="card-link">Another link</a -->
 	</div> 	<!-- END OF FOOTER -->
@@ -228,6 +197,9 @@ $(function() {
 
 	</div><!-- END OF container -->
 
+	<div "extra">PAIRS</div>
+	
+	
 
 </body>
 

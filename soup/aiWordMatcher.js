@@ -80,7 +80,6 @@ window.aiWordMatcher=function(options){
 	this.getBestResponse=function(){
 		//find first true match
 		
-		var results=JSON.stringify(this.results);
 		var index=-1;
 		var response;
 		if (this.results.some(function(r){index=r[0].index;	return r[0].match;}))
