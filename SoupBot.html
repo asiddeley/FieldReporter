@@ -73,18 +73,14 @@ function aiSubmit(rangeStr){
 	var ul$=$("<ul></ul>").attr("class","row-user").text(rangeStr);
 	$("#turnDialog").append(ul$);
 	var result=wm.match(rangeStr);	
-	var r=aiResponse(result);	
+	var r=wm.getBestResponse();	
 	ul$=$("<ul></ul>").attr("class","row-bot").text(r);
 	$("#turnDialog").append(ul$);
 	$(window).scrollTop(ul$.offset().top);
 
 }
 
-function aiResponse(result){
 
-	return JSON.stringify(result);
-	
-}
 
 
 
@@ -103,7 +99,7 @@ $(function() {
 	//respond to "hello" with a string "Hi..."
 	wm.pattern("hello", "Hi, my name is Monolito."); 
 	//respond to pattern with a function
-	wm.pattern("[noun] is [verb] a [noun]", function(result, ai){} ); 
+	wm.pattern("[noun] is [verb] a [noun]", function(result, ai){return "That's good"} ); 
 
 	//Define terms...
 	//this one is resolved, Ie. it is a function that returns true or false within 5 recursions

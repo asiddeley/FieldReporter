@@ -77,6 +77,23 @@ window.aiWordMatcher=function(options){
 		//return this.defaultResult({match:true, word:word});
 	};
 	
+	this.getBestResponse=function(){
+		//find first true match
+		
+		var results=JSON.stringify(this.results);
+		var index=-1;
+		var response;
+		if (this.results.some(function(r){index=r[0].index;	return r[0].match;}))
+			{response=this.pairs[index].response;}
+		else {response="I don't understand";}
+		
+		if (typeof response=="function") {return response();}
+		else {return response;}
+	
+	};
+	
+	
+	
 	this.groom=function(str){
 		//grooming returns a clean array of words
 		//console.log("before",str);
@@ -91,76 +108,74 @@ window.aiWordMatcher=function(options){
 	};
 	
 	////////////////////////////////////////	
-	this.match=function(rangeStr){
-		//var match=this.match;
+	this.match=function(inputStr){
+		//To do - scan for illegal text
 		var that=this;
-		var range=this.groom(rangeStr);
+		var input=this.groom(inputStr);
 		//itterate through patterns until match found
 		this.results=[];
-		var innerResult=[];
+		var patternResult=[];
 		//[].some stops at first true, needs false to continue
 		this.pairs.some(function(pair, i){
-			innerResult=that.matchPatternToRange(pair, range, 0);
-			that.results.push(innerResult);
-			//match patterns with input range, exit on first positive match 
-			//returning true will exit the some loop
-			//pattern positive only if all terms are true
-			var irr=innerResult.reduce(function(a, i){return (a && i.match);}, true);
-			//console.log("ir", JSON.stringify(ir));
-			return irr;
+			patternResult=that.matchMap(pair.pattern, input, 0);
+			//console.log(patternResult);
+			patternResult[0].index=i; //identify pattern 
+			that.results.push(patternResult);
+			return patternResult[0].match; //exit if true otherwise continue
 		});
 		return this.results;		
 	};
 	
-	this.matchPatternToRange=function(pair, range, level){
-		/********************
-		.some tests the parts of the pattern against the range, continue if matched, exit at first mismatch. Note that some() exits when callback returns true (so need to negate match result).  
-		.map on the other hand, tests all parts whether match is true or false.
-		pattern=[d,w,  f,w,  f]  
-		range  =[w,w,w,w,w,w,w,w,w,w,w,w]
-		result =[1,1,1,1,0]
-		where d=function derived in define, f=function directly defined & w=function derived from word
-		*****************/
-		level=(typeof level=="undefined")?0:level++; //recursion level if required
-		
+	this.matchMap=function(pattern, input, level){
+		/******************************
+		pattern	[d,w,.,.,f,w,.,.,f]  //Note how buldozers [...] push terms right until matched
+		input  	[w,w,w,w,w,w,w,w,w,w,w,w]
+		result	[1,1,1,1,0]
+		term d	derived function, after a few define itterations
+		term f	function defined
+		term w	word
+		*******************************/
+		level=(typeof level!="number")?0:level++; //recursion level if required
+		var head={index:0, match:true, comps:0, score:0};		
+		var offset=0; //used by buldover to push terms left from begining	
 		var that=this;
-		//var that=this;
-		var move=0; //mover offset, so that 'star' or '...' funtion can move the pattern along the range
-		
-		//start off true, anding 1 false will negate all. 
-		//all functions of a pattern must be true (and) so exit after first false 
-		
-		var result=pair.pattern.map(function(term, i, a){
+		var result=pattern.map(function(term, i, a){
 			//f, i, a - pattern match function, index, array ie. pattern
 			var match=false; 
-			var target=range[move+i];
-			if (move+i < range.length){
+			var target;
+
+			if (offset+i < input.length){
+				target=input[offset + i];
 				var fn=that.fn[term];
 				if (typeof fn == "function"){ match=fn(target, i, a);}
-				//function fn not found so just compare strings 
-				else {match=(term==target);}
+				//otherwise just compare strings
+				else {match=(term==target);} 
+				//accumulate overall truth and total for score
+				head.match=head.match && match; 
+				head.score+=match;
+				head.comps+=1; //number of compares 
 			} 
-			else { match=null; } //dummy result for map
+			else { target=null; match=null; } //dummy results
+			
 			return {term:term, target:target, match:match};
 		});
-		//return this.createResult({matches:r});
-		//result=[{term:noun, target:Andrew, match:true}]
-		return result;
+		head.score=(head.score/head.count); //get average
+		
+		//result =[{head}, {term result}, {term result}...]
+		//Example [{pattnum:1, match:true, score:0.95}, {term:noun, target:cat, match:true}...]
+		return [head].concat(result);
 	};
 	
 
 	
 	this.pattern=function(patternStr, response){
-		//adds a word pattern to the wordMatcher
+		//adds a word pattern to wordMatcher
 		//[...] hello [punc] my name is [properNoun arg1][...]
-		//split at: space spaces comma square-brackets
-		//this.patterns.push(patternStr.split(/\s|,|\x5b|\x5d/gm));
-		
 		this.pairs.push({pattern:this.groom(patternStr), response:response});
 
 	};
 	
-	//Pattern Storage
+	//Pattern Response Storage
 	//["["function(words){return true;}, "hello",...][...][...]]
 	this.pairs=[];
 	this.results=[];
