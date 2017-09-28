@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title id='browserTab' >aisBot</title>
 
-
 <script type='text/javascript' src="jquery/jquery.js"></script>
 <script type='text/javascript' src="jquery/jquery-ui.js"></script>
 <link rel="stylesheet" type="text/css" href="jquery/jquery-ui.theme.css">
@@ -19,19 +18,16 @@
 <!-- soup Library -->
 <script type='text/javascript' src="./soup/dist/soup.js"></script>
 
-
 <script type="text/javascript" src="./soup/aiEnglishGrammar.js"></script>
 <script type="text/javascript" src="./soup/aiWordMatcher.js"></script>
-
 
 <style rel="stylesheet">
 .row-bot {background:CORNSILK;}
 .row-user {}
-
+.pairs {display:none;}
+.defs {display:none;}
 .navbar-brand{margin:0;padding:0;}
 .navbar-brand img{max-height: 100%;}
-
-
 </style>
 
 <script type="text/javascript">
@@ -44,7 +40,6 @@ $(window).on({
 
 //inhibit the browser's right-click context menu
 $(document).on("contextmenu", false);
-
 
 ////////////////globals
 var wm, NOUNS;
@@ -81,9 +76,8 @@ $(function() {
 	//respond to "hello" with a string "Hi..."
 	wm.pattern("hello", "Hi, my name is Monolito."); 
 	
-	
-	//
-	var pp=$("pairs").find("patt").map(function(i){return $(i).text();}).get();
+
+	var pp=$("pairs").find("patt").map(function(i,e){return $(e).text();}).get();
 	$("#extra").append(pp.join());
 	console.log("pairs/patt", pp.join());
 	
@@ -110,12 +104,9 @@ $(function() {
 	//unresolved definition - right string has OR operators and words that are definitions 
 	//wm.define("[phrase]", "[pronoun][noun]|[noun]")
 	
-	
 	////////// {match:true, score:0.1, response:1, msg:""}
 	//var r=wm.match("Andrew is at home, reading a magazine"); 
 	//console.log("pattern map result:",JSON.stringify(r));
-
-
 	
 }); //ready
 
@@ -125,28 +116,6 @@ $(function() {
 
 </head>
 <body>
-
-<!-- AI PROGRAMMING -->
-<!-- pairs <patt></patt><resp></resp> -->
-<pairs>
-<patt>[hi]</patt><resp>Hello [user]</resp>
-<patt>what are you</patt><resp>I'm a soupBot called monolito</resp>
-<patt>what do you do</patt><resp>I can learn and answer questions in English</resp>
-<patt>what is [a] [known]</patt><resp>It is a like a $get @kindOf @known</resp>
-<patt>[ditto]</patt><resp>a sort of $get @kindOf @known</resp>
-<patt>what is [UNKNOWN]</patt><resp>
-</pairs>
-<!-- pairs <left></left><right></right> -->
-<defs>
-<left>[user]</left><right>getUser()</right>
-<left>[VERBS]</left><right>read reading look looking run running</right>
-<left>[NOUNS]</left><right>[people][places][things][AI]</right>
-<left>[people]</left><right>andrew</right>
-<left>[get]</left><right>this.get()</right>
-<left>[known]</left><right>this.known()</right>
-<left class="indefinate-article">[a]</left><right>a an</right>
-</defs>
-	
 
 <!-- PAGE STARTS HERE -->
 <nav class="navbar navbar-fixed-top navbar-default">
@@ -188,16 +157,37 @@ $(function() {
 		<button type="button" class="btn btn-default">no</button>
 		<button type="button" class="btn btn-default">quit Session</button>
 		</div>
-		<p id="results"></p>
+
 		<!--a href="#" class="card-link">Card link</a -->
 		<!--a href="#" class="card-link">Another link</a -->
 	</div> 	<!-- END OF FOOTER -->
 
 	</div> 	<!-- END OF PANEL -->
+	<p id="results">Results<br></p>
+	<cdata id="extra"></cdata>
+</div><!-- END OF container -->
 
-	</div><!-- END OF container -->
 
-	<div "extra">PAIRS</div>
+<!-- AI PROGRAMMING -->
+<!-- pairs <patt></patt><resp></resp> -->
+<pairs class="pairs">
+<patt>[hi]</patt><resp>Hello [user]</resp>
+<patt>what are you</patt><resp>I'm a soupBot called monolito</resp>
+<patt>what do you do</patt><resp>I can learn and answer questions in English</resp>
+<patt>what is [a] [known]</patt><resp>[known] is like a [kindOf] @known</resp>
+<patt>[ditto]</patt><resp>a sort of $get @kindOf @known</resp>
+<patt>what is [UNKNOWN]</patt><resp>
+</pairs>
+<!-- pairs <left></left><right></right> -->
+<defs class="defs">
+<left>[user]</left><right>getUser()</right>
+<left>[VERBS]</left><right>read reading look looking run running</right>
+<left>[NOUNS]</left><right>[people][places][things][AI]</right>
+<left>[people]</left><right>andrew</right>
+<left>[get]</left><right>this.get()</right>
+<left>[known]</left><right>this.known()</right>
+<left class="indefinate-article">[a]</left><right>a an</right>
+</defs>
 	
 	
 
