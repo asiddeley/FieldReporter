@@ -170,12 +170,25 @@ $(function() {
 
 <!-- AI PROGRAMMING -->
 <!-- pairs <patt></patt><resp></resp> -->
+
 <pairs topic="__general __all">
 <!-- use square braces to call definitions -->
 <patt>[hi]</patt><resp>Hello [user]</resp>
 <patt>what are you</patt><resp>I'm a soupBot called monolito</react>
 <patt>what do you do</patt><resp>I can learn and answer questions in English</resp>
 <patt>what is [a] [known]</patt><resp>[known] is like a [kindOf] @known</resp>
+
+<pairs class="pairs" skill="English Grammar">
+<patt>[hi]</patt><resp>Hello [user]</resp>
+<patt>what are you</patt><resp text>I'm a bot called monolito</resp>
+<patt>what do you do</patt><resp>I can learn, converse and answer questions in English</resp>
+<patt>[noun] is [verb] a [noun]</patt>
+<!-- define a response function by inclucing the function (no arguments) or arguments attribute-->
+<resp function arguments="result ai">return "That's good";</resp>
+
+<patt>what is [a] [known]</patt><resp>[known] is a [kindOf] [known]</resp>
+<patt>[ditto]</patt><resp>it's a like a [synonymOf] [known]</resp>
+
 <patt>what is [UNKNOWN]</patt><resp>
 <!-- 1/Oct2/017
 prefix
