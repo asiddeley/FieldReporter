@@ -170,23 +170,64 @@ $(function() {
 
 <!-- AI PROGRAMMING -->
 <!-- pairs <patt></patt><resp></resp> -->
-<pairs class="pairs">
+<pairs topic="__general __all">
+<!-- use square braces to call definitions -->
 <patt>[hi]</patt><resp>Hello [user]</resp>
-<patt>what are you</patt><resp>I'm a soupBot called monolito</resp>
+<patt>what are you</patt><resp>I'm a soupBot called monolito</react>
 <patt>what do you do</patt><resp>I can learn and answer questions in English</resp>
 <patt>what is [a] [known]</patt><resp>[known] is like a [kindOf] @known</resp>
-<patt>[ditto]</patt><resp>a sort of $get @kindOf @known</resp>
 <patt>what is [UNKNOWN]</patt><resp>
+<!-- 1/Oct2/017
+prefix
+A..z word or string
+* wildcard
+$ function, variable, list, means valueOf, responseOf, resultOf
+@ argument
+(,,) arguments
+[*] list, pattern matches if any item in list is true
+# hash, map, dictionary
+-->
+<patt rem="match if both items true">$isTopical [question]</patt><resp>$answer @star the end</resp> 
+<patt>[question]</patt><resp rem="@rest same as last star">$answer @rest</resp>
+<patt>[topicChange]</patt><resp>[answer][rest]</resp>
+<patt>HI</patt><resp choose="inturn" rem="all|random|nth">Hello $getUser<br>hi $getUser</resp>
+<patt>howdy*</patt><resp>$setq($topic,western) $patt(HI) partner! $eval(*)</resp>
+<!-- for multiple responses don't use ditto, use <br> instead-->
+<patt>$predicate howdy*</patt><resp>$setq($topic,western) $patt(HI) partner! $eval(*)</resp>
+
+
 </pairs>
-<!-- pairs <left></left><right></right> -->
+
+<!--
+defs <left></left><right></right> 
+a def definnes a list, hash, function, variable, url?
+
+--------------->
 <defs class="defs">
-<left>[user]</left><right>getUser()</right>
-<left>[VERBS]</left><right>read reading look looking run running</right>
-<left>[NOUNS]</left><right>[people][places][things][AI]</right>
+<left def>$user</left><right function="arguments">getUser()</right>
+<left>[VERBS]</left><right list>read reading look looking run running</right>
+<left>[NOUNS]</left><right list>[people] [places] [things] [AI]</right>
 <left>[people]</left><right>andrew</right>
 <left>[get]</left><right>this.get()</right>
 <left>[known]</left><right>this.known()</right>
 <left class="indefinate-article">[a]</left><right>a an</right>
+<!-- 1Oct2017 -->
+
+<left rem="define a hash">#hash</left>[name:valu]<right></right> 
+<left rem="adds to hash">#hash</left><right></right> 
+
+<left rem="defines list">#normalize</left>[*?:?*]<right></right> 
+<left rem="adds to list">[normalize]</left><right></right> 
+
+<left>[numberNext]</left><right arguments="num">return num+1;</right>
+<left>[numberPrev]</left><right arguments="num">return num-1;</right>
+<left>[relation]</left><right list>[is][knows][likes][part][same][similar]</right> 
+<left>[is]</left><right list>*is* *was*</right>
+
+<left>[isQuestion]</left><right list>how* what* when* where* why* ?*</right> 
+
+
+
 </defs>
 	
 	

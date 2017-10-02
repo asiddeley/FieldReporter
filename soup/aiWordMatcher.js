@@ -37,14 +37,14 @@ window.aiWordMatcher=function(options){
 			return null;
 		}
 		else if (typeof right == "function") { 
-			this.fn[left]=right;
+			this.defs[left]=right;
 			//console.log(this.fn[left]);
 		}
 		else if ((typeof right == "string")&&(right.search("|")!=-1)){
 			//definition contains an operator	
 			//create function that compares range word to right words (rw)
 			var rightWords=right.split("|");
-			this.fn[left]=function(word, index, range){
+			this.defs[left]=function(word, index, range){
 				//loops through matches until true (matched), otherwise returns false
 				return rightWords.some(function(rw){return (word==rw);});
 			}
@@ -53,33 +53,31 @@ window.aiWordMatcher=function(options){
 		else if (typeof right == "string"){	
 			//definition right value is just a string so
 			//create simple function that compares it to the word provided from range 
-			this.fn[left]=function(word, index, range){return(word==right);};
+			this.defs[left]=function(word, index, range){return(word==right);};
 			//console.log(this.fn[left]);
 		};		
 			
 	};
 	
-	//this.definitions=[];
-	
-	//function storage - Ie. resolved definitions
-	//functions stored here will be called thus: function(word, index, range){...} 
-	//and be expected to return a result object based on this.resultDefault({match:true...})
-	this.fn={};  
-	
-	this.fn["fnNotFound"]=function(word){
-		//filter to handle a common error
-		//return this.resultDefault({exit:true, msg:"error, ["+word+"] not defined"});
+	this.defineFromHTML=function(){
+		var that=this;
+		var def$("defs");
+		var left$=def$.children("left");
+		var right$=def$.children("right");
+		if (left$.length<>right$.length)
+			{console.log("Error, left-right mismatch in defs"); return;}
+		else {
+			left$.map(function(index, element){
+			that.define($(element).text(), $(right$[index]).text());			
+		});}
 	};
 	
-	//name of "..." actually works!
-	this.fn["..."]=function(word){
-		//filter similar to * that matches any word
-		//return this.defaultResult({match:true, word:word});
-	};
+	this.defs={};
+
 	
 	this.getBestResponse=function(){
 		//find first true match
-		
+
 		var index=-1;
 		var response;
 		if (this.results.some(function(r){index=r[0].index;	return r[0].match;}))
@@ -91,15 +89,13 @@ window.aiWordMatcher=function(options){
 	
 	};
 	
-	
-	
 	this.groom=function(str){
 		//grooming returns a clean array of words
 		//console.log("before",str);
 		//ensure good separation by padding various separators and punctuators
 		str=str.replace(/\]/g,"] "); 
 		str=str.replace(/\.\s/g," . "); //ignores [...] and chaining periods such as www.com
-		str=str.replace(/,/g," , ");
+		//str=str.replace(/,/g," , ");
 		//TO DO - ampersand&, comma, exclamation!, question mark?, quote"  
 
 		//split at spaces
@@ -116,13 +112,20 @@ window.aiWordMatcher=function(options){
 		var patternResult=[];
 		//[].some stops at first true, needs false to continue
 		this.pairs.some(function(pair, i){
-			patternResult=that.matchMap(pair.pattern, input, 0);
+			//patternResult=that.matchMap(pair.pattern, input, 0);
+			patternResult=that.matchMap(pair.pattern, input);
 			//console.log(patternResult);
 			patternResult[0].index=i; //identify pattern 
 			that.results.push(patternResult);
 			return patternResult[0].match; //exit if true otherwise continue
 		});
 		return this.results;		
+	};
+	
+	this.matchWithRegex=function(pattern, input){
+		
+		
+		
 	};
 	
 	this.matchMap=function(pattern, input, level){
@@ -164,15 +167,41 @@ window.aiWordMatcher=function(options){
 		//Example [{pattnum:1, match:true, score:0.95}, {term:noun, target:cat, match:true}...]
 		return [head].concat(result);
 	};
-	
 
 	
 	this.pattern=function(patternStr, response){
 		//adds a word pattern to wordMatcher
 		//[...] hello [punc] my name is [properNoun arg1][...]
-		this.pairs.push({pattern:this.groom(patternStr), response:response});
-
+		//this.pairs.push({pattern:this.groom(patternStr), response:response});
+		this.pairs.push({pattern:this.patternizer(patternStr), response:response});
 	};
+	
+	this.patternizer=function(patternStr){
+		//pattern example - 
+		//"$predicateVar $predicateFunc(string) *text to match*"
+		//later, for pattern to match, all predicates and regex must be true. 
+		//returns {predicates:[], regexp:RegExp}
+		var predicates=[], regexp="";
+		var a=patternStr.split(" ").map(function(term, index, arr){
+			//$hello - predicate variable
+			//$hello(arg1,arg2) - predicate function ///WHAT about $arg
+			if (term.charAt(0)=="$")
+				{predicates.push(new Function("return "+term.substring(1)));}
+			else if (term.chatAt(0)=="[")
+				var end=term.indexOf("]")-1;
+				{predicates.push(new Function(
+					//"arg1", "arg2",
+					"return ai.fn.inList(ai.inputStr,"+term.substring(1,end)+");"
+				);}
+			//add string to regexStr
+			else {regexp+=term+"\s";}
+		});
+		//translate to regexp since asterisk in regex means 0 or more, not wildcard
+		regexp.replace("*",".+"); 
+		return {predicates:predicates, regexp:new Regexp(regexp, "i" )};
+	};
+	
+
 	
 	//Pattern Response Storage
 	//["["function(words){return true;}, "hello",...][...][...]]
