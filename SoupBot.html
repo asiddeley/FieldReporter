@@ -18,8 +18,7 @@
 <!-- soup Library -->
 <script type='text/javascript' src="./soup/dist/soup.js"></script>
 
-<script type="text/javascript" src="./soup/aiEnglishGrammar.js"></script>
-<script type="text/javascript" src="./soup/aiWordMatcher.js"></script>
+<script type="text/javascript" src="./soup/AIengine.js"></script>
 
 <style rel="stylesheet">
 .row-bot {background:CORNSILK;}
@@ -42,71 +41,32 @@ $(window).on({
 $(document).on("contextmenu", false);
 
 ////////////////globals
-var wm, NOUNS;
+var ai;
 
 function aiSubmit(rangeStr){
 
 	var ul$=$("<ul></ul>").attr("class","row-user").text(rangeStr);
 	$("#turnDialog").append(ul$);
-	var result=wm.match(rangeStr);	
-	var r=wm.getBestResponse();	
+	var result=ai.match(rangeStr);	
+	var r=ai.getBestResponse();	
 	ul$=$("<ul></ul>").attr("class","row-bot").text(r);
 	$("#turnDialog").append(ul$);
-	$("#results").text(JSON.stringify(wm.results));
+	$("#results").text(JSON.stringify(ai.results));
 	$(window).scrollTop(ul$.offset().top);
 
 }
 
 
-
-
-
 $(function() { 
 
-	//console.log(window.dbAPI);
-	
-	NOUNS=aiEnglishGrammar.wordClasses.nouns;
-	
-	//console.log("aiWordMatcher", window.aiWordMatcher);
-	//wordMatcer initializaiton
-	wm=new aiWordMatcher();
-	//wm.patternCallbackArgs(result, ai);
-			
-	//Add pattern responses...
-	//respond to "hello" with a string "Hi..."
-	wm.pattern("hello", "Hi, my name is Monolito."); 
-	
-
-	var pp=$("pairs").find("patt").map(function(i,e){return $(e).text();}).get();
-	$("#extra").append(pp.join());
-	console.log("pairs/patt", pp.join());
-	
-	//respond to pattern with a function
-	wm.pattern("[noun] is [verb] a [noun]", function(result, ai){return "That's good"} ); 
-
-	//Define terms...
-	//this one is resolved, Ie. it is a function that returns true or false within 5 recursions
-	wm.define("[noun]", function(w, ic){return(NOUNS.indexOf(w)!= -1);}); 
-	
-	//this one is resolved, since the right string has operators (| means OR) and
-	//the terms (words) are endpoints if no further definitions of them are found.  
-	wm.define("[verb]", "read|reading|run|running");
-	
-	//a term can have multiple definitions, synonym...  
-	//wm.define("read", "parse & take-in & inform & understand");
-
-	//define by mapping, read=parse, reading=parsing
-	//wm.define("read, reading", "parse, parsing");
-	
-	//resolved definition I.e reference made to a hash/dictionary eg. {... read:{meaning:"", sim:[]}...]}}
-	//wm.define("[adverb]", "#ADVERB_DICTIONARY");
-	
-	//unresolved definition - right string has OR operators and words that are definitions 
-	//wm.define("[phrase]", "[pronoun][noun]|[noun]")
-	
-	////////// {match:true, score:0.1, response:1, msg:""}
-	//var r=wm.match("Andrew is at home, reading a magazine"); 
-	//console.log("pattern map result:",JSON.stringify(r));
+	ai=new AIengine();
+	var patt$=$("pairs").children("patt");
+	var resp$=$("pairs").children("resp");
+	var left$=$("pairs").children("left");
+	var right$=$("pairs").children("right");
+	console.log("pairs:", patt$.length, resp$.length, left$.length, right$.length);
+	//ai.pairsFromHTML($("pairs")); 
+	//ai.defsFromHTML($("defs"));
 	
 }); //ready
 
@@ -168,80 +128,79 @@ $(function() {
 </div><!-- END OF container -->
 
 
-<!-- AI PROGRAMMING -->
+<!--------------------------
+AI PROGRAMMING 
+A Siddeley 1/Oct/2017
+
+A..z 	word or string
+* 		wildcard
+$ 		function, variable, list, means valueOf, responseOf, resultOf
+@ 		argument
+(,,) 	arguments
+[*] 	list, pattern matches if any item in list is true
+{} 		hash, map, dictionary
+------------------------------------->
 <!-- pairs <patt></patt><resp></resp> -->
-
-<pairs topic="__general __all">
-<!-- use square braces to call definitions -->
-<patt>[hi]</patt><resp>Hello [user]</resp>
-<patt>what are you</patt><resp>I'm a soupBot called monolito</react>
+<pairs>
+<topic></topic>
+<seed></seed><plan></plan>
+<patt>what are you</patt><resp>I am a soupBot called monolito</resp>
 <patt>what do you do</patt><resp>I can learn and answer questions in English</resp>
-<patt>what is [a] [known]</patt><resp>[known] is like a [kindOf] @known</resp>
-
-<pairs class="pairs" skill="English Grammar">
-<patt>[hi]</patt><resp>Hello [user]</resp>
-<patt>what are you</patt><resp text>I'm a bot called monolito</resp>
-<patt>what do you do</patt><resp>I can learn, converse and answer questions in English</resp>
-<patt>[noun] is [verb] a [noun]</patt>
-<!-- define a response function by inclucing the function (no arguments) or arguments attribute-->
-<resp function arguments="result ai">return "That's good";</resp>
-
+<patt>[noun] is [verb] a [noun]</patt><resp>that is a statement</resp>
 <patt>what is [a] [known]</patt><resp>[known] is a [kindOf] [known]</resp>
-<patt>[ditto]</patt><resp>it's a like a [synonymOf] [known]</resp>
+<patt rem="matches if 4 terms are true">$isTrue() * [question] *</patt>
+<resp>the answer to $term(2) may be $random(42)</resp> 
 
-<patt>what is [UNKNOWN]</patt><resp>
-<!-- 1/Oct2/017
-prefix
-A..z word or string
-* wildcard
-$ function, variable, list, means valueOf, responseOf, resultOf
-@ argument
-(,,) arguments
-[*] list, pattern matches if any item in list is true
-# hash, map, dictionary
--->
-<patt rem="match if both items true">$isTopical [question]</patt><resp>$answer @star the end</resp> 
-<patt>[question]</patt><resp rem="@rest same as last star">$answer @rest</resp>
+<patt>[question] *</patt><resp">$answer @rest</resp>
 <patt>[topicChange]</patt><resp>[answer][rest]</resp>
-<patt>HI</patt><resp choose="inturn" rem="all|random|nth">Hello $getUser<br>hi $getUser</resp>
-<patt>howdy*</patt><resp>$setq($topic,western) $patt(HI) partner! $eval(*)</resp>
-<!-- for multiple responses don't use ditto, use <br> instead-->
-<patt>$predicate howdy*</patt><resp>$setq($topic,western) $patt(HI) partner! $eval(*)</resp>
+<patt>HI</patt><resp choose="inturn" rem="or...all|random|nth">
+Hello $getUser<br>
+Hi $getUser<br>
+Ah, fresh input<br>
+</resp>
+<patt>howdy *</patt><resp>$setq($topic,western) $patt(HI) or should I say $qt howdy partner! $qt $patt(*)</resp>
+
+<patt>$isTrue() howdy *</patt><resp>$setq($topic,western) $patt(HI) partner! $eval(*)</resp>
 
 
-</pairs>
 
-<!--
+<!--------------------
+DEFINITIONS
 defs <left></left><right></right> 
 a def definnes a list, hash, function, variable, url?
-
 --------------->
-<defs class="defs">
-<left def>$user</left><right function="arguments">getUser()</right>
-<left>[VERBS]</left><right list>read reading look looking run running</right>
-<left>[NOUNS]</left><right list>[people] [places] [things] [AI]</right>
-<left>[people]</left><right>andrew</right>
-<left>[get]</left><right>this.get()</right>
-<left>[known]</left><right>this.known()</right>
-<left class="indefinate-article">[a]</left><right>a an</right>
-<!-- 1Oct2017 -->
 
-<left rem="define a hash">#hash</left>[name:valu]<right></right> 
-<left rem="adds to hash">#hash</left><right></right> 
+<!-- user defined functions -->
+<left>$decrement</left><right args="num">return num-1;</right>
+<left>$get</left><right function="n">return window.aidata[n];</right>
+<left>$increment</left><right func="num">return num+1;</right>
+<left>$isTrue</left><right arguments="topic">return true;</right>
+<left>$random</left><right function="n">return n*Math.random();</right>
+<left>$setq</left><right function="nam val">
+	if (typeof window.aidata=="undefined"){window.aidata={};}
+	window.aidata[nam]=val;return null;
+</right>
+<left>$term</left><right function="index">return ai.matchExec[index];</right>
+<left>$user</left><right function>return ai.getUser();</right>
 
-<left rem="defines list">#normalize</left>[*?:?*]<right></right> 
-<left rem="adds to list">[normalize]</left><right></right> 
+<!-- user defined inclusion lists/hashes -->
+<left>[verbs]</left><right list>read reading look looking run running</right>
+<left>[nouns]</left><right list>[people] [places] [things] [bots]</right>
+<left>[people]</left><right list>andrew</right>
+<left>[places]</left><right list>boardwalk</right>
+<left>[things]</left><right list>screwdriver light-bulb</right>
+<left>[bots]</left><right list>monolito binky exLax hedgehog gauge</right>
 
-<left>[numberNext]</left><right arguments="num">return num+1;</right>
-<left>[numberPrev]</left><right arguments="num">return num-1;</right>
+
+<left rem="indefinate-article">[a]</left><right list>a an</right>
+<left rem="define a hash">{hash}</left><right hash>name:valu name2:valu2</right> 
+<left rem="alternatly">#hash</left><right hash>name:valu name2:valu2</right> 
+<left rem="defines list">#normalize</left><right hash>*?:?*</right> 
 <left>[relation]</left><right list>[is][knows][likes][part][same][similar]</right> 
-<left>[is]</left><right list>*is* *was*</right>
+<left>[is]</left><right list>is was</right>
+<left>[question]</left><right list>how what when where why ?</right> 
 
-<left>[isQuestion]</left><right list>how* what* when* where* why* ?*</right> 
-
-
-
-</defs>
+</pairs>
 	
 	
 
