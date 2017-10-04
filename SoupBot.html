@@ -65,6 +65,7 @@ $(function() {
 	var left$=$("pairs").children("left");
 	var right$=$("pairs").children("right");
 	console.log("pairs:", patt$.length, resp$.length, left$.length, right$.length);
+	console.log("attr('function')", $("topic").attr("list"));
 	//ai.pairsFromHTML($("pairs")); 
 	//ai.defsFromHTML($("defs"));
 	
@@ -142,7 +143,7 @@ $ 		function, variable, list, means valueOf, responseOf, resultOf
 ------------------------------------->
 <!-- pairs <patt></patt><resp></resp> -->
 <pairs>
-<topic></topic>
+<topic function>return "hello world";</topic>
 <seed></seed><plan></plan>
 <patt>what are you</patt><resp>I am a soupBot called monolito</resp>
 <patt>what do you do</patt><resp>I can learn and answer questions in English</resp>

@@ -36,7 +36,7 @@ window.AIengine=function(options){
 			{console.log("Error, lefts and rights are not paired in definitions"); return;}
 		else {
 			left$.map(function(index, element){
-			that.define($(element).text(), $(right$[index]).text());			
+			that.define($(element), $(right$[index]));			
 		});}
 	};
 	
@@ -47,12 +47,23 @@ window.AIengine=function(options){
 		//if definition is a string and a function seed, prepare the function and store.
 		//that should cover all cases.
 		var that=this;
-		if (typeof left != "string") {
-			console.log("syntax error - wordDef requires text/string arguments"); 
+		if (false) {
+			//some sort of check, ie. already defined
+			console.log("syntax error - text/string arguments expected"); 
 			return null;
 		}
-		else if (typeof right == "function") { 
-			this.defs[left]=right;
+		else if (right.attr("function")!="undefined") { 
+			var arga=right.attr("function").split(/[,\s]+/);
+			var code=right.text();
+			var func;
+			switch (arga.length){
+				case 0:func=new Function(code);break;
+				case 1:func=new Function(arga[0],code);break;
+				case 2:func=new Function(arga[0],arga[1],code);break;
+				case 3:func=new Function(arga[0],arga[1],arga[2],code);break;
+				default:func=new Function(arga[0],arga[1],arga[2],arga[3],code);
+			}
+			this.defs[left]=func;
 			//console.log(this.fn[left]);
 		}
 		else if ((typeof right == "string")&&(right.indexOf("|")!=-1)){
