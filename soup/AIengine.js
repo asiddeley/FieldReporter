@@ -46,6 +46,7 @@ window.AIengine=function(options){
 		//if definition is a function, make sure it returns T/F within 6 recurrsions then store it.
 		//if definition is a string and a function seed, prepare the function and store.
 		//that should cover all cases.
+		var spliter=/[,\s]+/;
 		var that=this;
 		if (false) {
 			//some sort of check, ie. already defined
@@ -53,8 +54,8 @@ window.AIengine=function(options){
 			return null;
 		}
 		else if (right.attr("function")!="undefined") { 
-			var arga=right.attr("function").split(/[,\s]+/);
-			var code=right.text();
+			var arga=right.attr("function").split(splitter);
+			var code="try{ "+right.text()+"} catch(er) {console.log(er);}"; 
 			var func;
 			switch (arga.length){
 				case 0:func=new Function(code);break;
@@ -64,25 +65,14 @@ window.AIengine=function(options){
 				default:func=new Function(arga[0],arga[1],arga[2],arga[3],code);
 			}
 			this.defs[left]=func;
-			//console.log(this.fn[left]);
+			console.log("idendity (function):", func);
 		}
-		else if ((typeof right == "string")&&(right.indexOf("|")!=-1)){
-			//definition contains an operator	
-			//create function that compares range word to right words (rw)
-			var rightWords=right.split("|");
-			this.defs[left]=function(word, index, range){
-				//loops through matches until true (matched), otherwise returns false
-				return rightWords.some(function(rw){return (word==rw);});
-			}
-			//console.log(this.fn[left]);
+		else if (right.attr("list")!="undefined") {
+			var code="var i=-1; try{ i=["+ right.text() +
+			"].indexOf(word);}catch(er){console.log(er);}; return (i==-1)?false:true;"; 
+			this.defs[left]=new Function("word", code);
+			console.log("idendity (list):", this.defs[left]);
 		} 
-		else if (typeof right == "string"){	
-			//definition right value is just a string so
-			//create simple function that compares it to the word provided from range 
-			this.defs[left]=function(word, index, range){return(word==right);};
-			//console.log(this.fn[left]);
-		};		
-			
 	};
 	
 	///////////////////////////////////////////////////////////////////
@@ -169,8 +159,8 @@ window.AIengine=function(options){
 	///////////////////////////////////////////////////
 	this.pairsFromHTML=function(pairs$){
 		var that=this;
-		var patt$=pairs$.children("patt");
-		var resp$=pairs$.children("resp");
+		var p$=pairs$.children("p");
+		var a$=pairs$.children("a");
 		if (patt$.length!=resp$.length)
 			{console.log("Error, patterns and responses are not paired"); return;}
 		else {
@@ -180,11 +170,11 @@ window.AIengine=function(options){
 		}
 	};
 	
-	this.pattern=function(patternStr, response){
+	this.pattern=function(patternStr, antiphon){
 		//adds a word pattern to wordMatcher
 		//[...] hello [punc] my name is [properNoun arg1][...]
 		//this.pairs.push({pattern:this.groom(patternStr), response:response});
-		this.pairs.push({pattern:this.patternizer(patternStr), response:response});
+		this.pairs.push({pattern:this.patternizer(patternStr), antiphon:antiphon});
 	};
 	
 	this.patternizer=function(patternStr){

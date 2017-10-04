@@ -24,7 +24,6 @@
 .row-bot {background:CORNSILK;}
 .row-user {}
 .pairs {display:none;}
-.defs {display:none;}
 .navbar-brand{margin:0;padding:0;}
 .navbar-brand img{max-height: 100%;}
 </style>
@@ -60,12 +59,12 @@ function aiSubmit(rangeStr){
 $(function() { 
 
 	ai=new AIengine();
-	var patt$=$("pairs").children("patt");
-	var resp$=$("pairs").children("resp");
-	var left$=$("pairs").children("left");
-	var right$=$("pairs").children("right");
-	console.log("pairs:", patt$.length, resp$.length, left$.length, right$.length);
-	console.log("attr('function')", $("topic").attr("list"));
+	var topic$=$("topic").
+	var p$=$("pairs").children("p");
+	var a$=$("pairs").children("a");
+	var i$=$("pairs").children("i");
+	var r$=$("pairs").children("r");
+	console.log("pairs:", p$.length, a$.length, i$.length, r$.length);
 	//ai.pairsFromHTML($("pairs")); 
 	//ai.defsFromHTML($("defs"));
 	
@@ -141,52 +140,52 @@ $ 		function, variable, list, means valueOf, responseOf, resultOf
 [*] 	list, pattern matches if any item in list is true
 {} 		hash, map, dictionary
 ------------------------------------->
-<!-- pairs <patt></patt><resp></resp> -->
-<pairs>
-<topic function>return "hello world";</topic>
+<!------------------------
+<pairs rem="pairs of <p></p><a></a> and <i></i><r></r>"> 
+<p rem="pattern"></p><a rem="antiphon or answer"></a>
+<i rem="identity"></i><r rem="RHS or right hand side"></r>
+
+</pairs>
+-->
+<aisoup>
+<topic>__Root</topic>
 <seed></seed><plan></plan>
-<patt>what are you</patt><resp>I am a soupBot called monolito</resp>
-<patt>what do you do</patt><resp>I can learn and answer questions in English</resp>
-<patt>[noun] is [verb] a [noun]</patt><resp>that is a statement</resp>
-<patt>what is [a] [known]</patt><resp>[known] is a [kindOf] [known]</resp>
-<patt rem="matches if 4 terms are true">$isTrue() * [question] *</patt>
-<resp>the answer to $term(2) may be $random(42)</resp> 
+<pairs>
+<p>who are you</p><a>I am a soupBot called monolito</a>
+<p>what do you do</p><a>I can learn and answer questions in English</a>
+<p>[noun] is [verb] a [noun]</p><a>that is a statement</a>
+<p>what is [a] [noun]</p><a>[known] is a [kindOf] [known]</a>
+<p rem="matches if 4 terms are true">$isTrue() [W5] *</p>
+<a>the answer to $term(2) may be 42</a> 
 
-<patt>[question] *</patt><resp">$answer @rest</resp>
-<patt>[topicChange]</patt><resp>[answer][rest]</resp>
-<patt>HI</patt><resp choose="inturn" rem="or...all|random|nth">
-Hello $getUser<br>
-Hi $getUser<br>
+<p>[W5] *</p><a>$answer @rest</a>
+<p>[topicChange]</p><a>[answer][rest]</a>
+<p>HI</patt><a choose="inturn" rem="or...all|random|nth">
+Hello $getUser()<br>
+Hi $getUser()<br>
 Ah, fresh input<br>
-</resp>
-<patt>howdy *</patt><resp>$setq($topic,western) $patt(HI) or should I say $qt howdy partner! $qt $patt(*)</resp>
+</a>
+<p>howdy *</p><a>$setq($topic,western) $patt(HI) or should I say $qt howdy partner! $qt $patt(*)</a>
 
-<patt>$isTrue() howdy *</patt><resp>$setq($topic,western) $patt(HI) partner! $eval(*)</resp>
-
-
-
-<!--------------------
-DEFINITIONS
-defs <left></left><right></right> 
-a def definnes a list, hash, function, variable, url?
---------------->
+<p>$isTrue() howdy *</p><a>$setq($topic,western) $patt(HI) partner! $eval(*)</a>
 
 <!-- user defined functions -->
-<left>$decrement</left><right args="num">return num-1;</right>
-<left>$get</left><right function="n">return window.aidata[n];</right>
-<left>$increment</left><right func="num">return num+1;</right>
-<left>$isTrue</left><right arguments="topic">return true;</right>
-<left>$random</left><right function="n">return n*Math.random();</right>
-<left>$setq</left><right function="nam val">
+<i>$decrement</i><r function="num">return num-1;</r>
+<i>$get</i><r function="n">return window.aidata[n];</r>
+<i>$increment</i><r func="num">return num+1;</r>
+<i>$isTrue</i><r arguments="topic">return true;</r>
+<i>$random</i><r function="n">return n*Math.random();</r>
+<i>$setq</i>
+<r function="nam val">
 	if (typeof window.aidata=="undefined"){window.aidata={};}
 	window.aidata[nam]=val;return null;
-</right>
-<left>$term</left><right function="index">return ai.matchExec[index];</right>
-<left>$user</left><right function>return ai.getUser();</right>
+</r>
+<i>$term</left><r function="index">return ai.matchExec[index];</r>
+<i>$user</left><r function>return ai.getUser();</r>
 
 <!-- user defined inclusion lists/hashes -->
-<left>[verbs]</left><right list>read reading look looking run running</right>
-<left>[nouns]</left><right list>[people] [places] [things] [bots]</right>
+<i>[verbs]</i><right list>read reading look looking run running</right>
+<i>[nouns]</i><right list>[people] [places] [things] [bots]</right>
 <left>[people]</left><right list>andrew</right>
 <left>[places]</left><right list>boardwalk</right>
 <left>[things]</left><right list>screwdriver light-bulb</right>
@@ -199,10 +198,10 @@ a def definnes a list, hash, function, variable, url?
 <left rem="defines list">#normalize</left><right hash>*?:?*</right> 
 <left>[relation]</left><right list>[is][knows][likes][part][same][similar]</right> 
 <left>[is]</left><right list>is was</right>
-<left>[question]</left><right list>how what when where why ?</right> 
+<left>[W5]</left><right list>what when where why how</right> 
 
 </pairs>
-	
+</aisoup>	
 	
 
 </body>
