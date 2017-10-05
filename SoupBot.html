@@ -147,8 +147,8 @@ $ 		function, variable, list, means valueOf, responseOf, resultOf
 
 </pairs>
 -->
-<aisoup>
-<topic>__Root</topic>
+<ai>
+<topics>__Root</topic>
 <seed></seed><plan></plan>
 <pairs>
 <p>who are you</p><a>I am a soupBot called monolito</a>
@@ -176,32 +176,31 @@ Ah, fresh input<br>
 <i>$isTrue</i><r arguments="topic">return true;</r>
 <i>$random</i><r function="n">return n*Math.random();</r>
 <i>$setq</i>
-<r function="nam val">
-	if (typeof window.aidata=="undefined"){window.aidata={};}
-	window.aidata[nam]=val;return null;
-</r>
-<i>$term</left><r function="index">return ai.matchExec[index];</r>
+<r function="ai nam val">ai.data[nam]=val;return null;</r>
+<i>$term</left><r function="ai,index">return ai.matchExec[index];</r>
 <i>$user</left><r function>return ai.getUser();</r>
 
-<!-- user defined inclusion lists/hashes -->
-<i>[verbs]</i><right list>read reading look looking run running</right>
-<i>[nouns]</i><right list>[people] [places] [things] [bots]</right>
-<left>[people]</left><right list>andrew</right>
-<left>[places]</left><right list>boardwalk</right>
-<left>[things]</left><right list>screwdriver light-bulb</right>
-<left>[bots]</left><right list>monolito binky exLax hedgehog gauge</right>
+<!-- list definitions aka array (js) -->
+<i>[verbs]</i><r list>read reading look looking run running</r>
+<i>[nouns]</i><r list>[people] [places] [things] [bots]</r>
+<i>[people]</i><r list>andrew</r>
+<i>[places]</i><r list>home</r>
+<i>[things]</i><r list>screwdriver light-bulb</r>
+<i>[bots]</i><r list>monolito blinky exLax hedgehog gauge</r>
+<i rem="indefinate-article">
+[a]</i><r list>a an</r>
+<i>[relation]</i><r list>[is][knows][likes][part][same][similar]</r> 
+<i>[is]</i><r list>is was</r>
+<i>[W5]</i><r list>what when where why how</r> 
 
+<!-- hash definititons aka map, object (js), assoc (lisp) --->
+<i>#hash1</i><r hash>name1 valu1 name2 valu2 name3 [valu3] name4 $val4()</r> 
+<i>#hash2</i><r hash>name valu name2 valu2</r> 
+<i>#qmark</i><r hash>*? ?*</r> 
 
-<left rem="indefinate-article">[a]</left><right list>a an</right>
-<left rem="define a hash">{hash}</left><right hash>name:valu name2:valu2</right> 
-<left rem="alternatly">#hash</left><right hash>name:valu name2:valu2</right> 
-<left rem="defines list">#normalize</left><right hash>*?:?*</right> 
-<left>[relation]</left><right list>[is][knows][likes][part][same][similar]</right> 
-<left>[is]</left><right list>is was</right>
-<left>[W5]</left><right list>what when where why how</right> 
 
 </pairs>
-</aisoup>	
+</ai>	
 	
 
 </body>
