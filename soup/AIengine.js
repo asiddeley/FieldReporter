@@ -30,19 +30,19 @@ window.AIengine=function(options){
 	
 	/////////////////////////////////////////////////////////
 	this.defs={};
-	
-	this.defsFromHTML=function(def$){
+	/**
+	this.defsFromHTML=function(pair$){
 		var that=this;
-		var left$=def$.children("left");
-		var right$=def$.children("right");
-		if (left$.length!=right$.length)
+		var i$=pairs$.children("left");
+		var r$=pairs$.children("right");
+		if (i$.length!=r$.length)
 			{console.log("Error, lefts and rights are not paired in definitions"); return;}
 		else {
-			left$.map(function(index, element){
-			that.define($(element), $(right$[index]));			
+			i$.map(function(index, element){
+			that.define($(element), $(r$[index]));			
 		});}
 	};
-	
+	**/
 	this.define=function(left, right){
 		//eg. ("[noun]", "[person]|[place]|[thing]")
 		//resolve definitions here, not at match time! 
@@ -80,15 +80,20 @@ window.AIengine=function(options){
 	
 	///////////////////////////////////////////////////////////////////
 	this.fn={};
-	this.fn.inList=function(item, list){
+	this.fn.listed=function(item, list){
 		//list checker
 		//returns true if item is in the list AKA Array
 		return (listHash.indexOf(item)!=-1);
 	};
-	this.fn.inHash=function(item, hash){
+	this.fn.hashed=function(item, hash){
 		//hash checker
-		//returns true if item is a key or value in the hash AKA Object
-		return (Object.keys(hash).indexOf(item)!=-1)||(Object.values(hash).indexOf(item)=-1);
+		//returns true if item is a key,
+		return (Object.keys(hash).indexOf(item)!=-1);
+		//returns true if item is a value in the hash
+		//||(Object.values(hash).indexOf(item)=-1);
+	};
+	this.fn.hashval=function(item, hash){
+		return hash(item);		
 	};
 	
 	/////////////////////////////////////////////////////////////////
@@ -153,6 +158,8 @@ window.AIengine=function(options){
 			//Also returns true if the predicates array if empty which is good
 			matchResult=pattern.predicates.every(function(p,i,a){
 				that.matchTerm=that.matchExec[i+1];
+				//allways pass aie context to predicates
+				//return p.call(that);
 				return p(that);
 			});	
 		}
@@ -164,13 +171,18 @@ window.AIengine=function(options){
 		var that=this;
 		var p$=pairs$.children("p");
 		var a$=pairs$.children("a");
-		if (patt$.length!=resp$.length)
-			{console.log("Error, patterns and responses are not paired"); return;}
+		var i$=pairs$.children("i");
+		var r$=pairs$.children("r");
+		if ((p$.length!=a$.length)||(i$.length!=r$.length))
+			{console.log("Error, (p a) or (i r) elements not paired"); return;}
 		else {
-			patt$.map(function(index, element){
-				that.pattern($(element).text(), $(resp$[index]).text());			
+			p$.map(function(index, element){
+				that.pattern($(element).text(), $(a$[index]).text());			
 			});
-		}
+			i$.map(function(index, element){
+				that.define($(element), $(r$[index]));	
+			});
+		};		
 	};
 	
 	this.pattern=function(patternStr, antiphon){
@@ -178,6 +190,21 @@ window.AIengine=function(options){
 		//[...] hello [punc] my name is [properNoun arg1][...]
 		//this.pairs.push({pattern:this.groom(patternStr), response:response});
 		this.pairs.push({pattern:this.patternizer(patternStr), antiphon:antiphon});
+	};
+	
+	this.dressup=function(str){
+		var s=str.indexOf(0);
+		if (s=="$"){
+			
+		}
+		else if (s=="#"){
+			//ai.defs['#xxx']
+			
+		} else if ((s>="0")(s<="9")) {
+			//no quotes
+			
+		}
+		
 	};
 	
 	this.patternizer=function(patternStr){
@@ -199,15 +226,25 @@ window.AIengine=function(options){
 				//$hello - predicate variable wrapper
 				if (term.charAt(term.length-1)!=")") {
 					predicates.push(new Function("ai", "return ai.defs["+term+"];"));
-					regex+=nada;
+					regexp+=nada;
 					return "$predicate";
 				}
-				//$hello(arg1,arg2) - predicate function handler
+				//$hello(arg1,$arg2) - predicate function handler
 				else {
-					var fnam=term.substring(0,term.indexOf("(")-1);
-					var args=term.substring(term.indexOf("(")+1, term.indexOf(")")-1);
-					predicates.push(new Function("ai","return ai.defs["+fnam+"].('"+args+"');"));
-					regex+=nada;
+					var fnam=term.substring(0,term.indexOf("("));
+					var args=term.substring(term.indexOf("(")+1, term.indexOf(")"));
+					console.log("paternizer term, fnam & args:", term, fnam, "'"+args+"'");
+					//what if arg needs to be evaluated?
+					//what if arg is a number
+					//what if arg is a string
+					//what if arg is '' empty, causes syntax err in 244
+					//if arg.indexOf(0)=="$" then ai.fn.valueOf(args)
+					//else arg is a string or list
+					var body="var fn=ai.defs['"+fnam+"']; return fn(ai,"+args+");";
+					console.log("body",body);
+					var func=new Function("ai", body);
+					predicates.push(func);
+					regexp+=nada;
 					return "$predicate()";
 				}
 			}
@@ -216,25 +253,25 @@ window.AIengine=function(options){
 				//eg. term="[nouns]", ai.defs["[nouns]"]=["person","place"]
 				predicates.push(new Function("ai",
 					//inList(item, list); //returns true if item in list
-					"return ai.fn.inList(ai.matchTerm, ai.defs["+term+"]);"
+					"return ai.fn.listed(ai.matchTerm, ai.defs["+term+"]);"
 				));
-				regex+=word;
+				regexp+=word;
 				return "[list]";
 			}
 			else if (term.charAt(0)=="{") {
 				//{list} - hash wrapper
 				//eg. term="{nouns}", ai.defs["{nouns}"]={"andrew":"human"}
 				predicates.push(new Function("ai",
-					"return ai.fn.inHash(ai.matchTerm, ai.defs["+term+"]);"
+					"return ai.fn.hashed(ai.matchTerm, ai.defs["+term+"]);"
 				));
-				regex+=word;
+				regexp+=word;
 				return "[list]";
 			}
-			else if (term.charAt(0)=="*") {regex+=star;	return "*wildcard";}
+			else if (term.charAt(0)=="*") {regexp+=star;	return "*wildcard";}
 			else {regexp+="("+term+"\s)"; return "specific_word";}
 		});
 		console.log("patternizer profile:",JSON.stringify(profile));
-		return {predicates:predicates, regexp:new Regexp(regexp, flag)};
+		return {predicates:predicates, regexp:new RegExp(regexp, flag)};
 	};
 	
 	//Pattern Response Storage

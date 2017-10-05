@@ -23,9 +23,20 @@
 <style rel="stylesheet">
 .row-bot {background:CORNSILK;}
 .row-user {}
-.pairs {display:none;}
+topic {display:none;}
 .navbar-brand{margin:0;padding:0;}
 .navbar-brand img{max-height: 100%;}
+body, div
+{
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: -moz-none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
 </style>
 
 <script type="text/javascript">
@@ -59,14 +70,13 @@ function aiSubmit(rangeStr){
 $(function() { 
 
 	ai=new AIengine();
-	var topic$=$("topic").
 	var p$=$("pairs").children("p");
 	var a$=$("pairs").children("a");
 	var i$=$("pairs").children("i");
 	var r$=$("pairs").children("r");
 	console.log("pairs:", p$.length, a$.length, i$.length, r$.length);
-	//ai.pairsFromHTML($("pairs")); 
-	//ai.defsFromHTML($("defs"));
+	ai.pairsFromHTML($("pairs")); 
+	//ai.irFromHTML($("defs"));
 	
 }); //ready
 
@@ -128,39 +138,46 @@ $(function() {
 </div><!-- END OF container -->
 
 
-<!--------------------------
+<!--
 AI PROGRAMMING 
 A Siddeley 1/Oct/2017
 
-A..z 	word or string
+A..z 	string. separate words with spaces
 * 		wildcard
-$ 		function, variable, list, means valueOf, responseOf, resultOf
-@ 		argument
-(,,) 	arguments
-[*] 	list, pattern matches if any item in list is true
-{} 		hash, map, dictionary
-------------------------------------->
-<!------------------------
+$xxx	evaluate variable xxx
+$xxx() 	evaluate function xxx, list arguments in parenthesis with commas
+[name] 	inlist, pattern matches if any item in list is true
+# 		hash, map, dictionary
+-->
+<!--
 <pairs rem="pairs of <p></p><a></a> and <i></i><r></r>"> 
 <p rem="pattern"></p><a rem="antiphon or answer"></a>
-<i rem="identity"></i><r rem="RHS or right hand side"></r>
+<i rem="initialize or identity">name</i><r rem="RHS or right hand side">expression</r>
 
 </pairs>
 -->
-<ai>
-<topics>__Root</topic>
+<topic>
+<name>_Root</name>
+<reserved>_ $ # [ ] </reserved>
+
+<allow>
+<!-- allow following topics access to pairs below -->
+__Root
+</filters>
+
 <seed></seed><plan></plan>
-<pairs>
-<p>who are you</p><a>I am a soupBot called monolito</a>
+
+<pairs style="display:none">
+<!-- p>#reserved *</p><a>$match(#reserved($term(1)),*)</a -->
+<p>who are you</p><a>I am a bot called monolito</a>
 <p>what do you do</p><a>I can learn and answer questions in English</a>
 <p>[noun] is [verb] a [noun]</p><a>that is a statement</a>
 <p>what is [a] [noun]</p><a>[known] is a [kindOf] [known]</a>
-<p rem="matches if 4 terms are true">$isTrue() [W5] *</p>
-<a>the answer to $term(2) may be 42</a> 
+<p>$isTrue(aaa) [W5] *</p><a>the answer to $term(2) may be 42</a> 
 
-<p>[W5] *</p><a>$answer @rest</a>
+<p>[W5] *</p><a>$answer match($term(2))</a>
 <p>[topicChange]</p><a>[answer][rest]</a>
-<p>HI</patt><a choose="inturn" rem="or...all|random|nth">
+<p>HI</p><a choose="inturn" rem="or...all|random|nth">
 Hello $getUser()<br>
 Hi $getUser()<br>
 Ah, fresh input<br>
@@ -169,18 +186,23 @@ Ah, fresh input<br>
 
 <p>$isTrue() howdy *</p><a>$setq($topic,western) $patt(HI) partner! $eval(*)</a>
 
-<!-- user defined functions -->
-<i>$decrement</i><r function="num">return num-1;</r>
-<i>$get</i><r function="n">return window.aidata[n];</r>
-<i>$increment</i><r func="num">return num+1;</r>
-<i>$isTrue</i><r arguments="topic">return true;</r>
-<i>$random</i><r function="n">return n*Math.random();</r>
+<!--
+initialize functions. 
+Note that the aiEngine is always provided as the first argument 
+-->
+<i>$decrement</i><r func="ai, num">return num-1;</r>
+<i>$get</i><r func="ai, name">return ai.data[name];</r>
+<i>$increment</i><r func="ai, num">return num+1;</r>
+<i>$isTrue</i><r func="ai, topic">return true;</r>
+<i>$random</i><r func="ai, n">return n*Math.random();</r>
 <i>$setq</i>
 <r function="ai nam val">ai.data[nam]=val;return null;</r>
-<i>$term</left><r function="ai,index">return ai.matchExec[index];</r>
-<i>$user</left><r function>return ai.getUser();</r>
+<i>$term</i><r function="ai,index">return ai.matchExec[index];</r>
+<i>$user</i><r function>return ai.getUser();</r>
 
-<!-- list definitions aka array (js) -->
+<!--
+initialize lists aka array (js)
+-->
 <i>[verbs]</i><r list>read reading look looking run running</r>
 <i>[nouns]</i><r list>[people] [places] [things] [bots]</r>
 <i>[people]</i><r list>andrew</r>
@@ -193,14 +215,14 @@ Ah, fresh input<br>
 <i>[is]</i><r list>is was</r>
 <i>[W5]</i><r list>what when where why how</r> 
 
-<!-- hash definititons aka map, object (js), assoc (lisp) --->
+<!-- hash definititons aka map, object (js), assoc (lisp) -->
 <i>#hash1</i><r hash>name1 valu1 name2 valu2 name3 [valu3] name4 $val4()</r> 
 <i>#hash2</i><r hash>name valu name2 valu2</r> 
 <i>#qmark</i><r hash>*? ?*</r> 
 
 
 </pairs>
-</ai>	
+</topic>	
 	
 
 </body>
