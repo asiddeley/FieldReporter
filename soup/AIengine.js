@@ -173,8 +173,9 @@ window.AIengine=function(options){
 		var a$=pairs$.children("a");
 		var i$=pairs$.children("i");
 		var r$=pairs$.children("r");
-		if ((p$.length!=a$.length)||(i$.length!=r$.length))
-			{console.log("Error, (p a) or (i r) elements not paired"); return;}
+		if ((p$.length!=a$.length)||(i$.length!=r$.length)){
+			console.log("Error, (p a) or (i r) elements not paired"); return;
+		}
 		else {
 			p$.map(function(index, element){
 				that.pattern($(element).text(), $(a$[index]).text());			
@@ -192,19 +193,28 @@ window.AIengine=function(options){
 		this.pairs.push({pattern:this.patternizer(patternStr), antiphon:antiphon});
 	};
 	
-	this.dressup=function(str){
-		var s=str.indexOf(0);
+	this.dressArgs=function(argstr){
+		//what if arg needs to be evaluated?
+		//what if arg is nested $fn($arg1($arg2,arg3),arg4)
+		//what if arg is a number
+		//what if arg is a string
+		//what if arg is '' empty, causes syntax err in 244
+		//if arg.indexOf(0)=="$" then ai.fn.valueOf(args)
+		if (argstr=="") {return argstr;}
+		aa=argstr.split(splitter);
+		var s=aa[0].indexOf(0);
 		if (s=="$"){
 			
 		}
 		else if (s=="#"){
 			//ai.defs['#xxx']
 			
-		} else if ((s>="0")(s<="9")) {
+		} 
+		else if ((s>="0")(s<="9")) {
 			//no quotes
 			
 		}
-		
+		return {arg:arg, rest:rest};
 	};
 	
 	this.patternizer=function(patternStr){
@@ -232,18 +242,22 @@ window.AIengine=function(options){
 				//$hello(arg1,$arg2) - predicate function handler
 				else {
 					var fnam=term.substring(0,term.indexOf("("));
+					
+					//need a better method, following will fail in this case "$fn($argIsaFunc(1),2)"
 					var args=term.substring(term.indexOf("(")+1, term.indexOf(")"));
+					
 					console.log("paternizer term, fnam & args:", term, fnam, "'"+args+"'");
+
 					//what if arg needs to be evaluated?
+					//what if arg is nested $fn($arg1($arg2,arg3),arg4)
 					//what if arg is a number
 					//what if arg is a string
 					//what if arg is '' empty, causes syntax err in 244
 					//if arg.indexOf(0)=="$" then ai.fn.valueOf(args)
 					//else arg is a string or list
-					var body="var fn=ai.defs['"+fnam+"']; return fn(ai,"+args+");";
+					var body="var fn=ai.defs['"+fnam+"']; return fn.call(this,"+args+");";
 					console.log("body",body);
-					var func=new Function("ai", body);
-					predicates.push(func);
+					predicates.push(new Function(body));
 					regexp+=nada;
 					return "$predicate()";
 				}
