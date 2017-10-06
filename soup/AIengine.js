@@ -193,28 +193,52 @@ window.AIengine=function(options){
 		this.pairs.push({pattern:this.patternizer(patternStr), antiphon:antiphon});
 	};
 	
-	this.dressArgs=function(argstr){
-		//what if arg needs to be evaluated?
-		//what if arg is nested $fn($arg1($arg2,arg3),arg4)
-		//what if arg is a number
-		//what if arg is a string
-		//what if arg is '' empty, causes syntax err in 244
-		//if arg.indexOf(0)=="$" then ai.fn.valueOf(args)
-		if (argstr=="") {return argstr;}
-		aa=argstr.split(splitter);
-		var s=aa[0].indexOf(0);
-		if (s=="$"){
-			
-		}
-		else if (s=="#"){
-			//ai.defs['#xxx']
-			
-		} 
-		else if ((s>="0")(s<="9")) {
-			//no quotes
-			
-		}
-		return {arg:arg, rest:rest};
+	/***************
+	prepares string so it can be be evaluated,
+	consider the example string below from pattern <p></p> 
+	needs to be dressed up before it can be evaluated as pure javascript...
+	str="$predicateFn(hello,1,$num,$hello(world))..."
+	ret="this.defs['$predicateFn'].('hello',1,eval(this.defs['$num']),eval(this.defs['$hello'].('world')))"
+	str="[somelist]..."
+	ret="this.listed(this.matchTarg,this.defs['[somelist]'])"
+	ret can then be run within the aiengine context with eval(ret)
+	what if arg needs to be evaluated?
+	what if arg is nested $fn($arg1($arg2,arg3),arg4)
+	what if arg is a number
+	what if arg is a string
+	what if arg is '' empty, causes syntax err in 244
+	if arg.indexOf(0)=="$" then ai.fn.valueOf(args)	
+	******************/
+	
+	this.parseLabel=funciton(str){
+		var x=/\w+\d*/.exec(str); 
+		if(x){ return {label:x[0], rest:str.substring(x["index"]+1)};}
+		else return null;		
+	};
+	
+	this.parseValuable=function(str){
+		/*****************
+		In the soup AI langauage SAIL, a valuable is a variable or funciton that's meant to be evaluated to get a value, Eg.	
+		$abc1 - variable
+		$abc(1, hello, $world) - function with 3 arguments, a number, string and valuable
+		***************/
+		var x=/\$/.exec(str); //string
+		if (x){		
+			var r1=this.parseLabel(str); //result 1={label:label, rest:rest} 
+			var r2=this.parseArgs(r1.rest); //result 2={rawArgs:[arg1, arg2], rest:rest} 
+			console.log("parseValuable name, args, rest:", r1.label, r2.args, r2.rest);	
+			return {prefix:"$", label:r1.label, args:r2.args, r2.rest:rest};			
+		} else return null;
+	};
+	
+	this.parseArg=function(str){
+		var result=str.exec(/\$*\w+|\+*-*\d*\.*\d+/); //valuable, word, +-integer, +-real
+		if (typeof result != "undefined"){
+			var rest=str.substring(result["index"]);
+			var label=str.substring(result["index"],result[0].length);
+			console.log("parseLabel rest:",rest);	
+			return {label:label, rest:rest};			
+		} else return null;
 	};
 	
 	this.patternizer=function(patternStr){

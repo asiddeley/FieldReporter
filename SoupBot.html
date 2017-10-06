@@ -23,7 +23,7 @@
 <style rel="stylesheet">
 .row-bot {background:CORNSILK;}
 .row-user {}
-topic {display:none;}
+SAIL {display:none;}
 .navbar-brand{margin:0;padding:0;}
 .navbar-brand img{max-height: 100%;}
 body, div
@@ -156,16 +156,10 @@ $xxx() 	evaluate function xxx, list arguments in parenthesis with commas
 
 </pairs>
 -->
+<SAIL>
 <topic>
 <name>_Root</name>
-<reserved>_ $ # [ ] </reserved>
-
-<allow>
-<!-- allow following topics access to pairs below -->
-__Root
-</filters>
-
-<seed></seed><plan></plan>
+<reserved>/[+-\$\[\]]/</reserved>
 
 <pairs style="display:none">
 <!-- p>#reserved *</p><a>$match(#reserved($term(1)),*)</a -->
@@ -223,7 +217,7 @@ initialize lists aka array (js)
 
 </pairs>
 </topic>	
-	
+</SAIL>
 
 </body>
 
