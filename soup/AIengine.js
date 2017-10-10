@@ -10,8 +10,16 @@ Andrew Siddeley
 
 window.AIengine=function(options){
 	
-	if (this===window) {return new aiWordMatcher(options);};
+	if (this===window) {return new AIengine(options);};
 
+	/////////////////////////////////////////////////////////
+	//STORAGE
+	this.data={};
+	this.ir={};
+	this.fn={};
+	this.pa=[]; //["["function(words){return true;}, "hello",...][...][...]]
+	
+	////////////////////////////////////////
 	this.createResult=function(options){
 		/***
 		returns a new result object with all default field:vlaues and allows specified fields to be overidden via options object.  Non-jQuery code - Object.create({options});
@@ -25,61 +33,9 @@ window.AIengine=function(options){
 		}, options);	
 	};
 	
-	//////////////////////////
-	this.data={};
-	
-	/////////////////////////////////////////////////////////
-	this.defs={};
-	/**
-	this.defsFromHTML=function(pair$){
-		var that=this;
-		var i$=pairs$.children("left");
-		var r$=pairs$.children("right");
-		if (i$.length!=r$.length)
-			{console.log("Error, lefts and rights are not paired in definitions"); return;}
-		else {
-			i$.map(function(index, element){
-			that.define($(element), $(r$[index]));			
-		});}
-	};
-	**/
-	this.define=function(left, right){
-		//eg. ("[noun]", "[person]|[place]|[thing]")
-		//resolve definitions here, not at match time! 
-		//if definition is a function, make sure it returns T/F within 6 recurrsions then store it.
-		//if definition is a string and a function seed, prepare the function and store.
-		//that should cover all cases.
-		var spliter=/[,\s]+/;
-		var that=this;
-		if (false) {
-			//some sort of check, ie. already defined
-			console.log("syntax error - text/string arguments expected"); 
-			return null;
-		}
-		else if (right.attr("function")!="undefined") { 
-			var arga=right.attr("function").split(splitter);
-			var code="try{ "+right.text()+"} catch(er) {console.log(er);}"; 
-			var func;
-			switch (arga.length){
-				case 0:func=new Function(code);break;
-				case 1:func=new Function(arga[0],code);break;
-				case 2:func=new Function(arga[0],arga[1],code);break;
-				case 3:func=new Function(arga[0],arga[1],arga[2],code);break;
-				default:func=new Function(arga[0],arga[1],arga[2],arga[3],code);
-			}
-			this.defs[left]=func;
-			console.log("idendity (function):", func);
-		}
-		else if (right.attr("list")!="undefined") {
-			var code="var i=-1; try{ i=["+ right.text() +
-			"].indexOf(word);}catch(er){console.log(er);}; return (i==-1)?false:true;"; 
-			this.defs[left]=new Function("word", code);
-			console.log("idendity (list):", this.defs[left]);
-		} 
-	};
 	
 	///////////////////////////////////////////////////////////////////
-	this.fn={};
+
 	this.fn.listed=function(item, list){
 		//list checker
 		//returns true if item is in the list AKA Array
@@ -112,7 +68,7 @@ window.AIengine=function(options){
 	};
 	
 	this.groom=function(str){
-		//grooming returns a clean array of words
+		//grooming returns an array of clean words
 		//console.log("before",str);
 		//ensure good separation by padding various separators and punctuators
 		str=str.replace(/\]/g,"] "); 
@@ -178,74 +134,70 @@ window.AIengine=function(options){
 		}
 		else {
 			p$.map(function(index, element){
-				that.pattern($(element).text(), $(a$[index]).text());			
+				that.tokenizePA($(element).text(), $(a$[index]).text());			
 			});
 			i$.map(function(index, element){
-				that.define($(element), $(r$[index]));	
+				that.tokenizeIR($(element), $(r$[index]));	
 			});
 		};		
 	};
 	
-	this.pattern=function(patternStr, antiphon){
+	this.tokenizePA=function(pattern, antiphon){
 		//adds a word pattern to wordMatcher
 		//[...] hello [punc] my name is [properNoun arg1][...]
 		//this.pairs.push({pattern:this.groom(patternStr), response:response});
-		this.pairs.push({pattern:this.patternizer(patternStr), antiphon:antiphon});
+		this.pa.push({p:this.tokenizeP(pattern), a:this.tokenizeA(antiphon)});
 	};
 	
-	/***************
-	prepares string so it can be be evaluated,
-	consider the example string below from pattern <p></p> 
-	needs to be dressed up before it can be evaluated as pure javascript...
-	str="$predicateFn(hello,1,$num,$hello(world))..."
-	ret="this.defs['$predicateFn'].('hello',1,eval(this.defs['$num']),eval(this.defs['$hello'].('world')))"
-	str="[somelist]..."
-	ret="this.listed(this.matchTarg,this.defs['[somelist]'])"
-	ret can then be run within the aiengine context with eval(ret)
-	what if arg needs to be evaluated?
-	what if arg is nested $fn($arg1($arg2,arg3),arg4)
-	what if arg is a number
-	what if arg is a string
-	what if arg is '' empty, causes syntax err in 244
-	if arg.indexOf(0)=="$" then ai.fn.valueOf(args)	
-	******************/
-	
-	this.parseLabel=funciton(str){
-		var x=/\w+\d*/.exec(str); 
-		if(x){ return {label:x[0], rest:str.substring(x["index"]+1)};}
-		else return null;		
+	this.tokenizeA=function(antiphon){
+		//TO DO - expand this
+		
+		
+		return antiphon;
 	};
 	
-	this.parseValuable=function(str){
-		/*****************
-		In the soup AI langauage SAIL, a valuable is a variable or funciton that's meant to be evaluated to get a value, Eg.	
-		$abc1 - variable
-		$abc(1, hello, $world) - function with 3 arguments, a number, string and valuable
-		***************/
-		var x=/\$/.exec(str); //string
-		if (x){		
-			var r1=this.parseLabel(str); //result 1={label:label, rest:rest} 
-			var r2=this.parseArgs(r1.rest); //result 2={rawArgs:[arg1, arg2], rest:rest} 
-			console.log("parseValuable name, args, rest:", r1.label, r2.args, r2.rest);	
-			return {prefix:"$", label:r1.label, args:r2.args, r2.rest:rest};			
-		} else return null;
+	this.tokenizeIR=function(left$, right$){
+		//eg. ("[noun]", "[person] [place] [thing] monolito ")
+		//resolve definitions here, not at match time! 
+		//if definition is a function, make sure it returns T/F within 6 recurrsions then store it.
+		//if definition is a string and a function seed, prepare the function and store.
+		//that should cover all cases.
+		var left=left$.text();
+		var spliter=/[,\s]+/;
+		var that=this;
+		if (false) {
+			//some sort of check, ie. already defined
+			console.log("syntax error - text/string arguments expected"); 
+			return null;
+		}
+		else if (typeof right$.attr("function")!="undefined") { 
+			//console.log("define right$, attr",right$.text(),right$.attr("function"));
+			var arga=right$.attr("function").split(spliter);
+			var code="try{ "+right$.text()+"} catch(er) {console.log(er);}"; 
+			var func;
+			switch (arga.length){
+				case 0:func=new Function(code);break;
+				case 1:func=new Function(arga[0],code);break;
+				case 2:func=new Function(arga[0],arga[1],code);break;
+				case 3:func=new Function(arga[0],arga[1],arga[2],code);break;
+				default:func=new Function(arga[0],arga[1],arga[2],arga[3],code);
+			}
+			this.ir[left]=func;
+			console.log("INIT FUNCTION:", left, "AS:", func);
+		}
+		else if (typeof right$.attr("list")!="undefined") {
+			var list=right$.text().replace(/\s+/g,",");
+			var code="var i=-1; try{ i=['"+ list + "'].indexOf(word);} catch(er) {console.log(er);}; return (i==-1)?false:true;"; 
+			this.ir[left]=new Function("word", code);
+			console.log("INIT LIST:", left, "AS:",list);
+		} 
 	};
 	
-	this.parseArg=function(str){
-		var result=str.exec(/\$*\w+|\+*-*\d*\.*\d+/); //valuable, word, +-integer, +-real
-		if (typeof result != "undefined"){
-			var rest=str.substring(result["index"]);
-			var label=str.substring(result["index"],result[0].length);
-			console.log("parseLabel rest:",rest);	
-			return {label:label, rest:rest};			
-		} else return null;
-	};
-	
-	this.patternizer=function(patternStr){
-		//Parses patternStr and builds predicates[] and Regexp //
-		//patternStr Eg. "$isBotmaster [noun] is * a *"
-		//patternStr profile "$predicate $predicate() is * a *"
-		//patternStr eg. has 6 terms, term 1, 2, 4 & 6 have regex wildcards
+	this.tokenizeP=function(pstr){
+		//Parses patternStr and builds predicates[] and Regexpes //
+		//pstr Eg. "$isBotmaster [noun] is * a *"
+		//pstr profile "$predicate $predicate() is * a *"
+		//pstr eg. has 6 terms, term 1, 2, 4 & 6 have regex wildcards
 		//For pattern to match, all predicates and regexp must be true. 
 		//returns {predicates:[], regexp:RegExp}
 		var predicates=[];
@@ -255,35 +207,29 @@ window.AIengine=function(options){
 		var star="(.*)"; //regex capture group to act as a wildcard for a list tesing predicate
 		var flag="i"; //ignore case, global, multiline
 		var that=this;
-		var profile=patternStr.split(" ").map(function(term, index, arr){
+		var terms=pstr.split(" ");		
+		var profile=terms.map(function(term, index, arr){
 			if (term.charAt(0)=="$"){
-				//$hello - predicate variable wrapper
-				if (term.charAt(term.length-1)!=")") {
-					predicates.push(new Function("ai", "return ai.defs["+term+"];"));
+				var v=that.parseValu(term);
+				if (v.token=="variable"){ 
+					var name="$"+v.label;
+					var getter=new Function("return this.defs["+name+"];");
+					predicates.push(getter);
 					regexp+=nada;
-					return "$predicate";
-				}
-				//$hello(arg1,$arg2) - predicate function handler
-				else {
-					var fnam=term.substring(0,term.indexOf("("));
-					
-					//need a better method, following will fail in this case "$fn($argIsaFunc(1),2)"
-					var args=term.substring(term.indexOf("(")+1, term.indexOf(")"));
-					
-					console.log("paternizer term, fnam & args:", term, fnam, "'"+args+"'");
-
-					//what if arg needs to be evaluated?
-					//what if arg is nested $fn($arg1($arg2,arg3),arg4)
-					//what if arg is a number
-					//what if arg is a string
-					//what if arg is '' empty, causes syntax err in 244
-					//if arg.indexOf(0)=="$" then ai.fn.valueOf(args)
-					//else arg is a string or list
-					var body="var fn=ai.defs['"+fnam+"']; return fn.call(this,"+args+");";
-					console.log("body",body);
+					return v; //"$predicateVar";
+				} 
+				else if (v.token=="function"){
+					//$hello(arg1,$arg2) - predicate function handler
+					var name="$"+v.label;
+					//TO DO create this.run() and this.storeArgs()
+					var argid=name;//+this.storeArgs(v.args);
+					var body="this.run("+name+","+argid+");";
+					console.log("FUNCTION");
+					//console.log("term:",term, "name:",name,"args:",v.args);
+					console.log("body:",body);
 					predicates.push(new Function(body));
 					regexp+=nada;
-					return "$predicate()";
+					return v; //"$predicateFn";
 				}
 			}
 			else if (term.charAt(0)=="[") {
@@ -308,14 +254,184 @@ window.AIengine=function(options){
 			else if (term.charAt(0)=="*") {regexp+=star;	return "*wildcard";}
 			else {regexp+="("+term+"\s)"; return "specific_word";}
 		});
-		console.log("patternizer profile:",JSON.stringify(profile));
+		console.log("PROFILE:", JSON.stringify(profile));
 		return {predicates:predicates, regexp:new RegExp(regexp, flag)};
 	};
 	
-	//Pattern Response Storage
-	//["["function(words){return true;}, "hello",...][...][...]]
-	this.pairs=[];
-}; //function
+	/***************
+	Following funcitons search input string for expected syntax and return tokens if found
+	consider the example string below from pattern tags <p>...syntax...</p> 
+	expression="$predicateFn(hello,1,$num,$hello(world))..."
+	tokenized={token:"function", label:"$predicateFn", args=[
+	{token:"literal", literal:"hello"...},
+	{token:"num", num:1...}...
+	]...}
+	******************/
+	this.parseArgs=function(str){
+		var limit=10; //no more than 10 arguments
+		var r={token:null, args:[], tokends:null, index:str.length, span:0, rest:str};
+		var x=this.parseBetween(str);
+		var a=x.between; //the content between ( and )
+
+		while (x.token && (0 < a.length) && limit > 0){
+			var best=null;
+			//console.log("PARSE BETWEEN:",a);
+			var possibilities=[this.parseNum(a),this.parseValu(a),this.parseLiteral(a)];
+			//console.log("POSSIBILITES:",JSON.stringify(pp));
+			var best=possibilities.reduce(function(best, p){
+				if (best){
+					if (best.token && p.token){return (p.index < best.index)?p:best;}
+					return best;	
+				} else return p;
+			});
+			//console.log("WINNER:",best.token);
+			if (best.token){
+				r.token="args";
+				r.args=r.args.concat([best]); //r.args is a list of tokens
+				r.index=x.index; //index of first arg
+				r.span+=best.span;
+				//chop off part of string that's been processed before searching for more args
+				//unexpected result eg. "hello".substring(4,5) is "o", not "" as expected
+				if (best.index + best.span >= a.length) {a="";}
+				else {a=x.between.substring(best.index+best.span);}				
+			} else {
+				console.log("ERR, unexpexted syntax.  Expected a num, val or literal.");
+			}
+			limit-=1; //countdown
+		};
+		return r;
+	};
+	
+	this.parseBetween=function(str, opener, closer){
+		if (typeof opener=="undefined") {opener=/\(/;}
+		if (typeof closer=="undefined") {closer=/\)/;}
+		var r={token:null, between:null, tokend:null, index:str.length, span:0, rest:str};
+		var x=opener.exec(str); //find first opener eg. (
+		if(x){
+			var i=x["index"]+1;
+			var c, t=1;
+			while(i<str.length && t!=0){
+				c=str.charAt(i);
+				//keep track of corresponding closing parenthesis
+				if (closer.test(c)) {t-=1;} else if (opener.test(c)) {t+=1;}
+				i++;
+			};		
+			if (t!=0){
+				console.log("error, impaired parenthesis '(..(..)' in pattern or antiphon $function");
+				return r;
+			};
+			r.token="between";
+			r.between=str.substring(x["index"]+1,i-1); 
+			r.tokend=[opener, closer]; 
+			r.index=x["index"];
+			r.span=i-x["index"];
+			r.rest=str.substring(i); //i points at the begining of rest
+			//console.log("BETWEEN str:",str,"between:",r.between);
+		} 
+		return r;
+	};
+	
+	this.parseComma=function(str){
+		var r={token:null, comma:null, tokend:null, index:str.length, span:0, rest:str};
+		var x=str.indexOf(","); 
+		if(x!=-1){
+			r.token="comma";
+			r.comma=","; 
+			r.index=x;
+			r.span=1;
+			r.rest=str.substring(x+1);
+		} 
+		return r;		
+	};
+	
+	this.parseLabel=function(str){
+		var r={token:null, label:null, tokend:null, index:str.length, span:0, rest:str};
+		//var x=/\w+\d*/.exec(str); 
+		var x=/\w+[\w\d\.]*/.exec(str); 
+		if(x){ 
+			r.token="label";
+			r.label=x[0];
+			r.index=x["index"];
+			r.span=x[0].length;
+			r.rest=str.substring(x["index"]+x[0].length);
+		}
+		return r;		
+	};
+	
+	this.parseLiteral=function(str){
+		//TO DO improve this regexp, literals should include !@%&_+- but not []()$#
+		var r= {token:null, literal:null, tokend:null, index:str.length, span:0, rest:str};
+		var x=/[\w\d]+/.exec(str); 
+		if(x){ 
+			r.token="literal";
+			r.literal=x[0]; 
+			r.index=x["index"];
+			r.span=x[0].length;
+			r.rest=str.substring(x["index"]+x[0].length);
+		}
+		return r;	
+	};
+		
+	this.parseNum=function(str){
+		var r= {token:null, num:null, tokend:null, index:str.length, span:0, rest:str};	
+		//var x=/[\+\-]*\d+\.*\d+/.exec(str); // +-integer, +-real
+		var x=/\+*\-*\b(\d*)\.*\d+/.exec(str); // +-integer, +-real
+		if (x){
+			r.token="num";
+			r.num=x[0];
+			r.tokend=null;
+			r.index=x["index"];
+			r.span=x[0].length;
+			r.rest=str.substring(x["index"]+x[0].length);
+		}
+		return r;
+	};
+
+	this.parseValu=function(str){
+		/*****************
+		Parses str for a valuable and returns a token object such as;
+		{token:"$", label:"hello", args:[1,"hello", "$world"], tokend:"", index:1, rest:"..."} 
+		Valuable is a variable or function that is meant to be evaluated to get a value, Eg;	
+		$abc1 - variable
+		$abc(1, hello, $world, $fn(1)) - function with 4 args, number, string, var & function
+		***************/
+		var r={token:null, label:null, args:[], tokends:null, index:null, span:0, rest:str};
+		var x=/\$/.exec(str); //string
+		if (x){		
+			var l=this.parseLabel(str); //l= {label:"fname", index:1, rest:"..."}
+			var c=this.parseComma(l.rest); //c= {token:"comma"... index:6, rest:"..."}
+			var a=this.parseArgs(l.rest); //result 2={rawArgs:[arg1, arg2], index:12, rest:rest}
+			//console.log("PARSE VALU:", l.rest);
+			//console.log("a.token:",a.token,"&& a.index:",a.index,"< c.index:", c.index);
+			//console.log("ARGS:", JSON.stringify(a.args));
+			if (a.token && (a.index < c.index)){
+				//arguments found and they occur before a comma
+				r.token="function";
+				r.label=l.label;
+				r.args=r.args.concat(a.args);
+				r.tokends=["$", ")"];
+				r.index=x["index"];
+				r.span=l.span+a.span;
+				r.rest=a.rest;
+			}
+			else {
+				r.token="variable";
+				r.label=l.label;
+				r.args=null;
+				r.tokends=["$"];
+				r.index=x["index"];
+				r.span=l.span;
+				r.rest=l.rest;
+			};			
+		} 
+		return r;
+	};
+	
+
+
+
+	
+}; //AIengine function
 
 
 // Define a Module with Simplified CommonJS Wrapper...
