@@ -142,7 +142,37 @@ window.AIengine=function(options){
 		};		
 	};
 	
-	this.tokenizePA=function(pattern, antiphon){
+	this.storeToken=function(token){
+		var key="token"+this.tokenCount.toString();
+		this.tokenCount+=1;
+		this.tokenBank[key]=token;
+		return key;
+	};
+	
+	//////////////////////////////////////
+	this.runtoken=function(tokenOrKey){
+		var that=this;
+		var t=(typeof tokenOrKey=="string")?this.storeTokenBank[tokenOrKey]:tokenOrKey;
+		if (t.token=="function") {
+			var fn=this.ii["$"+t.label];
+			var m=t.args.map(function(a, i){
+				if (a.token=="function"){
+					return that.runtoken(token);
+				}
+			});
+			//evaluate and return 
+			//return fn.call(this, m); //how to convert array to arguments?
+			return fn.apply(this, m);
+		} else if (t.token=="variable"){
+			//retrieve previously defined value and return
+			return this.ii["$"+t.label];
+		}
+	};
+
+	this.tokenBank={};
+	this.tokenCount=0;
+	
+		this.tokenizePA=function(pattern, antiphon){
 		//adds a word pattern to wordMatcher
 		//[...] hello [punc] my name is [properNoun arg1][...]
 		//this.pairs.push({pattern:this.groom(patternStr), response:response});
@@ -210,24 +240,12 @@ window.AIengine=function(options){
 		var terms=pstr.split(" ");		
 		var profile=terms.map(function(term, index, arr){
 			if (term.charAt(0)=="$"){
-				var v=that.parseValu(term);
-				if (v.token=="variable"){ 
-					var name="$"+v.label;
-					var getter=new Function("return this.defs["+name+"];");
-					predicates.push(getter);
-					regexp+=nada;
-					return v; //"$predicateVar";
-				} 
-				else if (v.token=="function"){
-					//$hello(arg1,$arg2) - predicate function handler
-					var name="$"+v.label;
+				var v=that.tokenizeValu(term);
+				if (v.token != null) {
+					//handles functions and variables - with storeToken and runToken aka runt
 					//TO DO create this.run() and this.storeArgs()
-					var argid=name;//+this.storeArgs(v.args);
-					var body="this.run("+name+","+argid+");";
-					console.log("FUNCTION");
-					//console.log("term:",term, "name:",name,"args:",v.args);
-					console.log("body:",body);
-					predicates.push(new Function(body));
+					var runner=new Function("return this.tokenRun('"+that.storeToken(v)+"');");
+					predicates.push(runner);
 					regexp+=nada;
 					return v; //"$predicateFn";
 				}
@@ -267,16 +285,20 @@ window.AIengine=function(options){
 	{token:"num", num:1...}...
 	]...}
 	******************/
-	this.parseArgs=function(str){
+	this.tokenizeArgs=function(str){
 		var limit=10; //no more than 10 arguments
-		var r={token:null, args:[], tokends:null, index:str.length, span:0, rest:str};
-		var x=this.parseBetween(str);
+		var t={token:null, args:[], tokends:null, index:str.length, span:0, rest:str};
+		var x=this.tokenizeBetween(str);
 		var a=x.between; //the content between ( and )
 
 		while (x.token && (0 < a.length) && limit > 0){
 			var best=null;
 			//console.log("PARSE BETWEEN:",a);
-			var possibilities=[this.parseNum(a),this.parseValu(a),this.parseLiteral(a)];
+			var possibilities=[
+				this.tokenizeNum(a),
+				this.tokenizeValu(a),
+				this.tokenizeLiteral(a)
+			];
 			//console.log("POSSIBILITES:",JSON.stringify(pp));
 			var best=possibilities.reduce(function(best, p){
 				if (best){
@@ -286,10 +308,10 @@ window.AIengine=function(options){
 			});
 			//console.log("WINNER:",best.token);
 			if (best.token){
-				r.token="args";
-				r.args=r.args.concat([best]); //r.args is a list of tokens
-				r.index=x.index; //index of first arg
-				r.span+=best.span;
+				t.token="args";
+				t.args=t.args.concat([best]); //t.args is a list of tokens
+				t.index=x.index; //index of first arg
+				t.span+=best.span;
 				//chop off part of string that's been processed before searching for more args
 				//unexpected result eg. "hello".substring(4,5) is "o", not "" as expected
 				if (best.index + best.span >= a.length) {a="";}
@@ -299,10 +321,10 @@ window.AIengine=function(options){
 			}
 			limit-=1; //countdown
 		};
-		return r;
+		return t;
 	};
 	
-	this.parseBetween=function(str, opener, closer){
+	this.tokenizeBetween=function(str, opener, closer){
 		if (typeof opener=="undefined") {opener=/\(/;}
 		if (typeof closer=="undefined") {closer=/\)/;}
 		var r={token:null, between:null, tokend:null, index:str.length, span:0, rest:str};
@@ -331,63 +353,56 @@ window.AIengine=function(options){
 		return r;
 	};
 	
-	this.parseComma=function(str){
-		var r={token:null, comma:null, tokend:null, index:str.length, span:0, rest:str};
+	this.tokenizeComma=function(str){
+		var t={token:null, comma:null, tokend:null, index:str.length, span:0, rest:str};
 		var x=str.indexOf(","); 
-		if(x!=-1){
-			r.token="comma";
-			r.comma=","; 
-			r.index=x;
-			r.span=1;
-			r.rest=str.substring(x+1);
-		} 
-		return r;		
+		if(x!=-1){t.token="comma";t.comma=",";t.index=x;t.span=1;t.rest=str.substring(x+1);} 
+		return t;		
 	};
 	
-	this.parseLabel=function(str){
-		var r={token:null, label:null, tokend:null, index:str.length, span:0, rest:str};
+	this.tokenizeLabel=function(str){
+		var t={token:null, label:null, tokend:null, index:str.length, span:0, rest:str};
 		//var x=/\w+\d*/.exec(str); 
 		var x=/\w+[\w\d\.]*/.exec(str); 
-		if(x){ 
-			r.token="label";
-			r.label=x[0];
-			r.index=x["index"];
-			r.span=x[0].length;
-			r.rest=str.substring(x["index"]+x[0].length);
+		if(x){t.token="label";
+			t.label=x[0];
+			t.index=x["index"];
+			t.span=x[0].length;
+			t.rest=str.substring(x["index"]+x[0].length);
 		}
-		return r;		
+		return t;		
 	};
 	
-	this.parseLiteral=function(str){
+	this.tokenizeLiteral=function(str){
 		//TO DO improve this regexp, literals should include !@%&_+- but not []()$#
-		var r= {token:null, literal:null, tokend:null, index:str.length, span:0, rest:str};
+		var t= {token:null, literal:null, tokend:null, index:str.length, span:0, rest:str};
 		var x=/[\w\d]+/.exec(str); 
 		if(x){ 
-			r.token="literal";
-			r.literal=x[0]; 
-			r.index=x["index"];
-			r.span=x[0].length;
-			r.rest=str.substring(x["index"]+x[0].length);
+			t.token="literal";
+			t.literal=x[0]; 
+			t.index=x["index"];
+			t.span=x[0].length;
+			t.rest=str.substring(x["index"]+x[0].length);
 		}
-		return r;	
+		return t;	
 	};
 		
-	this.parseNum=function(str){
-		var r= {token:null, num:null, tokend:null, index:str.length, span:0, rest:str};	
+	this.tokenizeNum=function(str){
+		var t={token:null, num:null, tokend:null, index:str.length, span:0, rest:str};	
 		//var x=/[\+\-]*\d+\.*\d+/.exec(str); // +-integer, +-real
 		var x=/\+*\-*\b(\d*)\.*\d+/.exec(str); // +-integer, +-real
 		if (x){
-			r.token="num";
-			r.num=x[0];
-			r.tokend=null;
-			r.index=x["index"];
-			r.span=x[0].length;
-			r.rest=str.substring(x["index"]+x[0].length);
+			t.token="num";
+			t.num=x[0];
+			t.tokend=null;
+			t.index=x["index"];
+			t.span=x[0].length;
+			t.rest=str.substring(x["index"]+x[0].length);
 		}
-		return r;
+		return t;
 	};
 
-	this.parseValu=function(str){
+	this.tokenizeValu=function(str){
 		/*****************
 		Parses str for a valuable and returns a token object such as;
 		{token:"$", label:"hello", args:[1,"hello", "$world"], tokend:"", index:1, rest:"..."} 
@@ -395,36 +410,36 @@ window.AIengine=function(options){
 		$abc1 - variable
 		$abc(1, hello, $world, $fn(1)) - function with 4 args, number, string, var & function
 		***************/
-		var r={token:null, label:null, args:[], tokends:null, index:null, span:0, rest:str};
+		var t={token:null, label:null, args:[], tokends:null, index:null, span:0, rest:str};
 		var x=/\$/.exec(str); //string
 		if (x){		
-			var l=this.parseLabel(str); //l= {label:"fname", index:1, rest:"..."}
-			var c=this.parseComma(l.rest); //c= {token:"comma"... index:6, rest:"..."}
-			var a=this.parseArgs(l.rest); //result 2={rawArgs:[arg1, arg2], index:12, rest:rest}
+			var l=this.tokenizeLabel(str); //l= {label:"fname", index:1, rest:"..."}
+			var c=this.tokenizeComma(l.rest); //c= {token:"comma"... index:6, rest:"..."}
+			var a=this.tokenizeArgs(l.rest); //result 2={rawArgs:[arg1, arg2], index:12, rest:rest}
 			//console.log("PARSE VALU:", l.rest);
 			//console.log("a.token:",a.token,"&& a.index:",a.index,"< c.index:", c.index);
 			//console.log("ARGS:", JSON.stringify(a.args));
 			if (a.token && (a.index < c.index)){
 				//arguments found and they occur before a comma
-				r.token="function";
-				r.label=l.label;
-				r.args=r.args.concat(a.args);
-				r.tokends=["$", ")"];
-				r.index=x["index"];
-				r.span=l.span+a.span;
-				r.rest=a.rest;
+				t.token="function";
+				t.label=l.label;
+				t.args=t.args.concat(a.args);
+				t.tokends=["$", ")"];
+				t.index=x["index"];
+				t.span=l.span+a.span;
+				t.rest=a.rest;
 			}
 			else {
-				r.token="variable";
-				r.label=l.label;
-				r.args=null;
-				r.tokends=["$"];
-				r.index=x["index"];
-				r.span=l.span;
-				r.rest=l.rest;
+				t.token="variable";
+				t.label=l.label;
+				t.args=null;
+				t.tokends=["$"];
+				t.index=x["index"];
+				t.span=l.span;
+				t.rest=l.rest;
 			};			
 		} 
-		return r;
+		return t;
 	};
 	
 

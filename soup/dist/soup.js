@@ -165,7 +165,7 @@ var soup={
 } ,
  "save":  function(dataDoc){
 	
-	if (typeof(dataDoc)=='string') dataDoc=new db.Doc('unnamed', dataDoc);
+	if (typeof(dataDoc)=='string') dataDoc=new soup.Doc('unnamed', dataDoc);
 	//Get text file contents which is a JSON of all cells
 	//{name1:value1, name2:value2...}
 	//var fn=soup.localPath(soup.dataBase);
@@ -178,18 +178,17 @@ var soup={
 		//soup.dataCache=soup.axLoadFile(fn);
 	}
 	
-	if (db.cache === null){
-		//cache still nulll means file not found so create file
+	if (soup.cache === null){
+		//cache still null means file not found so create file
 		var dbc={}; 
 		
-		//dbc[dataDoc.name]=cellArg; ///cellArg not defined and I forget what it is, guessing is should be as follows
 		dbc[dataDoc.name]=dataDoc; 
 		
 		soup.cache=JSON.stringify(dbc);
 		switch (db.mode){
-			case "ax":r=soup.axSaveFile(fn,db.cache);break;
-			case "ie":r=soup.ieSaveFile(fn, db.cache);break;			
-			default:soup.ieSaveFile(fn, db.cache);
+			case "ax":r=soup.axSaveFile(fn, soup.cache);break;
+			case "ie":r=soup.ieSaveFile(fn, soup.cache);break;			
+			default:soup.ieSaveFile(fn, soup.cache);
 		}
 		//var r=ieSaveFile(fn, soup.dataCache);
 		//var r=soup.axSaveFile(fn, soup.dataCache);
