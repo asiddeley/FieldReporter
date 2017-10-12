@@ -158,9 +158,19 @@ $xxx() 	evaluate function xxx, list arguments in parenthesis with commas
 -->
 
 <SAIL style="display:none">
-<topic>
-<name>Basic English dialog</name>
+<skill>
+<name>English dialog</name>
+<keywords></keywords>
 <require>books </require>
+<!-- PREP tag applies the listed functions to the input sentence before processing
+
+~[punctuation]  All items in sentence compared to items in punctuation LIST, if item is in list the list funciton returns true which is negated(~) to false which translates to a space.  If not in list then it is false which is negated to true which means leave
+
+#wordExpansions All items in sentence are compared to key:values in wordExpansion HASH, if item has a matching key then it is replaced by the value of the key.  For example, "it's" may be expanded to "it is"
+ 
+-->
+<prep>[punctuation] #wordExpansions #wordPhrases</prep>
+<postp>#wordContractions</postp>
 <!--
 <pairs rem="pairs of <p></p><a></a> and <i></i><r></r>"> 
 <p rem="pattern"></p><a rem="antiphon or answer"></a>
@@ -169,12 +179,15 @@ $xxx() 	evaluate function xxx, list arguments in parenthesis with commas
 </pairs>
 -->
 <pairs>
-<p>who are you</p><a>I am a bot called monolito</a>
+<p>who you</p><a>I am a bot called monolito</a>
+<p>who are you</p><a>$redo(who,you) that is who I are</a>
+<p>what is your name</p>$redo(who,you)</a>
+
 <p>what do you do</p><a>I can learn and answer questions in English</a>
 <p>[noun] is [verb] a [noun]</p><a>that is a statement</a>
 <p>what is [a] [noun]</p><a>$term(3) $term(4) is $rnd(like_a,a_kind_of) $synonym($term(4))</a>
 
-<p>$HELLO(aaa,1) [W5] *</p><a>the answer to $term(2) may be 42</a> 
+<p>#HELLO(aaa,1) [W5] *</p><a>the answer to $term(2) may be 42</a> 
 <p>where is *</p><a>according to google, it is here $google($term(3))</a>
 <p>[W5] *</p><a>$answer $match($term(2))</a>
 <p>[topicChange]</p><a>[answer][rest]</a>
@@ -182,7 +195,7 @@ $xxx() 	evaluate function xxx, list arguments in parenthesis with commas
 <p>HI</p><a>$switch($rnd(3))<br>
 Hello $getUser()<br>
 Hi $getUser()<br>
-Ah, fresh input<br>
+Ah, a fresh sentence<br>
 </a>
 
 <p>howdy *</p><a>$setq($topic,western) $patt(HI) or should I say $qt howdy partner! $qt $patt(*)</a>
@@ -224,7 +237,7 @@ initialize lists aka array (js)
 
 
 </pairs>
-</topic>	
+</skill>	
 </SAIL>
 
 </body>
