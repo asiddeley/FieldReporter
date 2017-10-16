@@ -12,89 +12,65 @@ window.AIengine=function(options){
 	
 	if (this===window) {return new AIengine(options);};
 
+	
 	/////////////////////////////////////////////////////////
 	//STORAGE
 	this.data={};
-	this.ir={};
+	this.inits={};
 	this.fn={};
-	this.pa=[]; //["["function(words){return true;}, "hello",...][...][...]]
+	this.paTokens=[]; //["["function(words){return true;}, "hello",...][...][...]]
 	
 	////////////////////////////////////////
-	this.createResult=function(options){
-		/***
-		returns a new result object with all default field:vlaues and allows specified fields to be overidden via options object.  Non-jQuery code - Object.create({options});
-		***/
-		options=(typeof options == "undefined")?{}:options;
-		return $.extend({},{
-			matched:false,
-			patternStr:"",
-			range:"",
-			score:0,
-		}, options);	
+	this.ask=function(inputStr){
+		var a=this.match(inputStr);
+		if (a) {return a;} else return "nada";
+		
 	};
-	
 	
 	///////////////////////////////////////////////////////////////////
-
-	this.fn.listed=function(item, list){
+	this.fn.isitin=function(item,list){return this.fn.memberof(item,list);};
+	this.fn.memberof=function(item, list_hash){
 		//list checker
 		//returns true if item is in the list AKA Array
-		return (listHash.indexOf(item)!=-1);
+		if ( list_hash instanceof Array){
+			return (list_hash.indexOf(item)!=-1);
+		} 
+		else if (typeof list_hash=="object") {
+			return (Object.keys(list_hash).indexOf(item)!=-1);
+		}
+		else return false;
 	};
-	this.fn.hashed=function(item, hash){
-		//hash checker
-		//returns true if item is a key,
-		return (Object.keys(hash).indexOf(item)!=-1);
-		//returns true if item is a value in the hash
-		//||(Object.values(hash).indexOf(item)=-1);
-	};
+
 	this.fn.hashval=function(item, hash){
 		return hash(item);		
 	};
 	
-	/////////////////////////////////////////////////////////////////
-	this.getBestResponse=function(){
-		//find first true match
-
-		var index=-1;
-		var response;
-		if (this.results.some(function(r){index=r[0].index;	return r[0].match;}))
-			{response=this.pairs[index].response;}
-		else {response="I don't understand";}
-		
-		if (typeof response=="function") {return response();}
-		else {return response;}
-	
-	};
-	
 	this.groom=function(str){
-		//grooming returns an array of clean words
-		//console.log("before",str);
-		//ensure good separation by padding various separators and punctuators
-		str=str.replace(/\]/g,"] "); 
+		//grooming returns a clean string
+		str=str.replace(/\]/g,"] "); //ensures good separation at brackets
 		str=str.replace(/\.\s/g," . "); //ignores [...] and chaining periods such as www.com
-		//str=str.replace(/,/g," , ");
 		//TO DO - ampersand&, comma, exclamation!, question mark?, quote"  
-
-		//split at spaces
-		return str.split(/\s+/gm);
+		return str;
 	};
 	
 	////////////////////////////////////////	
 	this.match=function(inputStr){
 		var that=this;
+		var answer;
 		this.matchInputStr=this.groom(inputStr);
 		//[].some stops at first true, needs false to continue
-		this.matchResult=this.pairs.some(function(pair, i){
+		this.matchp=this.paTokens.some(function(pa, i){
+			answer=pa.a;
 			//patternResult=that.matchMap(pair.pattern, this.inputStr, 0);
-			return that.matchMap(pair.pattern);
+			return that.matchMap(pa.p);
 		});
+		if (this.matchp) {return answer;} 
 	};
 	
 	this.matchExec=null; //current regex.exec() result as a [] or null if nomatch
 	this.matchInputStr=""; //current input string for matching
 	this.matchTerm=""; //current regex capture group ie. matchExec[1]..[n]
-	this.matchResult=false;
+	this.matchPred=false; //true or false - predicate result
 	
 	this.matchMap=function(pattern){
 		//pattern	{predicates:[fn1, fn2...], regexp:/(term1)(term2)(term3)/}
@@ -103,23 +79,29 @@ window.AIengine=function(options){
 		//result	[1,1,1,1,0]
 		//return	[{head}, {term result}, {term result}...]
 		//Example 	[{pattnum:1, match:true, score:0.95}, {term:noun, target:cat, match:true}...]
-		var matchResult;		
+		var matchp=false;		
 		var that=this;
 		this.matchExec=pattern.regexp.exec(this.matchInputStr);
+		console.log("MATCHING:", pattern.regexp.toString(),"==",that.matchInputStr)
+
 		//eg. [0]=matching string, [1]..[n]=matched terms, ["index"]=match index in string
 		
 		//Regex Matches
 		if (this.matchExec!=null){
 			//Returns true only if all predicates are true. 
 			//Also returns true if the predicates array if empty which is good
-			matchResult=pattern.predicates.every(function(p,i,a){
+			matchp=pattern.predicates.every(function(p,i,a){
 				that.matchTerm=that.matchExec[i+1];
-				//allways pass aie context to predicates
-				//return p.call(that);
-				return p(that);
+				//predicates return true/false
+				//predicate functions contain functions such as 
+				//that.fn.memberof(this, this.matchTerm) or
+				//that.fn.runToken(token);
+				//so always pass aiEngine context to predicates
+				console.log("PREDICATE TESTING:", that.matchTerm)
+				return p.call(that);
 			});	
 		}
-		return matchResult;
+		return matchp;
 	};
 
 	///////////////////////////////////////////////////
@@ -134,7 +116,7 @@ window.AIengine=function(options){
 		}
 		else {
 			p$.map(function(index, element){
-				that.tokenizePA($(element).text(), $(a$[index]).text());			
+				that.tokenizePA($(element).html(), $(a$[index]).html());			
 			});
 			i$.map(function(index, element){
 				that.tokenizeIR($(element), $(r$[index]));	
@@ -142,41 +124,48 @@ window.AIengine=function(options){
 		};		
 	};
 	
+	//////////////////////////////////////
+	this.runToken=function(tokenOrKey){
+		var that=this;
+		//var t=(typeof tokenOrKey=="string")?this.storeTokenBank[tokenOrKey]:tokenOrKey;
+		var t=(typeof tokenOrKey=="string")?JSON.parse(tokenOrKey):tokenOrKey;
+
+		if (t.token=="function") {
+			var fn=this.inits["$"+t.label];
+			if (typeof fn != "undefined"){
+				var m=t.args.map(function(a, i){
+					if (a.token=="function"){
+						return that.runtoken(token);
+					}
+				});
+				//evaluate and return 
+				//return fn.call(this, m); //how to convert array to arguments?
+				return fn.apply(this, m);
+			} else {
+				console.log("Error, undefined function or value in pattern/answer;","$"+t.label);
+			}
+		} else if (t.token=="variable"){
+			//retrieve previously defined value and return
+			return this.ii["$"+t.label];
+		}
+	};
+	
+	//Deprecated, using JSON.parse and JSON.stringify instead
 	this.storeToken=function(token){
 		var key="token"+this.tokenCount.toString();
 		this.tokenCount+=1;
 		this.tokenBank[key]=token;
 		return key;
 	};
-	
-	//////////////////////////////////////
-	this.runtoken=function(tokenOrKey){
-		var that=this;
-		var t=(typeof tokenOrKey=="string")?this.storeTokenBank[tokenOrKey]:tokenOrKey;
-		if (t.token=="function") {
-			var fn=this.ii["$"+t.label];
-			var m=t.args.map(function(a, i){
-				if (a.token=="function"){
-					return that.runtoken(token);
-				}
-			});
-			//evaluate and return 
-			//return fn.call(this, m); //how to convert array to arguments?
-			return fn.apply(this, m);
-		} else if (t.token=="variable"){
-			//retrieve previously defined value and return
-			return this.ii["$"+t.label];
-		}
-	};
-
-	this.tokenBank={};
+	this.tokenBank={}; 
 	this.tokenCount=0;
+	///////////////////
 	
-		this.tokenizePA=function(pattern, antiphon){
+	this.tokenizePA=function(pattern, antiphon){
 		//adds a word pattern to wordMatcher
 		//[...] hello [punc] my name is [properNoun arg1][...]
 		//this.pairs.push({pattern:this.groom(patternStr), response:response});
-		this.pa.push({p:this.tokenizeP(pattern), a:this.tokenizeA(antiphon)});
+		this.paTokens.push({token:"PA", p:this.tokenizeP(pattern), a:this.tokenizeA(antiphon)});
 	};
 	
 	this.tokenizeA=function(antiphon){
@@ -197,7 +186,7 @@ window.AIengine=function(options){
 		var that=this;
 		if (false) {
 			//some sort of check, ie. already defined
-			console.log("syntax error - text/string arguments expected"); 
+			console.log("Syntax error - text/string arguments expected"); 
 			return null;
 		}
 		else if (typeof right$.attr("function")!="undefined") { 
@@ -212,19 +201,19 @@ window.AIengine=function(options){
 				case 3:func=new Function(arga[0],arga[1],arga[2],code);break;
 				default:func=new Function(arga[0],arga[1],arga[2],arga[3],code);
 			}
-			this.ir[left]=func;
+			this.inits[left]=func;
 			console.log("INIT FUNCTION:", left, "AS:", func);
 		}
 		else if (typeof right$.attr("list")!="undefined") {
 			var list=right$.text().replace(/\s+/g,",");
 			var code="var i=-1; try{ i=['"+ list + "'].indexOf(word);} catch(er) {console.log(er);}; return (i==-1)?false:true;"; 
-			this.ir[left]=new Function("word", code);
+			this.inits[left]=new Function("word", code);
 			console.log("INIT LIST:", left, "AS:",list);
-		} 
+		}
 	};
-	
+
 	this.tokenizeP=function(pstr){
-		//Parses patternStr and builds predicates[] and Regexpes //
+		//Parses pattern string pstr to return a token of predicates[] and Regexpes
 		//pstr Eg. "$isBotmaster [noun] is * a *"
 		//pstr profile "$predicate $predicate() is * a *"
 		//pstr eg. has 6 terms, term 1, 2, 4 & 6 have regex wildcards
@@ -244,7 +233,8 @@ window.AIengine=function(options){
 				if (v.token != null) {
 					//handles functions and variables - with storeToken and runToken aka runt
 					//TO DO create this.run() and this.storeArgs()
-					var runner=new Function("return this.tokenRun('"+that.storeToken(v)+"');");
+					//var runner=new Function("return this.tokenRun('"+that.storeToken(v)+"');");
+					var runner=new Function("return this.runToken('"+JSON.stringify(v)+"');");
 					predicates.push(runner);
 					regexp+=nada;
 					return v; //"$predicateFn";
@@ -253,27 +243,18 @@ window.AIengine=function(options){
 			else if (term.charAt(0)=="[") {
 				//[list] - list wrapper
 				//eg. term="[nouns]", ai.defs["[nouns]"]=["person","place"]
-				predicates.push(new Function("ai",
+				predicates.push(new Function(
 					//inList(item, list); //returns true if item in list
-					"return ai.fn.listed(ai.matchTerm, ai.defs["+term+"]);"
+					"return this.fn.memberof(this.matchTerm, this.inits['"+term+"']);"
 				));
 				regexp+=word;
-				return "[list]";
+				return "[list or hash]";
 			}
-			else if (term.charAt(0)=="{") {
-				//{list} - hash wrapper
-				//eg. term="{nouns}", ai.defs["{nouns}"]={"andrew":"human"}
-				predicates.push(new Function("ai",
-					"return ai.fn.hashed(ai.matchTerm, ai.defs["+term+"]);"
-				));
-				regexp+=word;
-				return "[list]";
-			}
-			else if (term.charAt(0)=="*") {regexp+=star;	return "*wildcard";}
-			else {regexp+="("+term+"\s)"; return "specific_word";}
+			else if (term.charAt(0)=="*") {regexp+=star; return "*wildcard";}
+			else {regexp+="("+term+"\\s)"; return "specific_word";}
 		});
 		console.log("PROFILE:", JSON.stringify(profile));
-		return {predicates:predicates, regexp:new RegExp(regexp, flag)};
+		return {token:"P", predicates:predicates, regexp:new RegExp(regexp, flag)};
 	};
 	
 	/***************
@@ -289,7 +270,7 @@ window.AIengine=function(options){
 		var limit=10; //no more than 10 arguments
 		var t={token:null, args:[], tokends:null, index:str.length, span:0, rest:str};
 		var x=this.tokenizeBetween(str);
-		var a=x.between; //the content between ( and )
+		var a=x.between; //the content between ( and corresponding )
 
 		while (x.token && (0 < a.length) && limit > 0){
 			var best=null;
@@ -303,7 +284,7 @@ window.AIengine=function(options){
 			var best=possibilities.reduce(function(best, p){
 				if (best){
 					if (best.token && p.token){return (p.index < best.index)?p:best;}
-					return best;	
+					return best;
 				} else return p;
 			});
 			//console.log("WINNER:",best.token);
@@ -313,11 +294,11 @@ window.AIengine=function(options){
 				t.index=x.index; //index of first arg
 				t.span+=best.span;
 				//chop off part of string that's been processed before searching for more args
-				//unexpected result eg. "hello".substring(4,5) is "o", not "" as expected
+				//unexpected behaviour... "hello".substring(4,5) returns "o", not "" as expected
 				if (best.index + best.span >= a.length) {a="";}
 				else {a=x.between.substring(best.index+best.span);}				
 			} else {
-				console.log("ERR, unexpexted syntax.  Expected a num, val or literal.");
+				console.log("Syntax error in function arguments. Expected a number, value or literal.");
 			}
 			limit-=1; //countdown
 		};
@@ -339,7 +320,7 @@ window.AIengine=function(options){
 				i++;
 			};		
 			if (t!=0){
-				console.log("error, impaired parenthesis '(..(..)' in pattern or antiphon $function");
+				console.log("Error in $function in pattern/answer. Impaired parentheses '(..(..)'");
 				return r;
 			};
 			r.token="between";
@@ -362,7 +343,6 @@ window.AIengine=function(options){
 	
 	this.tokenizeLabel=function(str){
 		var t={token:null, label:null, tokend:null, index:str.length, span:0, rest:str};
-		//var x=/\w+\d*/.exec(str); 
 		var x=/\w+[\w\d\.]*/.exec(str); 
 		if(x){t.token="label";
 			t.label=x[0];
@@ -442,9 +422,6 @@ window.AIengine=function(options){
 		return t;
 	};
 	
-
-
-
 	
 }; //AIengine function
 
