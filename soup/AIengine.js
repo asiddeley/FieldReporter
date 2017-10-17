@@ -105,7 +105,8 @@ window.AIengine=function(options){
 	};
 
 	///////////////////////////////////////////////////
-	this.pairsFromHTML=function(pairs$){
+	this.readPairs=function(element){
+		var pairs$=$(element);
 		var that=this;
 		var p$=pairs$.children("p");
 		var a$=pairs$.children("a");
@@ -170,6 +171,9 @@ window.AIengine=function(options){
 	
 	this.tokenizeA=function(antiphon){
 		//TO DO - expand this
+
+
+
 		
 		
 		return antiphon;
@@ -213,7 +217,7 @@ window.AIengine=function(options){
 	};
 
 	this.tokenizeP=function(pstr){
-		//Parses pattern string pstr to return a token of predicates[] and Regexpes
+		//Parses pattern string pstr and returns a token with predicates[] and Regexpes
 		//pstr Eg. "$isBotmaster [noun] is * a *"
 		//pstr profile "$predicate $predicate() is * a *"
 		//pstr eg. has 6 terms, term 1, 2, 4 & 6 have regex wildcards

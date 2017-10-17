@@ -45,12 +45,12 @@ font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bits
 line-height:95%;
 border-radius:10px;
 border-style:solid;
-border-width:5px;
-border-color:rgb(75,75,75);
+border-width:3px;
+border-color:black; /* rgb(75,75,75); */
 background: linear-gradient(red, yellow, yellow, green); 
 padding:5px 20px 5px 20px;
 margin: 10px;
-box-shadow: 2px 2px 2px gray;/*#defeec inset,-50px -50px 110px #defeec inset;*/
+/* box-shadow: 2px 2px 4px gray; */
 }
 #monolitotext {font-size:medium;}
 
@@ -92,7 +92,7 @@ $(function() {
 	var i$=$("pairs").children("i");
 	var r$=$("pairs").children("r");
 	console.log("pairs:", p$.length, a$.length, i$.length, r$.length);
-	ai.pairsFromHTML($("pairs")); 
+	ai.readPairs(document.getElementsByTagName("pairs")); 
 	//ai.irFromHTML($("defs"));
 	
 }); //ready
@@ -112,7 +112,7 @@ $(function() {
 		<div id="monolitohead">{0_0}</div>
 		<div id="monolitobody">[= =]</div>
 		<div id="monolitolegs">/ | \</div>
-		<div id="monolitotext">Monolito</div>
+		<div id="monolitotext">monolito</div>
 		</div>
 		<!-- a class="navbar-brand row-bot" href="#">
         <img alt="MONOLITO" src="./soup/aiMonolito500x500.png" >
@@ -151,7 +151,6 @@ $(function() {
 
 	<div class="panel-footer">
 		<div class="input-group">
-		<!--div class="btn-group btn-group-xs" role="group" aria-label="..."-->
 		<input id="userInput" class="form-control" type="text" placeholder="enter text">
 		<div class="input-group-btn">
 			<button class="btn btn-default" onclick="aiSubmit($('#userInput').val());">enter</button>
@@ -162,14 +161,10 @@ $(function() {
 			<button type="button" class="btn btn-default">quit</button>
 		</div>
 		</div>
-
-		<!--a href="#" class="card-link">Card link</a -->
-		<!--a href="#" class="card-link">Another link</a -->
 	</div> 	<!-- END OF FOOTER -->
 
 	</div> 	<!-- END OF PANEL -->
 
-	<cdata id="extra"></cdata>
 </div><!-- END OF container -->
 
 
@@ -186,8 +181,8 @@ $xxx() 	evaluate function xxx, list arguments in parenthesis with commas
 -->
 
 <SAIL style="display:none">
-<skill>
-<name>English dialog</name>
+<topic>
+<name>English foundation</name>
 <keywords></keywords>
 <require>books </require>
 <!-- PREP tag applies the listed functions to the input sentence before processing
@@ -272,7 +267,7 @@ initialize lists aka array (js)
 
 
 </pairs>
-</skill>	
+</topic>	
 </SAIL>
 
 </body>

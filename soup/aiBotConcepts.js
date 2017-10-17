@@ -100,6 +100,10 @@ monolAIto
 [=#=]
 [_|_]
 
+{0_0} THE BEST
+[= =]
+/_|_\
+
 ********************/
 
 
@@ -114,8 +118,8 @@ question 			?
 response example 	?!
 statement			!
 example				!!
-False statement		^
-False example		^^
+False statement		^ OR ~
+False example		^^ OR ~~
 
 Patterns (spaces, quotes, commas not allowed):
 literal		[name]
