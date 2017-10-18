@@ -62,7 +62,7 @@ window.AIengine=function(options){
 		this.matchp=this.paTokens.some(function(pa, i){
 			answer=pa.a;
 			//patternResult=that.matchMap(pair.pattern, this.inputStr, 0);
-			return that.matchMap(pa.p);
+			return that.matchMap(pa);
 		});
 		if (this.matchp) {return answer;} 
 	};
@@ -72,17 +72,18 @@ window.AIengine=function(options){
 	this.matchTerm=""; //current regex capture group ie. matchExec[1]..[n]
 	this.matchPred=false; //true or false - predicate result
 	
-	this.matchMap=function(pattern){
+	this.matchMap=function(pa){
 		//pattern	{predicates:[fn1, fn2...], regexp:/(term1)(term2)(term3)/}
 		//where		a term may be a wildcard at location of predicate such a list checker
 		//input  	[word1, word2...]
 		//result	[1,1,1,1,0]
 		//return	[{head}, {term result}, {term result}...]
 		//Example 	[{pattnum:1, match:true, score:0.95}, {term:noun, target:cat, match:true}...]
+		var pattern=pa.p;
 		var matchp=false;		
 		var that=this;
 		this.matchExec=pattern.regexp.exec(this.matchInputStr);
-		console.log("MATCHING:", pattern.regexp.toString(),"==",that.matchInputStr)
+		console.log("MATCHING:", pattern.regexp.toString(),"==",that.matchInputStr, (this.matchExec)?"YES":"NO")
 
 		//eg. [0]=matching string, [1]..[n]=matched terms, ["index"]=match index in string
 		
@@ -102,6 +103,7 @@ window.AIengine=function(options){
 			});	
 		}
 		return matchp;
+		//return {mr:matchExec, pr:matchp}
 	};
 
 	///////////////////////////////////////////////////
@@ -112,17 +114,14 @@ window.AIengine=function(options){
 		var a$=pairs$.children("a");
 		var i$=pairs$.children("i");
 		var r$=pairs$.children("r");
-		if ((p$.length!=a$.length)||(i$.length!=r$.length)){
-			console.log("Error, (p a) or (i r) elements not paired"); return;
-		}
-		else {
-			p$.map(function(index, element){
-				that.tokenizePA($(element).html(), $(a$[index]).html());			
-			});
-			i$.map(function(index, element){
-				that.tokenizeIR($(element), $(r$[index]));	
-			});
-		};		
+		if (p$.length!=a$.length){console.log("Error, P-A elements not paired"); return;}
+		if (i$.length!=r$.length){console.log("Error, I-R elements not paired"); return;}
+		p$.map(function(index, element){
+			that.tokenizePA($(element).html(), $(a$[index]).html());		
+		});
+		i$.map(function(index, element){
+			that.tokenizeIR($(element), $(r$[index]));	
+		});
 	};
 	
 	//////////////////////////////////////
@@ -166,7 +165,7 @@ window.AIengine=function(options){
 		//adds a word pattern to wordMatcher
 		//[...] hello [punc] my name is [properNoun arg1][...]
 		//this.pairs.push({pattern:this.groom(patternStr), response:response});
-		this.paTokens.push({token:"PA", p:this.tokenizeP(pattern), a:this.tokenizeA(antiphon)});
+		this.paTokens.push({token:"PA", p:this.tokenizeP(pattern), a:this.tokenizeA(antiphon), r:null});
 	};
 	
 	this.tokenizeA=function(antiphon){
