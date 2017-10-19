@@ -38,7 +38,8 @@ body, div
     user-select: none;
 }
 
-#monolito {
+.monolito {
+float:left;
 font-size:x-large;
 font-weight:bold;
 font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
@@ -52,7 +53,7 @@ padding:5px 20px 5px 20px;
 margin: 10px;
 /* box-shadow: 2px 2px 4px gray; */
 }
-#monolitotext {font-size:medium;}
+.monolitotext {font-size:medium;}
 
 </style>
 
@@ -107,12 +108,18 @@ $(function() {
 <!-- PAGE STARTS HERE -->
 <nav class="navbar navbar-fixed-top navbar-default">
   <div class="container-fluid">
-    <div class="navbar-header">
-		<div id="monolito">
-		<div id="monolitohead">{0_0}</div>
-		<div id="monolitobody">[= =]</div>
-		<div id="monolitolegs">/ | \</div>
-		<div id="monolitotext">monolito</div>
+    <div class="nav navbar">
+		<div class="monolito  col-md-1">
+		<div class="monolitohead">{0_0}</div>
+		<div class="monolitobody">[= =]</div>
+		<div class="monolitolegs">/ | \</div>
+		<div class="monolitotext">monolito</div>
+		</div>
+		<div class="monolito  col-md-1">
+		<div class="monolitohead">\0.0/</div>
+		<div class="monolitobody">{= =}</div>
+		<div class="monolitolegs">/ | \</div>
+		<div class="monolitotext">monolito</div>
 		</div>
 		<!-- a class="navbar-brand row-bot" href="#">
         <img alt="MONOLITO" src="./soup/aiMonolito500x500.png" >
