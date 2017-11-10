@@ -13,9 +13,9 @@
 
 
 
-<script src="https://unpkg.com/deeplearn"></script>
+<!--script src="https://unpkg.com/deeplearn"></script-->
 
-
+<script src="deeplearn/deeplearn030.js"></script>
 
 <script type="text/javascript">
 
@@ -28,24 +28,32 @@ $(window).on({
 //inhibit the browser's right-click context menu
 $(document).on("contextmenu", false);
 
-////////////////globals
-	
-}); //ready
+//ready
+$(function(){
 
+console.log("starting...");
+var dl=deeplearn;
 var math = new dl.NDArrayMathGPU();
 var a = dl.Array1D.new([1, 2, 3]);
 var b = dl.Scalar.new(2);
 
 var result = math.add(a, b);
+//console.log ("result", result);
+//console.log ("data",  result.data);
+//console.log ("texture",  result.data.texture, result.data.textureShapeRC);
 
 // Option 1: With a Promise.
-result.data().then(data => console.log(data)); // Float32Array([3, 4, 5])
+//result.data().then(function(data){console.log(data)}); // Float32Array([3, 4, 5])
 
 // Option 2: Synchronous download of data. This is simpler, but blocks the UI.
-console.log(result.dataSync());
+//console.log(result.data.sync());
 
+console.log("result shape", result.shape);
+console.log("result", result.data());
 
+console.log("done");
 
+}); //ready
 </script>
 
 </head>
