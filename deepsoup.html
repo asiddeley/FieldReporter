@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title id='browserTab' >deep soup</title>
+
+<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.css">
+<script type='text/javascript' src="jquery/jquery.js"></script>
+<script type='text/javascript' src="jquery/jquery-ui.js"></script>
+<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.theme.css">
+<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.structure.css">
+<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.css">
+
+
+
+<script src="https://unpkg.com/deeplearn"></script>
+
+
+
+<script type="text/javascript">
+
+//prevent accidental image drop
+$(window).on({
+	"drop": function(e){ e=e||event; e.preventDefault(); false;},
+	"dragover":function(e){ e=e||event; e.preventDefault(); false;}
+});
+
+//inhibit the browser's right-click context menu
+$(document).on("contextmenu", false);
+
+////////////////globals
+	
+}); //ready
+
+var math = new dl.NDArrayMathGPU();
+var a = dl.Array1D.new([1, 2, 3]);
+var b = dl.Scalar.new(2);
+
+var result = math.add(a, b);
+
+// Option 1: With a Promise.
+result.data().then(data => console.log(data)); // Float32Array([3, 4, 5])
+
+// Option 2: Synchronous download of data. This is simpler, but blocks the UI.
+console.log(result.dataSync());
+
+
+
+</script>
+
+</head>
+<body>
+hello
+
+</body>
+
+</html>
+
