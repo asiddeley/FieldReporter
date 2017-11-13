@@ -13,52 +13,150 @@
 
 
 
-<!--script src="https://unpkg.com/deeplearn"></script-->
+<!-- script src="https://unpkg.com/deeplearn"></script-->
+<!--script src="deeplearn/deeplearn030.js"></script-->
 
-<script src="deeplearn/deeplearn030.js"></script>
+<!-- link id="mnist" rel="import" type="text/css" href="mnist.js" -->
+
+
 
 <script type="text/javascript">
 
-//prevent accidental image drop
+
+
+
+
+
+// Prevent accidental image drop
 $(window).on({
 	"drop": function(e){ e=e||event; e.preventDefault(); false;},
 	"dragover":function(e){ e=e||event; e.preventDefault(); false;}
 });
 
-//inhibit the browser's right-click context menu
+// Inhibit the browser's right-click context menu
 $(document).on("contextmenu", false);
 
-//ready
+// Load callback
+function loadover(data, textStatus, jqxhr ) {
+  //console.log( data ); // Data returned
+  console.log( "script load ", textStatus, jqxhr.status );
+}
+
+
+/*******************************
+detect IE
+returns version of IE or false, if browser is not Internet Explorer
+THANKS
+ https://stackoverflow.com/questions/11803215/how-to-include-multiple-js-files-using-jquery-getscript-method
+12-Nov-2017
+*****************************/
+
+function detectIE() {
+    var ua = window.navigator.userAgent;
+
+    var msie = ua.indexOf('MSIE ');
+    if (msie > 0) {
+        // IE 10 or older => return version number
+        return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+    }
+
+    var trident = ua.indexOf('Trident/');
+    if (trident > 0) {
+        // IE 11 => return version number
+        var rv = ua.indexOf('rv:');
+        return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
+    }
+
+    var edge = ua.indexOf('Edge/');
+    if (edge > 0) {
+       // Edge (IE 12+) => return version number
+       return parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10);
+    }
+
+    // other browser
+    return false;
+}
+
+
+
+
+function EX0(){
+	console.log("importing script...");
+	$.getScript( "deeplearn/mnist.js", function(data, textStatus, jqxhr){
+		console.log( "script load ", textStatus, jqxhr.status );
+		//defined inside mnist
+		hello();
+	});
+}
+
+
+function EX1(){
+	console.log("importing deeplearn...");
+	$.getScript( "https://unpkg.com/deeplearn", function(data, textStatus, jqxhr){
+		console.log( "script load ", textStatus, jqxhr.status );
+		console.log(deeplearn.Array1D);
+		console.log(deeplearn.Array2D);
+		console.log(deeplearn.CheckpointLoader);
+		console.log(deeplearn.NDArray);
+		console.log(deeplearn.NDArrayMath);
+		console.log(deeplearn.NDArrayMathGPU);
+		console.log(deeplearn.Scalar);	
+	});
+}
+
+function EX1a(){
+	console.log("saving deeplearn...");
+	$.getScript("soup/dist/soup.js", 
+		function(){
+			//console.log("deeplearn loaded", typeof deeplearn);
+			if(typeof deeplearn == "object" && detectIE()){
+				soup.ieSaveFile(
+					soup.localPath("deeplearn/deeplearnDist.js"),
+					"var deeplearn = " + soup.stringifyFunc(deeplearn)
+				);
+			} else {console.log("Warning - deeplearn not defined OR browser isn't ieExplorer") }
+		}
+	);
+}
+
+function EX2(){ 
+	console.log("add scalar to array...");
+
+	var math = new deeplearn.NDArrayMathGPU();
+	var a = deeplearn.Array1D.new([1, 2, 3]);
+	var b = deeplearn.Scalar.new(2);
+	var result = math.add(a, b);
+
+	// Option 1: With a Promise.
+	result.data().then(function(data){
+		console.log(a, "PLUS...");
+		console.log(b, "IS...");
+		console.log(data);
+	}); // Float32Array([3, 4, 5])
+
+	// Option 2: Synchronous download of data. This is simpler, but blocks the UI.
+	//console.log(result.data.sync());
+}
+
+
+
+// READY
 $(function(){
 
-console.log("starting...");
-var dl=deeplearn;
-var math = new dl.NDArrayMathGPU();
-var a = dl.Array1D.new([1, 2, 3]);
-var b = dl.Scalar.new(2);
-
-var result = math.add(a, b);
-//console.log ("result", result);
-//console.log ("data",  result.data);
-//console.log ("texture",  result.data.texture, result.data.textureShapeRC);
-
-// Option 1: With a Promise.
-//result.data().then(function(data){console.log(data)}); // Float32Array([3, 4, 5])
-
-// Option 2: Synchronous download of data. This is simpler, but blocks the UI.
-//console.log(result.data.sync());
-
-console.log("result shape", result.shape);
-console.log("result", result.data());
-
-console.log("done");
 
 }); //ready
 </script>
 
 </head>
 <body>
-hello
+<h1>deep learn exercises</h1>
+open the developer console...<br>
+<a href="https://deeplearnjs.org/" target="_blank">deep learn</a><br>
+<a href="https://www.google.ca/" target="_blank">google</a><br><hl></hl>
+<button onclick="EX0()">Ex 0  - import script using jquery</button><br>
+<button onclick="EX1()">Ex 1  - import deeplearn</button><br>
+<button onclick="EX1a()">Ex 1a - save deeplearn locally (IE only)</button><br>
+<button onclick="EX2()">Ex 2  - add scalar to vector</button><br>
 
 </body>
 
