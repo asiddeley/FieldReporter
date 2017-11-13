@@ -15,24 +15,25 @@
  * =============================================================================
  */
 
-/**
 
 // tslint:disable-next-line:max-line-length
 // import {Array1D, Array2D, CheckpointLoader, NDArray, NDArrayMath, NDArrayMathGPU, Scalar} from '../deeplearn';
+//
+// Ported from TS by ASiddeley 13-Nov-2017
 
-// manifest.json lives in the same directory as the mnist demo.
+// manifest.json lives in the same directory as the mnist demo if arg is '.'
 const reader = new CheckpointLoader('.');
-reader.getAllVariables().then(vars => {
+reader.getAllVariables().then(function(vars){
   // Get sample data.
   const xhr = new XMLHttpRequest();
   xhr.open('GET', 'sample_data.json');
-  xhr.onload = async () => {
+  xhr.onload = function(){
     const data = JSON.parse(xhr.responseText);
     const math = new NDArrayMathGPU();
 
     // Wrap everything in a math.scope so we clean up intermediate NDArrays.
-    math.scope(async () => {
-      console.log(`Evaluation set: n=${data.images.length}.`);
+    math.scope(function(){
+      console.log("Evaluation set:", data.images.length);
 
       let numCorrect = 0;
       for (let i = 0; i < data.images.length; i++) {
@@ -40,30 +41,26 @@ reader.getAllVariables().then(vars => {
 
         // Infer through the model to get a prediction.
         const predictedLabel = Math.round(await infer(math, x, vars).val());
-        console.log(`Item ${i}, predicted label ${predictedLabel}.`);
+        console.log("Item:", i, " predicted label:", predictedLabel);
 
         // Aggregate correctness to show accuracy.
         const label = data.labels[i];
-        if (label === predictedLabel) {
-          numCorrect++;
-        }
+        if (label === predictedLabel) {numCorrect++;}
 
         // Show the image.
-        const result =
-            renderResults(Array1D.new(data.images[i]), label, predictedLabel);
+        const result = renderResults(Array1D.new(data.images[i]), label, predictedLabel);
         document.body.appendChild(result);
       }
 
       // Compute final accuracy.
       const accuracy = numCorrect * 100 / data.images.length;
-      document.getElementById('accuracy').innerHTML = `${accuracy}%`;
+      document.getElementById('accuracy').innerHTML = accuracy.toString();
     });
   };
-  xhr.onerror = (err) => console.error(err);
+  xhr.onerror = function(err){console.error(err)};
   xhr.send();
 });
 
-****************/
 
 /**
  * Infers through a 3-layer fully connected MNIST model using the Math API. This
@@ -71,8 +68,7 @@ reader.getAllVariables().then(vars => {
  * to the user. Math commands execute immediately, like numpy.
  */
  
-/*******************
-function infer( NDArrayMath,  Array1D,   vars) {
+function infer( math,  x,   vars) {
   const hidden1W = vars['hidden1/weights'];
   const hidden1B = vars['hidden1/biases'];
   const hidden2W = vars['hidden2/weights'];
@@ -80,15 +76,9 @@ function infer( NDArrayMath,  Array1D,   vars) {
   const softmaxW = vars['softmax_linear/weights'];
   const softmaxB = vars['softmax_linear/biases'];
 
-  const hidden1 =
-      math.relu(math.add(math.vectorTimesMatrix(x, hidden1W), hidden1B)) as
-      Array1D;
-  const hidden2 =
-      math.relu(math.add(
-          math.vectorTimesMatrix(hidden1, hidden2W), hidden2B)) as Array1D;
-
+  const hidden1 = math.relu(math.add(math.vectorTimesMatrix(x, hidden1W), hidden1B));
+  const hidden2 = math.relu(math.add(math.vectorTimesMatrix(hidden1, hidden2W), hidden2B));
   const logits = math.add(math.vectorTimesMatrix(hidden2, softmaxW), softmaxB);
-
   return math.argMax(logits);
 }
 
@@ -117,10 +107,10 @@ function renderResults(array, label, predictedLabel) {
   const root = document.createElement('div');
   root.appendChild(renderMnistImage(array));
   const actual = document.createElement('div');
-  actual.innerHTML = `Actual: ${label}`;
+  actual.innerHTML = "Actual:" + label;
   root.appendChild(actual);
   const predicted = document.createElement('div');
-  predicted.innerHTML = `Predicted: ${predictedLabel}`;
+  predicted.innerHTML = "Predicted:"+predictedLabel;
   root.appendChild(predicted);
 
   if (label !== predictedLabel) {
@@ -131,14 +121,6 @@ function renderResults(array, label, predictedLabel) {
   return root;
 }
 
-
-****************************/
-
-console.log("bottom of mnist...");
-
-function hello(){
-	console.log("hello from loaded script");
-};
 
 
 
