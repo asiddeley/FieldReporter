@@ -19,10 +19,21 @@
 // tslint:disable-next-line:max-line-length
 // import {Array1D, Array2D, CheckpointLoader, NDArray, NDArrayMath, NDArrayMathGPU, Scalar} from '../deeplearn';
 //
-// Ported from TS by ASiddeley 13-Nov-2017
+// Learned by ASiddeley 13-Nov-2017
+
+const Array1D=deeplearn.Array1D;
+const Array2D=deeplearn.Array2D;
+const CheckpointLoader=deeplearn.CheckpointLoader;
+const NDArray=deeplearn.NDArray;
+const NDArrayMath=deeplearn.NDArrayMath;
+const NDArrayMathGPU=deeplearn.NDArrayMathGPU;
+const Scalar=deeplearn.Scalar;
+
+console.log("checkpointLoader", JSON.stringify(CheckpointLoader));
 
 // manifest.json lives in the same directory as the mnist demo if arg is '.'
 const reader = new CheckpointLoader('.');
+
 reader.getAllVariables().then(function(vars){
   // Get sample data.
   const xhr = new XMLHttpRequest();
@@ -40,7 +51,7 @@ reader.getAllVariables().then(function(vars){
         const x = Array1D.new(data.images[i]);
 
         // Infer through the model to get a prediction.
-        const predictedLabel = Math.round(await infer(math, x, vars).val());
+        const predictedLabel = Math.round(infer(math, x, vars).val());
         console.log("Item:", i, " predicted label:", predictedLabel);
 
         // Aggregate correctness to show accuracy.
