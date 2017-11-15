@@ -29,12 +29,13 @@ const NDArrayMath=deeplearn.NDArrayMath;
 const NDArrayMathGPU=deeplearn.NDArrayMathGPU;
 const Scalar=deeplearn.Scalar;
 
-console.log("checkpointLoader", JSON.stringify(CheckpointLoader));
-
 // manifest.json lives in the same directory as the mnist demo if arg is '.'
 const reader = new CheckpointLoader('.');
 
 reader.getAllVariables().then(function(vars){
+	
+  console.log("hidden1/biases", vars["hidden1/biases"]);
+  
   // Get sample data.
   const xhr = new XMLHttpRequest();
   xhr.open('GET', 'sample_data.json');
@@ -52,6 +53,8 @@ reader.getAllVariables().then(function(vars){
 
         // Infer through the model to get a prediction.
         const predictedLabel = Math.round(infer(math, x, vars).val());
+		//const predictedLabel = infer(math, x, vars).val();
+
         console.log("Item:", i, " predicted label:", predictedLabel);
 
         // Aggregate correctness to show accuracy.

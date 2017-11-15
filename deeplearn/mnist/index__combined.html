@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title id='browserTab' >MNIST Demo</title>
+
+<style>
+.result {
+  float: left;
+  padding: 4px;
+  margin: 4px;
+  box-shadow: 0 0 5px 2px #eee;
+}
+.error {
+  background: red;
+}
+canvas {
+  width: 128px;
+  height: 128px;
+}
+</style>
+
+<script src="../../jquery/jquery.js"></script>
+<script src="deeplearn.js"></script>
+<!--script src="https://unpkg.com/deeplearn"></script-->
+
+<script type="text/javascript">
+/**
+ * @license
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+function main(sample_data, weights_biases){
+	// tslint:disable-next-line:max-line-length
+	// import {Array1D, Array2D, CheckpointLoader, NDArray, NDArrayMath, NDArrayMathGPU, Scalar} from '../deeplearn';
+	//
+	// Learned by A Siddeley 13-Nov-2017
+
+	const Array1D=deeplearn.Array1D;
+	const Array2D=deeplearn.Array2D;
+	const CheckpointLoader=deeplearn.CheckpointLoader;
+	const NDArray=deeplearn.NDArray;
+	const NDArrayMath=deeplearn.NDArrayMath;
+	const NDArrayMathGPU=deeplearn.NDArrayMathGPU;
+	const Scalar=deeplearn.Scalar;
+
+	const data=JSON.parse(sample_data);
+	const math = new NDArrayMathGPU();
+	
+	console.log("Evaluation set:", data.images.length);
+	
+	// Wrap everything in a math.scope so we clean up intermediate NDArrays.
+	math.scope(function(){
+		var numCorrect = 0;
+		var x, predictedLabel, label, result, accuracy;
+		for (let i = 0; i < data.images.length; i++) {
+			x = Array1D.new(data.images[i]);
+
+			// Infer through the model to get a prediction.
+			predictedLabel = Math.round(infer(math, x, weights_biases).val());
+			console.log("Item:", i, " predicted label:", predictedLabel);
+
+			// Aggregate correctness to show accuracy.
+			label = data.labels[i];
+			if (label === predictedLabel) {numCorrect++;}
+
+			// Show the image.
+			result = renderResults(Array1D.new(data.images[i]), label, predictedLabel);
+			document.body.appendChild(result);
+		}
+	  // Compute final accuracy.
+	  accuracy = numCorrect * 100 / data.images.length;
+	  document.getElementById('accuracy').innerHTML = accuracy.toString();
+	});
+}
+
+
+ 
+function infer( math,  x,  vars) {
+	/**
+	 * Infers through a 3-layer fully connected MNIST model using the Math API. This
+	 * is the lowest level user-facing API in deeplearn.js giving the most control
+	 * to the user. Math commands execute immediately, like numpy.
+	 */
+
+	const hidden1W = vars['hidden1/weights'];
+	const hidden1B = vars['hidden1/biases'];
+	const hidden2W = vars['hidden2/weights'];
+	const hidden2B = vars['hidden2/biases'];
+	const softmaxW = vars['softmax_linear/weights'];
+	const softmaxB = vars['softmax_linear/biases'];
+
+	const hidden1 = math.relu(math.add(math.vectorTimesMatrix(x, hidden1W), hidden1B));
+	const hidden2 = math.relu(math.add(math.vectorTimesMatrix(hidden1, hidden2W), hidden2B));
+	const logits = math.add(math.vectorTimesMatrix(hidden2, softmaxW), softmaxB);
+	return math.argMax(logits);
+}
+
+function renderMnistImage(array) {
+  const width = 28;
+  const height = 28;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  const float32Array = array.getData().values;
+  const imageData = ctx.createImageData(width, height);
+  for (let i = 0; i < float32Array.length; i++) {
+    const j = i * 4;
+    const valu = Math.round(float32Array[i] * 255);
+    imageData.data[j + 0] = valu;
+    imageData.data[j + 1] = valu;
+    imageData.data[j + 2] = valu;
+    imageData.data[j + 3] = 255;
+  }
+  ctx.putImageData(imageData, 0, 0);
+  return canvas;
+}
+
+function renderResults(array, label, predictedLabel) {
+  const root = document.createElement('div');
+  root.appendChild(renderMnistImage(array));
+  const actual = document.createElement('div');
+  actual.innerHTML = "Actual:" + label;
+  root.appendChild(actual);
+  const predicted = document.createElement('div');
+  predicted.innerHTML = "Predicted:"+predictedLabel;
+  root.appendChild(predicted);
+
+  if (label !== predictedLabel) {
+    root.classList.add('error');
+  }
+
+  root.classList.add('result');
+  return root;
+}
+
+///////////////////////////////
+// Ready
+$(function(){
+
+var sample_data = $().getScript();
+var weights_biases = $().getScript();
+
+/***
+            xhr.open('GET', _this.urlPath + fname);
+            xhr.onload = function () {
+                var values = new Float32Array(xhr.response);
+                var ndarray = ndarray_1.NDArray.make(_this.checkpointManifest[varName].shape, { values: values });
+                resolve(ndarray);
+            };
+***/
+
+main(sample_data, weights_biases);
+
+});
+
+
+</script>
+</head>
+<body>
+
+
+<p>Infers through a 3-layer fully connected MNIST model using the Math API. This
+ is the lowest level user-facing API in deeplearn.js giving the most control
+ to the user. Math commands execute immediately, like numpy.</p>
+<div>Test accuracy: <span id="accuracy"></span></div>
+
+
+
+
+</body>
+
+
+
+
+
+
+
+
