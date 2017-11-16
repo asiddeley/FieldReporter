@@ -30,7 +30,7 @@ const NDArrayMathGPU=deeplearn.NDArrayMathGPU;
 const Scalar=deeplearn.Scalar;
 
 // manifest.json lives in the same directory as the mnist demo if arg is '.'
-const reader = new CheckpointLoader('.');
+const reader = new CheckpointLoader('./');
 
 reader.getAllVariables().then(function(vars){
 	
@@ -39,20 +39,32 @@ reader.getAllVariables().then(function(vars){
   // Get sample data.
   const xhr = new XMLHttpRequest();
   xhr.open('GET', 'sample_data.json');
-  xhr.onload = function(){
+  xhr.onload = async function(){
     const data = JSON.parse(xhr.responseText);
     const math = new NDArrayMathGPU();
 
     // Wrap everything in a math.scope so we clean up intermediate NDArrays.
-    math.scope(function(){
+    math.scope(async function(){
+		
+	const hidden1W = vars['hidden1/weights'];
+	const hidden1B = vars['hidden1/biases'];
+	const hidden2W = vars['hidden2/weights'];
+	const hidden2B = vars['hidden2/biases'];
+	const softmaxW = vars['softmax_linear/weights'];
+	const softmaxB = vars['softmax_linear/biases'];
+	console.log("hidden1W.ndarrayData", hidden1W.ndarrayData.values);
+	//hidden1W, hidden1B, hidden2W,hidden2B, softmaxW,softmaxB
+		
+		
       console.log("Evaluation set:", data.images.length);
-
-      let numCorrect = 0;
-      for (let i = 0; i < data.images.length; i++) {
+	  
+		var numCorrect = 0;
+		for (let i = 0; i < data.images.length; i++) {
         const x = Array1D.new(data.images[i]);
 
         // Infer through the model to get a prediction.
-        const predictedLabel = Math.round(infer(math, x, vars).val());
+		const inf=await infer(math, x, hidden1W, hidden1B, hidden2W, hidden2B, softmaxW, softmaxB);
+        const predictedLabel = Math.round( inf );
 		//const predictedLabel = infer(math, x, vars).val();
 
         console.log("Item:", i, " predicted label:", predictedLabel);
@@ -69,8 +81,9 @@ reader.getAllVariables().then(function(vars){
       // Compute final accuracy.
       const accuracy = numCorrect * 100 / data.images.length;
       document.getElementById('accuracy').innerHTML = accuracy.toString();
-    });
-  };
+    }); //math.scope
+	
+  }; //onload
   xhr.onerror = function(err){console.error(err)};
   xhr.send();
 });
@@ -82,18 +95,12 @@ reader.getAllVariables().then(function(vars){
  * to the user. Math commands execute immediately, like numpy.
  */
  
-function infer( math,  x,   vars) {
-  const hidden1W = vars['hidden1/weights'];
-  const hidden1B = vars['hidden1/biases'];
-  const hidden2W = vars['hidden2/weights'];
-  const hidden2B = vars['hidden2/biases'];
-  const softmaxW = vars['softmax_linear/weights'];
-  const softmaxB = vars['softmax_linear/biases'];
-
+function infer( math,  x, hidden1W, hidden1B, hidden2W, hidden2B, softmaxW, softmaxB) {
+	
   const hidden1 = math.relu(math.add(math.vectorTimesMatrix(x, hidden1W), hidden1B));
   const hidden2 = math.relu(math.add(math.vectorTimesMatrix(hidden1, hidden2W), hidden2B));
   const logits = math.add(math.vectorTimesMatrix(hidden2, softmaxW), softmaxB);
-  return math.argMax(logits);
+  return math.argMax(logits).val();
 }
 
 function renderMnistImage(array) {

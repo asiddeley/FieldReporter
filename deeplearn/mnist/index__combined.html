@@ -20,8 +20,8 @@ canvas {
 }
 </style>
 
-<script src="../../jquery/jquery.js"></script>
-<script src="deeplearn.js"></script>
+<!--script src="../../jquery/jquery.js"></script-->
+<script src="../deeplearn.js"></script>
 <!--script src="https://unpkg.com/deeplearn"></script-->
 
 <script type="text/javascript">
@@ -41,11 +41,13 @@ canvas {
  * limitations under the License.
  * =============================================================================
  */
-function main(sample_data, weights_biases){
-	// tslint:disable-next-line:max-line-length
-	// import {Array1D, Array2D, CheckpointLoader, NDArray, NDArrayMath, NDArrayMathGPU, Scalar} from '../deeplearn';
-	//
-	// Learned by A Siddeley 13-Nov-2017
+//function main(){
+	/***********************
+	tslint:disable-next-line:max-line-length
+	import {Array1D, Array2D, CheckpointLoader, NDArray, NDArrayMath, NDArrayMathGPU, Scalar} from '../deeplearn';
+	
+	Learned by A Siddeley 13-Nov-2017
+	************************/
 
 	const Array1D=deeplearn.Array1D;
 	const Array2D=deeplearn.Array2D;
@@ -54,57 +56,77 @@ function main(sample_data, weights_biases){
 	const NDArrayMath=deeplearn.NDArrayMath;
 	const NDArrayMathGPU=deeplearn.NDArrayMathGPU;
 	const Scalar=deeplearn.Scalar;
-
-	const data=JSON.parse(sample_data);
 	const math = new NDArrayMathGPU();
-	
-	console.log("Evaluation set:", data.images.length);
-	
-	// Wrap everything in a math.scope so we clean up intermediate NDArrays.
-	math.scope(function(){
-		var numCorrect = 0;
-		var x, predictedLabel, label, result, accuracy;
-		for (let i = 0; i < data.images.length; i++) {
-			x = Array1D.new(data.images[i]);
 
-			// Infer through the model to get a prediction.
-			predictedLabel = Math.round(infer(math, x, weights_biases).val());
-			console.log("Item:", i, " predicted label:", predictedLabel);
 
-			// Aggregate correctness to show accuracy.
-			label = data.labels[i];
-			if (label === predictedLabel) {numCorrect++;}
+	// manifest.json lives in the same directory as the mnist demo if arg is '.'
+	const reader = new CheckpointLoader('./');
+	reader.getAllVariables().then(function(vars){
+		console.log("vars.hidden1/weights:", vars['hidden1/weights']);
+		
+		// Get sample data.
+		const xhr = new XMLHttpRequest();
+		xhr.open('GET', 'sample_data.json');
+		xhr.onload = async function(){
+			console.log("xhr.onload...");
+			const data = JSON.parse(xhr.responseText);
+			const math = new NDArrayMathGPU();
+		
+			console.log("Evaluation set:", data.images.length);
+		
+		
+			// Wrap everything in a math.scope so we clean up intermediate NDArrays.
+			math.scope(async function(){
+				var numCorrect = 0;
+				//const x, predictedLabel, label, result, accuracy;		
+			
+				for (var i=0; i < data.images.length; i++) {
+					const x = Array1D.new(data.images[i]);
 
-			// Show the image.
-			result = renderResults(Array1D.new(data.images[i]), label, predictedLabel);
-			document.body.appendChild(result);
-		}
-	  // Compute final accuracy.
-	  accuracy = numCorrect * 100 / data.images.length;
-	  document.getElementById('accuracy').innerHTML = accuracy.toString();
-	});
-}
+					// Infer through the model to get a prediction.
+					const predictedLabel = Math.round(await infer(math, x, vars));
+					console.log("Item:", i, " predicted label:", predictedLabel);
+
+					// Aggregate correctness to show accuracy.
+					const label = data.labels[i];
+					if (label === predictedLabel) {numCorrect++;}
+
+					// Show the image.
+					const result = renderResults(Array1D.new(data.images[i]), label, predictedLabel);
+					document.body.appendChild(result);
+				}
+			  // Compute final accuracy.
+			  const accuracy = numCorrect * 100 / data.images.length;
+			  document.getElementById('accuracy').innerHTML = accuracy.toString();
+			}); //math.scope
+		};  //onload
+		xhr.onerror = function(err){console.error(err)};
+	xhr.send();
+	}); //getAllVariables.then
+//}; //main
 
 
  
-function infer( math,  x,  vars) {
+function infer( math,  x, vars) {
 	/**
 	 * Infers through a 3-layer fully connected MNIST model using the Math API. This
 	 * is the lowest level user-facing API in deeplearn.js giving the most control
 	 * to the user. Math commands execute immediately, like numpy.
-	 */
+*/
 
-	const hidden1W = vars['hidden1/weights'];
-	const hidden1B = vars['hidden1/biases'];
-	const hidden2W = vars['hidden2/weights'];
-	const hidden2B = vars['hidden2/biases'];
-	const softmaxW = vars['softmax_linear/weights'];
-	const softmaxB = vars['softmax_linear/biases'];
+		const hidden1W = vars['hidden1/weights'];
+		const hidden1B = vars['hidden1/biases'];
+		const hidden2W = vars['hidden2/weights'];
+		const hidden2B = vars['hidden2/biases'];
+		const softmaxW = vars['softmax_linear/weights'];
+		const softmaxB = vars['softmax_linear/biases'];	
+		//console.log("hidden1W=", hidden1W);
+
 
 	const hidden1 = math.relu(math.add(math.vectorTimesMatrix(x, hidden1W), hidden1B));
 	const hidden2 = math.relu(math.add(math.vectorTimesMatrix(hidden1, hidden2W), hidden2B));
 	const logits = math.add(math.vectorTimesMatrix(hidden2, softmaxW), softmaxB);
-	return math.argMax(logits);
+	return math.argMax(logits).val();
 }
 
 function renderMnistImage(array) {
@@ -148,23 +170,22 @@ function renderResults(array, label, predictedLabel) {
 
 ///////////////////////////////
 // Ready
-$(function(){
+//$(function(){
 
-var sample_data = $().getScript();
-var weights_biases = $().getScript();
+/******************************
+//var sample_data = $().getScript();
+//var weights_biases = $().getScript();
+xhr.open('GET', _this.urlPath + fname);
+xhr.onload = function () {
+	var values = new Float32Array(xhr.response);
+	var ndarray = ndarray_1.NDArray.make(_this.checkpointManifest[varName].shape, { values: values });
+	resolve(ndarray);
+};
+*************************************/
 
-/***
-            xhr.open('GET', _this.urlPath + fname);
-            xhr.onload = function () {
-                var values = new Float32Array(xhr.response);
-                var ndarray = ndarray_1.NDArray.make(_this.checkpointManifest[varName].shape, { values: values });
-                resolve(ndarray);
-            };
-***/
+	//main();
 
-main(sample_data, weights_biases);
-
-});
+//});
 
 
 </script>
