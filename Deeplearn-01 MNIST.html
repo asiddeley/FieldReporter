@@ -21,7 +21,7 @@ canvas {
 </style>
 
 <!--script src="../../jquery/jquery.js"></script-->
-<script src="../deeplearn.js"></script>
+<script src="./deeplearn/deeplearn.js"></script>
 <!--script src="https://unpkg.com/deeplearn"></script-->
 
 <script type="text/javascript">
@@ -41,13 +41,9 @@ canvas {
  * limitations under the License.
  * =============================================================================
  */
-//function main(){
-	/***********************
-	tslint:disable-next-line:max-line-length
-	import {Array1D, Array2D, CheckpointLoader, NDArray, NDArrayMath, NDArrayMathGPU, Scalar} from '../deeplearn';
-	
-	Learned by A Siddeley 13-Nov-2017
-	************************/
+
+
+//	Learned by A Siddeley 13-Nov-2017
 
 	const Array1D=deeplearn.Array1D;
 	const Array2D=deeplearn.Array2D;
@@ -60,13 +56,13 @@ canvas {
 
 
 	// manifest.json lives in the same directory as the mnist demo if arg is '.'
-	const reader = new CheckpointLoader('./');
+	const reader = new CheckpointLoader('./deeplearn/mnist');
 	reader.getAllVariables().then(function(vars){
-		console.log("vars.hidden1/weights:", vars['hidden1/weights']);
+		console.log("vars.hidden1/weights...", vars['hidden1/weights']);
 		
 		// Get sample data.
 		const xhr = new XMLHttpRequest();
-		xhr.open('GET', 'sample_data.json');
+		xhr.open('GET', './deeplearn/mnist/sample_data.json');
 		xhr.onload = async function(){
 			console.log("xhr.onload...");
 			const data = JSON.parse(xhr.responseText);

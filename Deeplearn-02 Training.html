@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title id='browserTab' >MNIST Demo</title>
+
+<style>
+.result {
+  float: left;
+  padding: 4px;
+  margin: 4px;
+  box-shadow: 0 0 5px 2px #eee;
+}
+.error {
+  background: red;
+}
+canvas {
+  width: 128px;
+  height: 128px;
+}
+</style>
+
+<!--script src="../../jquery/jquery.js"></script-->
+<script src="./deeplearn/deeplearn.js"></script>
+<!--script src="https://unpkg.com/deeplearn"></script-->
+
+<script type="text/javascript">
+/**
+ * @license
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+async function console_log(){
+	var root = document.createElement('p');
+	var item;
+	for (var a in arguments){
+		console.log(typeof a,a);
+		item=document.createElement('span');
+		item.innerHTML=a.toString();
+		root.appendChild(item);
+	}
+	document.body.appendChild(root);
+}
+
+
+//	Learned by A Siddeley 17-Nov-2017
+
+const Array1D=deeplearn.Array1D;
+const Array2D=deeplearn.Array2D;
+//const CheckpointLoader=deeplearn.CheckpointLoader;
+const CostReduction=deeplearn.CostReduction;
+const Graph=deeplearn.Graph;
+const InCPUMemoryShuffledInputProviderBuilder=deeplearn.InCPUMemoryShuffledInputProviderBuilder;
+const NDArray=deeplearn.NDArray;
+const NDArrayMath=deeplearn.NDArrayMath;
+const NDArrayMathGPU=deeplearn.NDArrayMathGPU;
+const Scalar=deeplearn.Scalar;
+const Session=deeplearn.Session;
+const SGDOptimizer=deeplearn.SGDOptimizer;
+const Tensor=deeplearn.Tensor;
+
+async function mlBeginners() {
+  // This file parallels (some of) the code in the ML Beginners tutorial.
+  {
+    const math = new NDArrayMathGPU();
+
+    const matrixShape = [2, 3];  // 2 rows, 3 columns.
+    const matrix = Array2D.new(matrixShape, [10, 20, 30, 40, 50, 60]);
+    const vector = Array1D.new([0, 1, 2]);
+    const result = math.matrixTimesVector(matrix, vector);
+
+    console.log('result shape:', result.shape);
+    console.log('result', await result.data());
+  }
+
+  {
+    const graph = new Graph();
+    // Make a new input in the graph, called 'x', with shape [] (a Scalar).
+    const x = graph.placeholder('x', []);
+    // Make new variables in the graph, 'a', 'b', 'c' with shape [] and random
+    // initial values.
+    const a = graph.variable('a', Scalar.new(Math.random()));
+    const b = graph.variable('b', Scalar.new(Math.random()));
+    const c = graph.variable('c', Scalar.new(Math.random()));
+    // Make new tensors representing the output of the operations of the
+    // quadratic.
+    const order2 = graph.multiply(a, graph.square(x));
+    const order1 = graph.multiply(b, x);
+    const y = graph.add(graph.add(order2, order1), c);
+
+    // When training, we need to provide a label and a cost function.
+    const yLabel = graph.placeholder('y label', []);
+    // Provide a mean squared cost function for training. cost = (y - yLabel)^2
+    const cost = graph.meanSquaredCost(y, yLabel);
+
+    // At this point the graph is set up, but has not yet been evaluated.
+    // **deeplearn.js** needs a Session object to evaluate a graph.
+    const math = new NDArrayMathGPU();
+    const session = new Session(graph, math);
+
+    await math.scope(async function (keep, track){
+      /**
+       * Inference
+       */
+      // Now we ask the graph to evaluate (infer) and give us the result when
+      // providing a value 4 for "x".
+      // NOTE: "a", "b", and "c" are randomly initialized, so this will give us
+      // something random.
+      let result=session.eval(y, [{tensor: x, data: track(Scalar.new(4))}]);
+      console.log(result.shape);
+      console.log(result.getValues());
+
+      /**
+       * Training
+       */
+      // Now let's learn the coefficients of this quadratic given some data.
+      // To do this, we need to provide examples of x and y.
+      // The values given here are for values a = 3, b = 2, c = 1, with random
+      // noise added to the output so it's not a perfect fit.
+      const xs=[
+        track(Scalar.new(0)), 
+		track(Scalar.new(1)), 
+		track(Scalar.new(2)),
+        track(Scalar.new(3))
+      ];
+      const ys=[
+        track(Scalar.new(1.1)), 
+		track(Scalar.new(5.9)), 
+		track(Scalar.new(16.8)),
+        track(Scalar.new(33.9))
+      ];
+      // When training, it's important to shuffle your data!
+      const shuffledInputProviderBuilder = new InCPUMemoryShuffledInputProviderBuilder([xs, ys]);
+      const [xProvider, yProvider] = shuffledInputProviderBuilder.getInputProviders();
+
+      // Training is broken up into batches.
+      const NUM_BATCHES = 20;
+      const BATCH_SIZE = xs.length;
+      // Before we start training, we need to provide an optimizer. This is the
+      // object that is responsible for updating weights. The learning rate
+      // param is a value that represents how large of a step to make when
+      // updating weights. If this is too big, you may overstep and oscillate.
+      // If it is too small, the model may take a long time to train.
+      const LEARNING_RATE = .01;
+      const optimizer = new SGDOptimizer(LEARNING_RATE);
+      for (let i = 0; i < NUM_BATCHES; i++) {
+        // Train takes a cost tensor to minimize; this call trains one batch and
+        // returns the average cost of the batch as a Scalar.
+        const costValue = session.train(
+            cost,
+            // Map input providers to Tensors on the graph.
+            [{tensor: x, data: xProvider}, {tensor: yLabel, data: yProvider}],
+            BATCH_SIZE, optimizer, CostReduction.MEAN);
+
+        console.log("average cost:", costValue.get());
+      }
+
+      // Now print the value from the trained model for x = 4, should be ~57.0.
+      result = session.eval(y, [{tensor: x, data: track(Scalar.new(4))}]);
+      console.log('result should be ~57.0:');
+      console.log(result.shape);
+      console.log(await result.data());
+    });
+  }
+}
+
+mlBeginners();
+
+
+</script>
+</head>
+
+</html>
+
+
+
+
+
+
+
