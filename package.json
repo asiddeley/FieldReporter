@@ -1,0 +1,17 @@
+{
+  "name": "cazbar",
+  "version": "1.0.0",
+  "description": "a test app",
+  "main": "cazbar.js",
+  "scripts": {
+	"cazbar":"node cazbar.js && run lh",
+    "test": "test",
+	"lh": "localhost8080.url"
+  },
+  "keywords": [
+    "hello",
+    "world"
+  ],
+  "author": "asiddeley",
+  "license": "ISC"
+}

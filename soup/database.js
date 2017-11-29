@@ -97,7 +97,7 @@ var db={};
 //database properties & functions
 
 //sub folder for data storage
-db.base="data/"; 
+db.base="soup/data/"; 
 
 //large string
 db.cache=null; 

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title id='browserTab' >CAdashboard</title>
+
+<script type='text/javascript' src="jquery/jquery.js"></script>
+<script type='text/javascript' src="jquery/jquery-ui.js"></script>
+<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.theme.css">
+<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.structure.css">
+<link rel="stylesheet" type="text/css" href="jquery/jquery-ui.css">
+
+<!-- bootstrap Libraries (after jQuery) -->
+<script type='text/javascript' src="bootstrap/bootstrap.min.js"></script>
+<link rel="stylesheet" href="bootstrap/bootstrap.min.css">
+
+<style rel="stylesheet">
+body { padding-top: 150px; }
+.row-bot {background:yellow;}
+.row-user {}
+SAIL {display:none;}
+.navbar-brand{margin:0;padding:0;}
+.navbar-brand img{max-height: 100%;}
+body, div
+{
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: -moz-none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+.botbox {
+float:left;
+font-size:large;
+font-weight:bold;
+font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+line-height:95%;
+border-radius:10px;
+border-style:solid;
+border-width:3px;
+border-color:black; 
+padding:5px 20px 5px 20px;
+/* margin: 10px; */
+background: skyblue;
+}
+.bolivian {background: linear-gradient(red, yellow, yellow, green); }
+
+/* box-shadow: 2px 2px 4px gray; */
+
+</style>
+
+<script type="text/javascript">
+
+//prevent accidental image drop
+$(window).on({
+	"drop": function(e){ e=e||event; e.preventDefault(); false;},
+	"dragover":function(e){ e=e||event; e.preventDefault(); false;}
+});
+
+//inhibit the browser's right-click context menu
+$(document).on("contextmenu", false);
+
+
+//READY
+$(function() { 
+
+
+	
+}); //ready
+
+
+
+</script>
+
+</head>
+<body>
+
+<!-- PAGE STARTS HERE -->
+<nav class="navbar navbar-fixed-top navbar-inverse">
+	<div class="container-fluid">
+		<div class="nav navbar">
+			<center class="botbox  bolivian col-xs-1">
+			<div>\CA/</div>
+			<div>ZBAR</div>
+			</center>
+
+			
+			
+			
+			<div class="navbar-form navbar-left">
+				<div class="input-group">
+				<input id="userInput" type="text" class="form-control" placeholder="enter text">
+				<div class="input-group-btn">		
+					<button class="btn btn-default" onclick="alert('submit')">submit</button>
+				</div>
+				</div>	
+			</div>
+		</div>
+	</div>
+</nav>	
+
+<div class="container-fluid">
+	<!-- PANEL STARTS HERE -->
+	<div class="panel panel-default" style="-width:75%;">
+
+	<div class="panel-heading">
+	<h3 class="panel-title">
+	<div class="panel-title">session:&nbsp; <span id="session">101</span></div>
+
+	</h3><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+	</div>
+	
+	<ul id="turnDialog" class="list-group list-group-flush">
+	</ul>
+
+	<div class="panel-footer">
+		<div class="input-group">
+		<input id="userInput" class="form-control" type="text" placeholder="enter text">
+		<div class="input-group-btn">
+			<button class="btn btn-default" onclick="aiSubmit($('#userInput').val());">enter</button>
+			<button type="button" class="btn btn-default">yes</button>		
+			<button type="button" class="btn btn-default">no</button>
+			<button type="button" class="btn btn-default">unknown</button>
+			<button type="button" class="btn btn-default">bad answer</button>
+			<button type="button" class="btn btn-default">quit</button>
+		</div>
+		</div>
+	</div> 	<!-- END OF FOOTER -->
+
+	</div> 	<!-- END OF PANEL -->
+
+</div><!-- END OF container -->
+
+
+
+</body>
+
+</html>
+

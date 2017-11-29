@@ -107,7 +107,7 @@ var soup={
 		str=str.replace(/"FUNC000|FUNC999"/g,"");
 		return(decodeURI(str));
 	} ,
- "base": "data/",
+ "base": "soup/data/",
  "cache": null,
  "Doc":  function(name, valu){
 	this.name=(typeof name == 'undefined')?'unnamed':name.toString();
