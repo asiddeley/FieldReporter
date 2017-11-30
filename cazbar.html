@@ -15,8 +15,16 @@
 <script type='text/javascript' src="bootstrap/bootstrap.min.js"></script>
 <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
 
+<!-- soup Library -->
+<script type='text/javascript' src="soup/dist/soup.js"></script>
+
+<!-- Handlebars Template engine -->
+<script type='text/javascript' src="handlebars/handlebars-v4.0.10.js"></script>
+
+
 <style rel="stylesheet">
 body { padding-top: 150px; }
+/***
 .row-bot {background:yellow;}
 .row-user {}
 SAIL {display:none;}
@@ -32,8 +40,9 @@ body, div
     -o-user-select: none;
     user-select: none;
 }
+***/
 
-.botbox {
+.logobox {
 float:left;
 font-size:large;
 font-weight:bold;
@@ -41,12 +50,13 @@ font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bits
 line-height:95%;
 border-radius:10px;
 border-style:solid;
-border-width:3px;
+border-width:0px;
 border-color:black; 
 padding:5px 20px 5px 20px;
-/* margin: 10px; */
+margin: 5px;
 background: skyblue;
 }
+.cazbar {background: linear-gradient(skyblue, tan); }
 .bolivian {background: linear-gradient(red, yellow, yellow, green); }
 
 /* box-shadow: 2px 2px 4px gray; */
@@ -64,13 +74,19 @@ $(window).on({
 //inhibit the browser's right-click context menu
 $(document).on("contextmenu", false);
 
+function loadCurrentFRR(){
+	$("#cdoc").load("soup/cazbar/FRR-XX.html");
+}
+
+function clearDoc(text){
+	$("#cdoc").empty();
+	//$("#cdoc").text(text);
+}
 
 //READY
 $(function() { 
-
-
 	
-}); //ready
+}); 
 
 
 
@@ -79,62 +95,95 @@ $(function() {
 </head>
 <body>
 
-<!-- PAGE STARTS HERE -->
-<nav class="navbar navbar-fixed-top navbar-inverse">
+<nav class="navbar navbar-fixed-top navbar-default">
 	<div class="container-fluid">
 		<div class="nav navbar">
-			<center class="botbox  bolivian col-xs-1">
-			<div>\CA/</div>
-			<div>ZBAR</div>
-			</center>
+			<center class="logobox cazbar col-xs-1">
+			<div>C-A Z</div>
+			<div>B A R</div>
+			</center><br>
+
+			<!-- Nav tabs -->
+			<ul class="nav nav-tabs" role="tablist">
+			<li role="presentation" class="active">
+				<a href="#admin" aria-controls="admin" role="tab" data-toggle="tab" onclick="clearDoc()">...</a>
+			</li>
+
+			<li role="presentation" class="active">
+				<a href="#actions" aria-controls="admin" role="tab" data-toggle="tab" onclick="clearDoc()">Actions</a>
+			</li>
+			
+			<li role="presentation">
+				<a href="#co" aria-controls="co" role="tab" data-toggle="tab" onclick="clearDoc()">CO</a>
+			</li>
+			
+			<li role="presentation">
+				<a href="#cop" aria-controls="cop" role="tab" data-toggle="tab" onclick="clearDoc()">COP</a>
+			</li>
 
 			
+			<li role="presentation">
+				<a href="#cr" aria-controls="cr" role="tab" data-toggle="tab" onclick="clearDoc()">CR</a>
+			</li>
+			<li role="presentation">
+				<a href="#frr" aria-controls="frr" role="tab" data-toggle="tab" onclick="loadCurrentFRR()">FRR</a>
+			</li>
+			<li role="presentation">
+				<a href="#pic" aria-controls="sdi" role="tab" data-toggle="tab" onclick="clearDoc()">PIC</a>
+			</li>
+			<li role="presentation">
+				<a href="#sdi" aria-controls="sdi" role="tab" data-toggle="tab" onclick="clearDoc()">SDI</a>
+			</li>
+			<li role="presentation">
+				<a href="#si" aria-controls="si" role="tab" data-toggle="tab" onclick="clearDoc()">SI</a>
+			</li>
+
 			
-			
-			<div class="navbar-form navbar-left">
-				<div class="input-group">
-				<input id="userInput" type="text" class="form-control" placeholder="enter text">
-				<div class="input-group-btn">		
-					<button class="btn btn-default" onclick="alert('submit')">submit</button>
+			</ul>
+
+			<!-- Tab panes -->
+			<div class="tab-content">
+				<div role="tabpanel" class="tab-pane active" id="admin">
+				<h4>options...</h4>
 				</div>
-				</div>	
+				
+				<div role="tabpanel" class="tab-pane active" id="actions">
+				<h4>Action items</h4><p>From Conference Reports and other sources.</p> 
+				<ol>
+				<li>RFI responses due</li>
+				<li>Outstanding SDIs</li>
+				</ol>
+				</div>				
+				
+				<div role="tabpanel" class="tab-pane" id="co">
+				<h4>Change Order...</h4>
+				</div>
+
+				<div role="tabpanel" class="tab-pane" id="cop">
+				<h4>Certificate of Payment...</h4>
+				</div>
+
+				<div role="tabpanel" class="tab-pane" id="cr">
+				<h4>Conference Reports...</h4>
+				</div>
+				
+				<div role="tabpanel" class="tab-pane" id="frr">
+				<h4>Field Review Reports...</h4>
+				</div>
+				
+				<div role="tabpanel" class="tab-pane" id="sdi">
+				<h4>Submittals and Shop Drawing Information...</h4>
+				</div>
+				
+				<div role="tabpanel" class="tab-pane" id="si"><h4>Site Instructions...</h4></div>
+				<div role="tabpanel" class="tab-pane" id="pic"><h4>Pictures and Site Photos...</h4></div>
 			</div>
 		</div>
 	</div>
-</nav>	
+</nav>
 
-<div class="container-fluid">
-	<!-- PANEL STARTS HERE -->
-	<div class="panel panel-default" style="-width:75%;">
-
-	<div class="panel-heading">
-	<h3 class="panel-title">
-	<div class="panel-title">session:&nbsp; <span id="session">101</span></div>
-
-	</h3><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-	</div>
-	
-	<ul id="turnDialog" class="list-group list-group-flush">
-	</ul>
-
-	<div class="panel-footer">
-		<div class="input-group">
-		<input id="userInput" class="form-control" type="text" placeholder="enter text">
-		<div class="input-group-btn">
-			<button class="btn btn-default" onclick="aiSubmit($('#userInput').val());">enter</button>
-			<button type="button" class="btn btn-default">yes</button>		
-			<button type="button" class="btn btn-default">no</button>
-			<button type="button" class="btn btn-default">unknown</button>
-			<button type="button" class="btn btn-default">bad answer</button>
-			<button type="button" class="btn btn-default">quit</button>
-		</div>
-		</div>
-	</div> 	<!-- END OF FOOTER -->
-
-	</div> 	<!-- END OF PANEL -->
-
-</div><!-- END OF container -->
-
+<br><br><br><br><br>
+<div id="cdoc"></div>
 
 
 </body>

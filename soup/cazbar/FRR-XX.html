@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title id='browserTab' >browserTab</title>
+
+<style>
+fieldset {border: 0;}
+.savable {width:200px;}
+label {display: block;  margin: 30px 0 0 0; }
+select {width: 200px; }
+.overflow {height:200px;}
+
+.row_{border-bottom:1px solid #aaa;}
+.row__{border-top:2px solid #000; border-bottom:1px solid #aaa;}
+p, h2, h3, strong {font-family:'Book Antiqua';}
+
+.pocket {
+	margin:5px;
+	padding:5px;
+	height:250px;
+	display:block;
+	border:1px solid gray;
+}
+.pocket-caption{height:20px;}
+.pocket-row{height:300px;}
+</style>
+
+<script type='text/javascript'>
+
+//Global variable reserved for Context Menu for Section 2, 3 & 4.  Initialized later
+var CM$; 
+
+// Define our data object
+var commentsData={
+	comments:[
+		{itemNo:"1", msg:"comment 1 goes here", picRef:"1, 2, 3"},
+		{itemNo:"2", msg:"this is comment 2", picRef:"4 & 5"},
+		{itemNo:"3", msg:"last comment", picRef:"6"}
+	]
+};
+
+function commentsDelete(ev){
+	var caller=CM2.menu("option", 'caller'); //get row that called the menu, caller is set by showMenu() function below
+	var rows=caller.foreach.items(); //get list of all rows from row's parent 'foreach' element 
+	var index=parseInt(caller.index); //get index of selected item or row for deletion
+	//console.log('caller index', index);
+	//Ensure at least 1 row is kept since removing last item would make it impossible to add rows in future. 
+	if (rows.length>1){	
+		$(caller).css('background','gold').hide(500,
+			function(){	
+				//this callback function is executed after row is hidden
+				var rowsRevised=soup.edit(rows, index, 1);
+				caller.foreach.items(rowsRevised); //update rows and refresh 'foreach' elements on page
+				//TO DO... purge database
+				CM2.hide(); //done with contecMenu
+			}
+		);
+	};
+};
+
+function commentsInsert(offset, commentsData){
+
+	//offset=0,1: insert before, insert after
+	var caller=CM$.menu("option", 'caller'); //get row that called the menu, caller is set by showMenu() function below
+	var index=parseInt($(caller).attr("indexx"));
+	//console.log("commentsData.comments", commentsData.comments);
+	
+	//Prep new data. Note that commentsData is global
+	var newid=commentsData.comments.length+1;	
+	var newComment={itemNo:newid, msg:"new comment", picRef:"-"};
+	
+	var comments=soup.ieSplice(commentsData.comments, index+offset, 0, [newComment]); //splice in new default item into commentsData
+	commentsData.comments=comments;
+	//console.log("commentsData.comments", JSON.stringify(commentsData.comments));
+
+	commentsRefresh();
+	//console.log("caller, indexx:", caller, $(caller).attr("indexx"));
+	
+	//grand reveal for the new row
+	$('#comments-placeholder').children('[indexx="'+index+'"]').css('background','gold').hide().show(500);
+
+	CM$.hide();
+}
+
+function commentsRefresh(template, dataObj){
+
+	//console.log('refresh', JSON.stringify(commentsData.comments));
+	// Pass our data to the template
+	var compiledHtml = commentsTemplate(commentsData);
+	// Add the compiled html to the page
+	$('#comments-placeholder').html(compiledHtml);
+	
+	//soup.cell(".comment-cell"); //doesn't work with handlebars,shows {{msg}}
+}
+
+var commentsTemplate;
+
+/////////////////////////////////////////
+
+function highlightCaller(on) {
+	//if (on==1) $(CM2.caller()).css('background-color','pink');
+	//else $(CM2.caller()).css('background-color','white');
+};
+
+
+function showMenu(cm$, ev){
+	cm$.zIndex(1000);
+	cm$.show().position({my:'left top',	at:'left bottom', of:ev});
+	//remember caller, that is the <div> or <p> element that launched the contextMenu
+	cm$.menu('option', 'caller', ev.target);
+	return false;
+};
+
+function selectFolder(e) {
+    var theFiles = e.target.files;
+    var relativePath = theFiles[0].webkitRelativePath;
+    var folder = relativePath.split("/");
+    alert(folder[0]);
+};
+
+
+$(function() { 
+
+	//requirejs(['handlebars-v4.0.10', 'soup'], function(Handlebars, soup){ //Handlebars undefined error
+
+	//initialize context menu...
+	CM$=$("#commentsMenu").menu().css("position","absolute", "width", "200px").hide();
+	
+	// Setup Handlebars
+	Handlebars.registerHelper("indexPlusOne", function(zeroIndex, content){return Number(zeroIndex)+1;});
+	
+	// get template html then Compile it to a function, commentsTemplate is global
+	commentsTemplate = Handlebars.compile($("#comments-template").html());
+	commentsRefresh();
+	soup.cell('[soup-cell]');
+	
+}); //ready
+
+
+
+</script>
+
+</head>
+
+
+
+<body>
+
+
+<!-- TEMPLATES               -->
+<template id='comments-template' type="text/x-handlebars-template">
+
+	{{#each comments}}
+	<div class='row row_'
+			indexx={{@index}}
+			onmouseenter='$(this).css("background-color","pink")'
+			onmouseleave='$(this).css("background-color","white")'
+			oncontextmenu='showMenu(CM$, event)'>
+		<p id='itemNo'  indexx={{@index}} class='col-xs-1 itemNo'>{{#indexPlusOne @index}}{{/indexPlusOne}}</p>
+		<p id='comment' indexx={{@index}} class='col-xs-10 comment-cell'>{{msg}}</p>
+		<p id='picNo' indexx={{@index}} class='col-xs-1 picNo'>{{picRef}}</p>
+	</div>
+	{{/each}}
+	
+</template>
+
+
+<!-- MENUS               -->
+<div id='commentsMenu' onmouseleave='CM$.hide()' style='display:none'>
+	<p onclick='commentsInsert(0, commentsData)'>Insert before</p>
+	<p onclick='commentsInsert(1, commentsData)'>Insert after</p>
+	<hr>
+	<p onclick='console.log("Move up");$("#rowOptions").hide();'>Move up</p>
+	<p onclick='console.log("Move dn");$("#rowOptions").hide();'>Move dn</p>
+	<hr>
+	<p onclick='commentsDelete(event);'>Delete</p>
+	<hr>
+	<p onclick='console.log("hide");'>Hide</p>
+	<p onclick='console.log("show");'>Show hidden</p>
+	<hr>
+	<p onclick='testInsert();'>Test insert</p>
+	<hr>
+	<p onclick='CM$.hide()'>Exit</p>
+</div>
+
+<!-- PAGE STARTS HERE        -->
+
+<div class='container'>
+	<img src='./images/private/logo.png' style='width:100px; float:left;'>
+	<h2  style='float:right;' >Field Review Report</h2><div style='clear:both'></div>
+	<br><br>
+
+	<div class='row row__'>
+		<strong class='col-xs-2'>Report No:</strong>
+		<p id='docName' class='col-xs-4'>CCW1A-FRR-A001</p>
+		<strong class='col-xs-2'>Permit No:</strong>
+		<p id='permitNo' class='col-xs-4 soup-cell'>16 143485 BLD 00 BA</p>
+	</div>
+
+	<div class='row row_'>
+		<strong class='col-xs-2'>Project:</strong>
+		<p class='col-xs-4'>St. Michaels Redevelopment Cardinal Carter Wing 1A CCW1A</p>
+		<strong class='col-xs-2'>Date of Visit:</strong>
+		<p id='visitDate' class='col-xs-4 soup-cell'>June 15 &amp; 17, 2016</p>
+	</div>
+	
+	<div class='row row_'>
+		<strong class='col-xs-2'>Project No.:</strong>
+		<p class='col-xs-4'>ECBL16-0053</p>
+		<strong class='col-xs-2'>Time of Visit:</strong>
+		<p id='visitTime' class='col-xs-4 soup-cell'>4pm to 6pm</p>
+	</div>
+				
+	<div class='row row_'>
+		<strong class='col-xs-2'>Project Location:</strong>
+		<p class='col-xs-4'>30 Bond Street, Totonto, On, M5B 1W8</p>
+		<strong class='col-xs-2'>Reviewer:</strong>
+		<p id='reviewerName' class='col-xs-4 soup-cell'>Andrew Siddeley</p>
+	</div>
+
+	<div class='row row_'>
+		<strong class='col-xs-2'>Contractor:</strong>
+		<p class='col-xs-4'>BCCL</p>
+		<strong class='col-xs-2'>Date of Report:</strong>
+		<p id='reportDate' class='col-xs-4 soup-cell'>Jun 17, 2016</p>
+	</div>
+	
+	<div class='row row_'>
+		<p class='col-xs-1'>1.1</p>
+		<p id='generalStatement' class='col-xs-10' soup-cell >This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by NORR Limited.  Refer also to Mechanical and Electrical field reports issued separately.  
+		</p>
+	</div>	
+	
+	<br><br>
+
+	<div class='row row__'>
+		<h3 class='col-xs-1'>1.0</h3>
+		<h3 class='col-xs-10'>General</h3>
+	</div>
+
+	<div class='row row_'>
+		<p class='col-xs-1'>1.1</p>
+		<p id='generalComment' class='col-xs-10' soup-cell >general comment
+		</p>
+	</div>
+
+	<div class='row row__'>
+		<h3 class='col-xs-1'>2.0</h3>
+		<h3 class='col-xs-10'>Observatons and Comments</h3>
+		<h3 class='col-xs-1'>Pic.</h3>
+	</div>
+	
+	<!-- Placeholder for comments -->
+	<div id='comments-placeholder'></div>
+
+	
+	
+	
+	<br>
+	
+	<div class='row row__'>
+		<h3 class='col-xs-1'>3.0</h3>
+		<h3 class='col-xs-10'>Issues Resolved</h3>
+		<h3 class='col-xs-1'>Ref</h3>
+	</div>
+	
+
+
+	<div id='resolved' class='soup-foreach' soup-foreach='[1]'  >
+		<div class='row row_' 
+			onmouseenter='$(this).css("background-color","pink")'
+			onmouseleave='$(this).css("background-color","white")'
+			oncontextmenu='showMenu(CM2, event)'
+		>
+		<p id='itemNo' class='col-xs-1 itemNo' soup-action='$(this.child).text(this.child.foreachIndex1);'>99</p>
+		<p id='resolved' class='col-xs-10 comment' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>comment</p>
+		<p id='picNo' class='col-xs-1 picNo' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>pic</p>
+		</div>
+	</div>
+	<br>	
+	
+	<div class='row row__'>
+		<h3 class='col-xs-1'>4.0</h3>
+		<h3 class='col-xs-10'>Issues Outstanding</h3>
+		<h3 class='col-xs-1'>Ref</h3>
+	</div>
+	<div id='outstanding' soup-foreach='[1]'  >
+		<div class='row row_'  soup-template='+1'
+			onmouseenter='$(this).css("background-color","pink")'
+			onmouseleave='$(this).css("background-color","white")'
+			oncontextmenu='showMenu(CM2, event)'
+		>
+		<p id='itemNo' class='col-xs-1 itemNo' soup-action='$(this.child).text(this.child.foreachIndex1);'>99</p>
+		<p id='outstanding' class='col-xs-10 comment' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>comment</p>
+		<p id='picNo' class='col-xs-1 picNo' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>pic</p>
+		</div>
+	</div>
+	<br>	
+	
+	<br>
+	<div class='row row__'>
+		<h3 class='col-xs-1'>5.0</h3>
+		<h3 class='col-xs-10'>Pictures</h3>
+		<h3 class='col-xs-1'>Pic.</h3>
+	</div>
+	
+	<div id='pictures'  soup-foreach='[1, 2]'  >
+		<div 
+			class='row' 
+			style='height:300px; display:block'
+			onmouseenter='$(this).css("background-color","pink");'
+			onmouseleave='$(this).css("background-color","white");'
+
+		>
+			<div class='col-xs-4'>
+				<div 
+					id='pocket_a'
+					class='pocket'
+					ondragenter='$(this).css("background-color","pink");'
+					ondragleave='$(this).css("background-color","white");'
+					soup-pocket
+					soup-action-HOLD='soup.idfix(this.child, this.item).pocket(this.child);'
+					soup-action='soup.idfix(this.child, this.item);'
+					soup-imgpath='albums/test/'
+				></div>
+				<p
+					id='caption_pocket_a' class='pocket-caption'
+					soup-action='soup.idfix(this.child, this.item);soup.cell(this.child);'					
+				>='Row:' + $(this.element).prop('foreachItem')</p>
+			</div>
+			
+			<div class='col-xs-4'>
+				<div 
+					id='pocket_b'
+					class='pocket'
+					ondragenter='$(this).css("background-color","pink");'
+					ondragleave='$(this).css("background-color","white");'		
+					soup-pocket
+					soup-action-HOLD='soup.idfix(this.child, this.item).pocket(this.child);'
+					soup-action='soup.idfix(this.child, this.item);'
+					soup-imgpath='albums/test/'
+				></div>
+				<p
+					id='caption_pocket_b' class='pocket-caption'
+					soup-action='soup.idfix(this.child, this.item).cell(this.child);'					
+				>caption</p>
+			</div>
+			
+			<div class='col-xs-4'>
+				<div 
+					id='pocket_c'
+					class='pocket'
+					ondragenter='$(this).css("background-color","pink");'
+					ondragleave='$(this).css("background-color","white");'			
+					soup-action-HOLD='soup.idfix(this.child, this.item).pocket(this.child);'
+					soup-pocket
+					soup-action='soup.idfix(this.child, this.item);'
+					soup-imgpath='albums/test/'
+				></div>
+				<p
+					id='caption_pocket_c' class='pocket-caption'
+					soup-action='soup.idfix(this.child, this.item).cell(this.child);'					
+				>caption</p>
+			</div>			
+
+		
+		</div>
+	</div>
+	<br>
+	<br>
+		
+	<br>
+	<br>
+</div>
+
+
+</body>
+
+</html>
+
