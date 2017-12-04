@@ -7,6 +7,10 @@ const bodyParser=require("body-parser")
 
 var app = express()
 
+
+app.use( bodyParser.urlencoded({extended: true}));
+app.use( bodyParser.json());
+
 app.get('/', function (req, res) {
 	res.sendFile(path.join(__dirname + "/cazbar.html"))
 
@@ -26,7 +30,9 @@ app.post('/sql', function (req, res) {
 
 
 app.post('/formHandler', function (req, res) {
-	console.log("POST /formHanlder...", JSON.stringify(req.params))
+	//console.log("POST /formHanlder...", JSON.stringify(req.params))
+	console.log("POST/formHanlder... req.body:", req.body)
+
 	res.send(false)
 })
 
@@ -48,8 +54,6 @@ Parses the text as JSON and exposes the resulting object on req.body.
 THANKS TO
 https://stackoverflow.com/questions/4295782/how-do-you-extract-post-data-in-node-js
 *********************/
-app.use( bodyParser.urlencoded({extended: true, type: 'text/html' }));
-app.use( bodyParser.json());
 
 
 //serve static files

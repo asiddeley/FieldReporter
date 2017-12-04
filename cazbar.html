@@ -83,9 +83,11 @@ function projectForm(){
 };
 
 
-function submitForm(ev){
-	console.log("submitForm...");
-	ev.preventDefault();
+var submitForm=function(ev){
+	console.log("submitForm...", ev);
+	//ev=ev||event;
+	//ev.preventDefault();
+	/*
 	$.ajax({
 		url: '/formHandler',
 		type: 'POST',
@@ -94,6 +96,8 @@ function submitForm(ev){
 		success: function (response) {$("#result").text(JSON.stringify(response));},
 		error: function () {$("#result").text("error");	}
 	}); 
+	*/
+	return true; //validation OK
 };
 
 
@@ -265,7 +269,7 @@ $(function() {
 				<p>Log and management of:</p>
 				<ol>
 				<li>Shop Drawing Reviews</li>
-				<li>O &amp M Manual Reviews</li>
+				<li>O &amp; M Manual Reviews</li>
 				</ol>				
 				</div>
 				
@@ -277,6 +281,7 @@ $(function() {
 				<li>Change Project</li>
 				<li>Remove Project</li>
 				</ol>
+				
 				</div>
 				
 				
