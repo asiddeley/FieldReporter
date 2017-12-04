@@ -1,0 +1,28 @@
+
+<div class="container-fluid">
+
+<form action="/formHandler" method="post" onsubmit="submitForm()" name="project">
+
+<fieldset>
+<legend>Project</legend>
+
+<div class="input-group">
+  <span class="input-group-addon" id="basic-addon1">Project name</span>
+  <input type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" name="project[name]">
+
+
+  <span class="input-group-addon" id="basic-addon1">Project number</span>
+  <input type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" name="project[num]">
+</div>
+
+<div class="input-group col-sm-6">
+  <span class="input-group-addon" id="basic-addon1">Address</span>
+  <input type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" name="project[address]">
+</div>
+<button type="submit" class="btn btn-default">Submit</button>
+
+
+</fieldset>
+</form>
+
+</div>

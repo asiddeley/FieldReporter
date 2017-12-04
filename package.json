@@ -4,14 +4,19 @@
   "description": "a test app",
   "main": "cazbar.js",
   "scripts": {
-	"cazbar":"node cazbar.js && run lh",
+    "caz": "node cazbar.js",
     "test": "test",
-	"lh": "localhost8080.url"
+    "lh": "iexplore localhost8080.url"
   },
   "keywords": [
     "hello",
     "world"
   ],
   "author": "asiddeley",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "sqlite3": "^3.1.13"
+  }
 }

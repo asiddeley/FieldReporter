@@ -24,27 +24,11 @@
 
 <style rel="stylesheet">
 body { padding-top: 150px; }
-/***
-.row-bot {background:yellow;}
-.row-user {}
-SAIL {display:none;}
-.navbar-brand{margin:0;padding:0;}
-.navbar-brand img{max-height: 100%;}
-body, div
-{
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: -moz-none;
-    -ms-user-select: none;
-    -o-user-select: none;
-    user-select: none;
-}
-***/
 
+.small {font-size:xx-small;}
 .logobox {
 float:left;
-font-size:large;
+font-size:small;
 font-weight:bold;
 font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
 line-height:95%;
@@ -75,13 +59,45 @@ $(window).on({
 $(document).on("contextmenu", false);
 
 function loadCurrentFRR(){
-	$("#cdoc").load("soup/cazbar/FRR-XX.html");
-}
+	$("#dock").load("zbar/FRR-XX.html");
+};
 
-function clearDoc(text){
-	$("#cdoc").empty();
-	//$("#cdoc").text(text);
-}
+function clr(){
+	$("#dock").empty();
+};
+
+
+function getProjectNames(){
+	$.ajax({
+		url: 'sql',
+		type: 'POST',
+		data: jQuery.param({sql: "SELECT name FROM projects"}),
+		contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+		success: function (response) {$("#result").text(JSON.stringify(response));},
+		error: function () {$("#result").text("error");	}
+	}); 
+};
+
+function projectForm(){
+	$("#dock").load("zbar/projectForm.html");
+};
+
+
+function submitForm(ev){
+	console.log("submitForm...");
+	ev.preventDefault();
+	$.ajax({
+		url: '/formHandler',
+		type: 'POST',
+		data: jQuery.param({sql: "DATA FROM FORM"}),
+		contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+		success: function (response) {$("#result").text(JSON.stringify(response));},
+		error: function () {$("#result").text("error");	}
+	}); 
+};
+
+
+
 
 //READY
 $(function() { 
@@ -98,92 +114,179 @@ $(function() {
 <nav class="navbar navbar-fixed-top navbar-default">
 	<div class="container-fluid">
 		<div class="nav navbar">
-			<center class="logobox cazbar col-xs-1">
+			<center class="logobox cazbar col-md-1">
 			<div>C-A Z</div>
 			<div>B A R</div>
+			<!--div class="small">Contract Administration</div-->
 			</center><br>
 
 			<!-- Nav tabs -->
 			<ul class="nav nav-tabs" role="tablist">
+			
 			<li role="presentation" class="active">
-				<a href="#admin" aria-controls="admin" role="tab" data-toggle="tab" onclick="clearDoc()">...</a>
+			<a href="#ACTION" aria-controls="admin" role="tab" data-toggle="tab" onclick="clr()">Action</a>
 			</li>
-
-			<li role="presentation" class="active">
-				<a href="#actions" aria-controls="admin" role="tab" data-toggle="tab" onclick="clearDoc()">Actions</a>
+	
+			<li role="presentation">
+			<a href="#BILLING" aria-controls="cop" role="tab" data-toggle="tab" onclick="clr()">Billing</a>
+			</li>
+	
+			<li role="presentation">
+			<a href="#CONTRACT" aria-controls="docs" role="tab" data-toggle="tab" onclick="clr()">Contract</a>
+			</li>
+	
+			<li role="presentation">
+			<a href="#DELTAS" aria-controls="changes" role="tab" data-toggle="tab" onclick="clr()">Deltas</a>
 			</li>
 			
 			<li role="presentation">
-				<a href="#co" aria-controls="co" role="tab" data-toggle="tab" onclick="clearDoc()">CO</a>
+			<a href="#GALLERY" aria-controls="si" role="tab" data-toggle="tab" onclick="clr()">Gallery</a>
 			</li>
 			
 			<li role="presentation">
-				<a href="#cop" aria-controls="cop" role="tab" data-toggle="tab" onclick="clearDoc()">COP</a>
+			<a href="#LETTERS" aria-controls="si" role="tab" data-toggle="tab" onclick="clr()">Letters</a>
 			</li>
 
+	
+			<li role="presentation">
+			<a href="#MTGS" aria-controls="cr" role="tab" data-toggle="tab" onclick="clr()">Meetings</a>
+			</li>
+			
+	
+			<li role="presentation">
+			<a href="#QUESTIONS" aria-controls="RFI" role="tab" data-toggle="tab" onclick="clr()">Questions</a>
+			</li>
 			
 			<li role="presentation">
-				<a href="#cr" aria-controls="cr" role="tab" data-toggle="tab" onclick="clearDoc()">CR</a>
+			<a href="#REPORTS" aria-controls="frr" role="tab" data-toggle="tab" onclick="loadCurrentFRR()">Reports</a>
 			</li>
+			
 			<li role="presentation">
-				<a href="#frr" aria-controls="frr" role="tab" data-toggle="tab" onclick="loadCurrentFRR()">FRR</a>
-			</li>
-			<li role="presentation">
-				<a href="#pic" aria-controls="sdi" role="tab" data-toggle="tab" onclick="clearDoc()">PIC</a>
-			</li>
-			<li role="presentation">
-				<a href="#sdi" aria-controls="sdi" role="tab" data-toggle="tab" onclick="clearDoc()">SDI</a>
-			</li>
-			<li role="presentation">
-				<a href="#si" aria-controls="si" role="tab" data-toggle="tab" onclick="clearDoc()">SI</a>
+			<a href="#SHOPS" aria-controls="sdi" role="tab" data-toggle="tab" onclick="clr()">Shops</a>
 			</li>
 
+			<li role="presentation">
+			<a href="#WELCOME" aria-controls="welcome" role="tab" data-toggle="tab" onclick="clr()">Welcome</a>
+			</li>
 			
 			</ul>
 
 			<!-- Tab panes -->
 			<div class="tab-content">
-				<div role="tabpanel" class="tab-pane active" id="admin">
-				<h4>options...</h4>
-				</div>
+
 				
-				<div role="tabpanel" class="tab-pane active" id="actions">
-				<h4>Action items</h4><p>From Conference Reports and other sources.</p> 
+				<div role="tabpanel" class="tab-pane active" id="ACTION">
 				<ol>
+				<li>Action items from Conference Reports and other sources.</li> 
+				<li>Status report of project with stats from various logs.</li>
 				<li>RFI responses due</li>
 				<li>Outstanding SDIs</li>
 				</ol>
-				</div>				
+				</div>		
+
+				<div role="tabpanel" class="tab-pane" id="BILLING">
+				<p>Logs and management of:</p>
+				<ol>
+				<li>GC Progress billings</li>
+				<li>Certificates of Payment</li>
+				<li>Allowance Authorization Letters</li>
+				<li>Project Progress and milestones</li>
+				</ol>	
+				</div>
 				
-				<div role="tabpanel" class="tab-pane" id="co">
-				<h4>Change Order...</h4>
+				<div role="tabpanel" class="tab-pane" id="CONTRACT">
+				<p>Links to:</p>
+				<ol>
+				<li>Contact information for Client, Representatives, Consultants, GC and Trades</li> 
+				<li>Contract</li> 
+				<li>addendums</li>
+				<li>bidders questions and answers</li>
+				<li>current drawings</li>
+				<li>current specification</li>
+				<li>GC's Schedule</li>
+				</ol>
+				</div>
+				
+				<div role="tabpanel" class="tab-pane" id="DELTAS">
+				<p>Log and management of:</p>
+				<ol>
+				<li>Change Orders</li>
+				<li>Change Directives</li>
+				<li>Change Orders</li>
+				</ol>				
 				</div>
 
-				<div role="tabpanel" class="tab-pane" id="cop">
-				<h4>Certificate of Payment...</h4>
+				<div role="tabpanel" class="tab-pane" id="LETTERS">
+				<p>Log and management of:</p>
+				<ol>
+				<li>Conformance Letters</li>
+				<li>Supplemental Instructions</li>
+				<li>Site Memos</li>
+				</ol>		
+				</div>
+				
+				<div role="tabpanel" class="tab-pane" id="GALLERY">
+				<p>Display, Management and preparation of images and notes:</p>
+				<ol>
+				<li>Progress Pictures for use in timelines</li>
+				<li>Site pictures for use in reports</li>
+				<li>Field notes for use in reports</li>
+				</ol>				
 				</div>
 
-				<div role="tabpanel" class="tab-pane" id="cr">
-				<h4>Conference Reports...</h4>
+				<div role="tabpanel" class="tab-pane" id="MTGS">
+				<p>Log and management of:</p>
+				<ol>
+				<li>OAC Meeting Minutes</li>
+				<li>Action Items</li>
+				<li>Issue Tracking</li>
+				</ol>				
 				</div>
 				
-				<div role="tabpanel" class="tab-pane" id="frr">
-				<h4>Field Review Reports...</h4>
+				<div role="tabpanel" class="tab-pane" id="QUESTIONS">
+				<p>Log and management of:</p>
+				<ol>
+				<li>GC Requests For Information</li>
+				<li>Site Questions</li>
+				</ol><hr>		
+				</div>	
+				
+				<div role="tabpanel" class="tab-pane" id="REPORTS">
+				<p>Log and management of:</p>
+				<ol>
+				<li>Deficiencies</li>
+				<li>Site Visits</li>
+				<li>Monthly Construction Reviews</li>
+				<li>Project Progress and milestones</li>
+				</ol>
 				</div>
 				
-				<div role="tabpanel" class="tab-pane" id="sdi">
-				<h4>Submittals and Shop Drawing Information...</h4>
+				<div role="tabpanel" class="tab-pane" id="SHOPS">
+				<p>Log and management of:</p>
+				<ol>
+				<li>Shop Drawing Reviews</li>
+				<li>O &amp M Manual Reviews</li>
+				</ol>				
 				</div>
 				
-				<div role="tabpanel" class="tab-pane" id="si"><h4>Site Instructions...</h4></div>
-				<div role="tabpanel" class="tab-pane" id="pic"><h4>Pictures and Site Photos...</h4></div>
+				<div role="tabpanel" class="tab-pane" id="WELCOME">
+				<ol>
+				<li>About</li>
+				<li>Help</li>
+				<li><a onclick="projectForm()">Add Project</a></li>
+				<li>Change Project</li>
+				<li>Remove Project</li>
+				</ol>
+				</div>
+				
+				
 			</div>
 		</div>
 	</div>
 </nav>
 
 <br><br><br><br><br>
-<div id="cdoc"></div>
+<div id="dock"></div>
 
 
 </body>

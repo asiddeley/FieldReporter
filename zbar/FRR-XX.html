@@ -91,7 +91,7 @@ function commentsRefresh(template, dataObj){
 	var compiledHtml = commentsTemplate(commentsData);
 	// Add the compiled html to the page
 	$('#comments-placeholder').html(compiledHtml);
-	
+
 	//soup.cell(".comment-cell"); //doesn't work with handlebars,shows {{msg}}
 }
 
@@ -103,7 +103,6 @@ function highlightCaller(on) {
 	//if (on==1) $(CM2.caller()).css('background-color','pink');
 	//else $(CM2.caller()).css('background-color','white');
 };
-
 
 function showMenu(cm$, ev){
 	cm$.zIndex(1000);
@@ -127,10 +126,10 @@ $(function() {
 
 	//initialize context menu...
 	CM$=$("#commentsMenu").menu().css("position","absolute", "width", "200px").hide();
-	
+
 	// Setup Handlebars
-	Handlebars.registerHelper("indexPlusOne", function(zeroIndex, content){return Number(zeroIndex)+1;});
-	
+	Handlebars.registerHelper("indexPlusOne", function(index, content){return Number(index)+1;});
+
 	// get template html then Compile it to a function, commentsTemplate is global
 	commentsTemplate = Handlebars.compile($("#comments-template").html());
 	commentsRefresh();
@@ -158,7 +157,9 @@ $(function() {
 			onmouseenter='$(this).css("background-color","pink")'
 			onmouseleave='$(this).css("background-color","white")'
 			oncontextmenu='showMenu(CM$, event)'>
-		<p id='itemNo'  indexx={{@index}} class='col-xs-1 itemNo'>{{#indexPlusOne @index}}{{/indexPlusOne}}</p>
+		<p id='itemNo'  indexx={{@index}} class='col-xs-1 itemNo'>
+		{{#indexPlusOne @index}}{{/indexPlusOne}}
+		</p>
 		<p id='comment' indexx={{@index}} class='col-xs-10 comment-cell'>{{msg}}</p>
 		<p id='picNo' indexx={{@index}} class='col-xs-1 picNo'>{{picRef}}</p>
 	</div>
