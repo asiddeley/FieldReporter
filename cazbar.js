@@ -25,15 +25,15 @@ app.post('/sql', function (req, res) {
 		zb.run(req.params.sql, [], function(err){console.log(err); msg=err })
 	})
 	zb.close()
-	res.send(msg)
+	//res.send(msg)
+	res.end()
 })
 
 
 app.post('/formHandler', function (req, res) {
 	//console.log("POST /formHanlder...", JSON.stringify(req.params))
 	console.log("POST/formHanlder... req.body:", req.body)
-
-	res.send(false)
+	res.end()
 })
 
 
