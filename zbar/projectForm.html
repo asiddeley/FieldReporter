@@ -2,7 +2,7 @@
 //ready
 $(function(){
 
-const SQL="CREATE TABLE IF NOT EXISTS projects (pname, pnum, street, city, prov, pcode, client, gc);";
+const SQL="CREATE TABLE IF NOT EXISTS projects (pnum, pname, street, city, prov, pcode, client, gc);";
 
 //using jquery keeps global space polution free
 $("#frm-project").submit(function(){
@@ -23,7 +23,7 @@ $("#frm-receiver").on("load", function(){
 });
 
 $("#btn-apply").on("click", function(){
-	$("#SQL").val("UPDATE projects SET pname=$1, pnum=$2, street=$3, city=$4, prov=$5, pcode=$6, client=$7, gc=$8;");
+	$("#SQL").val("UPDATE projects SET pnum=$pnum, pname=$pname, street=$street, city=$city, prov=$prov, pcode=$pcode, client=$client, gc=$gc WHERE pnum=$pnum;");
 });
 
 $("#btn-del").on("click", function(){
@@ -31,23 +31,30 @@ $("#btn-del").on("click", function(){
 });
 
 $("#btn-new").on("click", function(){
-	$("#SQL").val(SQL+"INSERT INTO project ($1, $2, $3, $5, $6, $7, $8);");
+	$("#SQL").val(SQL+"INSERT INTO project VALUES ($pnum, $pname, $street, $city, $prov, $pcode, $client, $gc);");
+});
+
+$("#btn-first").on("click", function(){
+	$("#SQL").val("SELECT ALL pnum FROM projects LIMIT 1");
 });
 
 $("#btn-next").on("click", function(){
-	$("#SQL").val(SQL);
+	$("#SQL").val("select * from [TableName] where sortid > (select sortid from [TableName] where id = @id)");
 });
 
 $("#btn-prev").on("click", function(){
 	$("#SQL").val(SQL);
 });
 
+$("#btn-last").on("click", function(){
+	//$("#SQL").val("SELECT ALL pnum FROM projects WHERE pnum = (SELECT MAX(pnum) FROM projects)");
+	//$("#SQL").val("select * from t order by rowid desc limit 1; ");
+});
 
 
 });
 </script>
 
-<iframe name="frm-receiver" id="frm-receiver" style="display:none" />
 
 
 <div class="container-fluid">
@@ -60,47 +67,57 @@ $("#btn-prev").on("click", function(){
 <input id="SQL" type="hidden" name="SQL" value="...SET BY BUTTONS BEFORE SUBMIT...">
 
 <div class="input-group">
-  <span class="input-group-addon" >Project name</span>
-  <input name="pname" type="text"  class="form-control" placeholder="..." aria-describedby="basic-addon1" value="1">
-
   <span class="input-group-addon" >Project number</span>
-  <input name="pnum" type="text"   class="form-control" placeholder="..." aria-describedby="basic-addon1" value="2">
+  <input class="form-control" name="pnum" type="text"  placeholder="..." aria-describedby="basic-addon1" value="-">
+  
+  <span class="input-group-addon" >Client</span>
+  <input name="client" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="7">
+  
+  <span class="input-group-addon" >GC</span>
+  <input name="gc" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="8">
+</div>
+
+<div class="input-group"> 
+  <span class="input-group-addon " >Project name</span>
+  <input name="pname" type="text"  class="form-control " placeholder="..." aria-describedby="basic-addon1" value="-">
 </div>
 
 <div class="input-group">
   <span class="input-group-addon" >Street</span>
-  <input name="street" type="text" class="form-control" placeholder=".." aria-describedby="basic-addon1" value="3">
+  <input name="street" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="-">
   
   <span class="input-group-addon" >City</span>
-  <input name="city" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="4">
+  <input name="city" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="-">
   
   <span class="input-group-addon" >Province</span>
-  <input name="prov" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="5">
+  <input name="prov" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="-">
   
   <span class="input-group-addon" >Postal code</span>
-  <input name="pcode" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="6">
+  <input name="pcode" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="-">
 </div>
 
 <div class="input-group">
-  <span class="input-group-addon" >Client</span>
-  <input name="client" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="7">
-  
-   <span class="input-group-addon" >GC</span>
-  <input name="gc" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="8">
+
 </div>
 
 
 <div class="input-group col-md-6" >
 <button id="btn-new" type="submit" class="btn btn-default ">New Project</button>
 <button id="btn-del" type="submit" class="btn btn-default ">Delete</button>
+<button id="btn-first" type="submit" class="btn btn-default ">|;&lt;First</button>
 <button id="btn-prev" type="submit" class="btn btn-default ">&lt;&lt;Previous</button>
 <button id="btn-next" type="submit" class="btn btn-default ">Next&gt;&gt;</button>
-<button id="btn-apply" type="submit" class="btn btn-default ">Apply</button>
+<button id="btn-last" type="submit" class="btn btn-default ">Last&gt;|</button>
+<button id="btn-apply" type="submit" class="btn btn-default ">Update</button>
 </div>
 
 
 </fieldset>
 </form>
+
+<h4>Status</h4>
+<iframe name="frm-receiver" id="frm-receiver" style="display:inline" />
+
 </div>
 
 

@@ -2,7 +2,7 @@ const express = require('express')
 const fs = require('fs')
 const url = require('url')
 const path = require('path')
-const sqlite=require('sqlite3')
+const sqlite=require('sqlite3').verbose()
 const bodyParser=require("body-parser") 
 
 var app = express()
@@ -16,26 +16,18 @@ app.get('/', function (req, res) {
 
 })
 
-app.post('/sql', function (req, res) {
-	console.log("POST...", req.url, JSON.stringify(req.params))
+app.post('/formHandler', function (req, res) {
+	//console.log("POST /formHanlder...", req.url) 
+	console.log("POST /formHanlder... req.body:", req.body)
 	
 	let msg="success"
-	var zb=sqlite("cazbar.db")
+	var zb=new sqlite.Database("/zbar/cazbar.db")
 	zb.serialize(function () {
-		zb.run(req.params.sql, [], function(err){console.log(err); msg=err })
+		zb.run(req.body.SQL, req.body, function(err){console.log(err); msg=err })
 	})
-	zb.close()
-	//res.send(msg)
-	res.end()
-})
-
-
-app.post('/formHandler', function (req, res) {
-	//console.log("POST /formHanlder...", JSON.stringify(req.params))
-	console.log("POST/formHanlder... req.body:", req.body)
+	zb.close()	
 	
-	
-	res.end()
+	res.send(msg)
 })
 
 
@@ -63,7 +55,7 @@ https://stackoverflow.com/questions/4295782/how-do-you-extract-post-data-in-node
 app.use(express.static(path.join(__dirname)));
 
 //start serving
-app.listen(8080, function () {console.log('Example app listening on port 8080!')});
+app.listen(8080, function () {console.log('CAzbar server listening on port 8080!')});
 
 
 ////////////////////////////////////
