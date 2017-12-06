@@ -33,6 +33,8 @@ app.post('/sql', function (req, res) {
 app.post('/formHandler', function (req, res) {
 	//console.log("POST /formHanlder...", JSON.stringify(req.params))
 	console.log("POST/formHanlder... req.body:", req.body)
+	
+	
 	res.end()
 })
 

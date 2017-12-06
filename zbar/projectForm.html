@@ -2,7 +2,7 @@
 //ready
 $(function(){
 
-var SQL="CREATE project IF NOT EXISTS. "
+const SQL="CREATE TABLE IF NOT EXISTS projects (pname, pnum, street, city, prov, pcode, client, gc);";
 
 //using jquery keeps global space polution free
 $("#frm-project").submit(function(){
@@ -18,16 +18,28 @@ $("#frm-project").submit(function(){
 });
 
 $("#frm-receiver").on("load", function(){
-	//https://stackoverflow.com/questions/4487623/target-a-div-using-form
+	/*** https://stackoverflow.com/questions/4487623/target-a-div-using-form ***/
 	console.log("Response sent to hidden iframe");
 });
 
 $("#btn-apply").on("click", function(){
-	$("#SQL").val("UPDATE...");
+	$("#SQL").val("UPDATE projects SET pname=$1, pnum=$2, street=$3, city=$4, prov=$5, pcode=$6, client=$7, gc=$8;");
+});
+
+$("#btn-del").on("click", function(){
+	$("#SQL").val(SQL);
 });
 
 $("#btn-new").on("click", function(){
-	$("#SQL").val(SQL+"INSERT INTO project $1, $2, $3, $5...");
+	$("#SQL").val(SQL+"INSERT INTO project ($1, $2, $3, $5, $6, $7, $8);");
+});
+
+$("#btn-next").on("click", function(){
+	$("#SQL").val(SQL);
+});
+
+$("#btn-prev").on("click", function(){
+	$("#SQL").val(SQL);
 });
 
 
@@ -49,10 +61,10 @@ $("#btn-new").on("click", function(){
 
 <div class="input-group">
   <span class="input-group-addon" >Project name</span>
-  <input name="projectname" type="text"  class="form-control" placeholder="..." aria-describedby="basic-addon1" value="1">
+  <input name="pname" type="text"  class="form-control" placeholder="..." aria-describedby="basic-addon1" value="1">
 
   <span class="input-group-addon" >Project number</span>
-  <input name="projectnum" type="text"   class="form-control" placeholder="..." aria-describedby="basic-addon1" value="2">
+  <input name="pnum" type="text"   class="form-control" placeholder="..." aria-describedby="basic-addon1" value="2">
 </div>
 
 <div class="input-group">
@@ -63,10 +75,10 @@ $("#btn-new").on("click", function(){
   <input name="city" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="4">
   
   <span class="input-group-addon" >Province</span>
-  <input name="province" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="5">
+  <input name="prov" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="5">
   
   <span class="input-group-addon" >Postal code</span>
-  <input name="postal" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="6">
+  <input name="pcode" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="6">
 </div>
 
 <div class="input-group">
@@ -77,12 +89,13 @@ $("#btn-new").on("click", function(){
   <input name="gc" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="8">
 </div>
 
-<div class="input-group col-sm-6">
-<button id="btn-new" type="submit" class="btn btn-default input-group-addon">New</button>
-<button id="btn-delete" type="submit" class="btn btn-default input-group-addon">Delete</button>
-<button id="btn-previous" type="submit" class="btn btn-default input-group-addon">&lt;&lt;Previous</button>
-<button id="btn-next" type="submit" class="btn btn-default input-group-addon">Next&gt;&gt;</button>
-<button id="btn-apply" type="submit" class="btn btn-default input-group-addon">Apply</button>
+
+<div class="input-group col-md-6" >
+<button id="btn-new" type="submit" class="btn btn-default ">New Project</button>
+<button id="btn-del" type="submit" class="btn btn-default ">Delete</button>
+<button id="btn-prev" type="submit" class="btn btn-default ">&lt;&lt;Previous</button>
+<button id="btn-next" type="submit" class="btn btn-default ">Next&gt;&gt;</button>
+<button id="btn-apply" type="submit" class="btn btn-default ">Apply</button>
 </div>
 
 
