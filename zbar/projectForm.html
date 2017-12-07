@@ -2,7 +2,7 @@
 //ready
 $(function(){
 
-const SQL="CREATE TABLE IF NOT EXISTS projects (pnum, pname, street, city, prov, pcode, client, gc);";
+const SQL="CREATE TABLE IF NOT EXISTS projects (pnum, pname, address, client, gc);";
 
 //using jquery keeps global space polution free
 $("#frm-project").submit(function(){
@@ -23,32 +23,31 @@ $("#frm-receiver").on("load", function(){
 });
 
 $("#btn-apply").on("click", function(){
-	$("#SQL").val("UPDATE projects SET pnum=$pnum, pname=$pname, street=$street, city=$city, prov=$prov, pcode=$pcode, client=$client, gc=$gc WHERE pnum=$pnum;");
+	$("#SQL").val("UPDATE projects SET pnum=$pnum, pname=$pname, address=$address, client=$client, gc=$gc WHERE pnum=$pnum;");
 });
 
 $("#btn-del").on("click", function(){
-	$("#SQL").val(SQL);
+	//$("#SQL").val(SQL);
 });
 
 $("#btn-new").on("click", function(){
-	$("#SQL").val(SQL+"INSERT INTO project VALUES ($pnum, $pname, $street, $city, $prov, $pcode, $client, $gc);");
+	$("#SQL").val(SQL+"INSERT INTO project VALUES ( $pnum, $pname, $address, $client, $gc );");
 });
 
 $("#btn-first").on("click", function(){
-	$("#SQL").val("SELECT ALL pnum FROM projects LIMIT 1");
+	$("#SQL").val("SELECT * FROM projects LIMIT 1");
 });
 
 $("#btn-next").on("click", function(){
-	$("#SQL").val("select * from [TableName] where sortid > (select sortid from [TableName] where id = @id)");
+	$("#SQL").val("SELECT * FROM projects WHERE pnum > $pnum ORDER BY pnum ASC LIMIT 1");
 });
 
 $("#btn-prev").on("click", function(){
-	$("#SQL").val(SQL);
+	$("#SQL").val("SELECT * FROM projects WHERE pnum < $pnum ORDER BY pnum DESC LIMIT 1");
 });
 
 $("#btn-last").on("click", function(){
-	//$("#SQL").val("SELECT ALL pnum FROM projects WHERE pnum = (SELECT MAX(pnum) FROM projects)");
-	//$("#SQL").val("select * from t order by rowid desc limit 1; ");
+	$("#SQL").val("SELECT * FROM projects ORDER BY pnum DESC LIMIT 1");
 });
 
 
@@ -83,17 +82,8 @@ $("#btn-last").on("click", function(){
 </div>
 
 <div class="input-group">
-  <span class="input-group-addon" >Street</span>
-  <input name="street" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="-">
-  
-  <span class="input-group-addon" >City</span>
-  <input name="city" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="-">
-  
-  <span class="input-group-addon" >Province</span>
-  <input name="prov" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="-">
-  
-  <span class="input-group-addon" >Postal code</span>
-  <input name="pcode" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="-">
+  <span class="input-group-addon" >Address</span>
+  <input name="address" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="-">
 </div>
 
 <div class="input-group">
@@ -102,12 +92,12 @@ $("#btn-last").on("click", function(){
 
 
 <div class="input-group col-md-6" >
-<button id="btn-new" type="submit" class="btn btn-default ">New Project</button>
+<button id="btn-new" type="submit" class="btn btn-default ">Add new</button>
 <button id="btn-del" type="submit" class="btn btn-default ">Delete</button>
-<button id="btn-first" type="submit" class="btn btn-default ">|;&lt;First</button>
+<button id="btn-first" type="submit" class="btn btn-default ">First</button>
 <button id="btn-prev" type="submit" class="btn btn-default ">&lt;&lt;Previous</button>
 <button id="btn-next" type="submit" class="btn btn-default ">Next&gt;&gt;</button>
-<button id="btn-last" type="submit" class="btn btn-default ">Last&gt;|</button>
+<button id="btn-last" type="submit" class="btn btn-default ">Last</button>
 <button id="btn-apply" type="submit" class="btn btn-default ">Update</button>
 </div>
 
@@ -116,7 +106,7 @@ $("#btn-last").on("click", function(){
 </form>
 
 <h4>Status</h4>
-<iframe name="frm-receiver" id="frm-receiver" style="display:inline" />
+<iframe id="frm-receiver" name="frm-receiver"  style="display:inline, width:100%"></iframe>
 
 </div>
 
