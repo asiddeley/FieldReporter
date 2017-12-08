@@ -1,0 +1,29 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'C:\\Users\\ASIDDELEY\\Documents\\ASi\\__node\\node.exe',
+1 verbose cli   'C:\\Users\\ASIDDELEY\\Documents\\ASi\\__node\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'run',
+1 verbose cli   'caz' ]
+2 info using npm@1.4.9
+3 info using node@v8.9.1-nightly20171104a815e1b6a2
+4 verbose run-script [ 'precaz', 'caz', 'postcaz' ]
+5 info precaz cazbar@1.0.0
+6 info caz cazbar@1.0.0
+7 verbose unsafe-perm in lifecycle true
+8 info cazbar@1.0.0 Failed to exec caz script
+9 error cazbar@1.0.0 caz: `node cazbar.js`
+9 error Exit status 1
+10 error Failed at the cazbar@1.0.0 caz script.
+10 error This is most likely a problem with the cazbar package,
+10 error not with npm itself.
+10 error Tell the author that this fails on your system:
+10 error     node cazbar.js
+10 error You can get their info via:
+10 error     npm owner ls cazbar
+10 error There is likely additional logging output above.
+11 error System Windows_NT 6.1.7601
+12 error command "C:\\Users\\ASIDDELEY\\Documents\\ASi\\__node\\node.exe" "C:\\Users\\ASIDDELEY\\Documents\\ASi\\__node\\node_modules\\npm\\bin\\npm-cli.js" "run" "caz"
+13 error cwd C:\Users\ASIDDELEY\Documents\ASi\___soupLab
+14 error node -v v8.9.1-nightly20171104a815e1b6a2
+15 error npm -v 1.4.9
+16 error code ELIFECYCLE
+17 verbose exit [ 1, true ]

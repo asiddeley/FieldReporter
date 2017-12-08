@@ -9,7 +9,8 @@ $(function(){
 
 
 //using jquery keeps global space polution free
-$("#frm-project").submit(function(){
+$("#frm-project").submit(function(ev){
+	//ev.preventDefault()
 	/********
 	form onsubmit event handler...
 	
@@ -37,7 +38,7 @@ $("#btn-del").on("click", function(){
 $("#btn-new").on("click", function(){
 	$("#id").val(count);
 	count+=1;
-	$("#SQL").val(INIT + "INSERT INTO projects VALUES ( $id, $pnum, $pname, $address, $client, $gc )");
+	$("#SQL").val("INSERT INTO projects VALUES ( $id, $pnum, $pname, $address, $client, $gc )");
 });
 
 $("#btn-first").on("click", function(){
@@ -63,33 +64,33 @@ $("#btn-last").on("click", function(){
 
 <div class="container-fluid">
 
-<form id="frm-project" action="/formHandler" method="post" target="frm-receiver" >
+<form id="frm-project" name="frm-project" action="/formHandler" method="post" target="frm-receiver" >
 
 <input id="SQL" type="hidden" name="SQL" value="...SET BY BUTTONS BEFORE SUBMIT...">
-<iframe id="frm-receiver" name="frm-receiver" class="col-sm-12" style="display:inline;"></iframe>
+<iframe name="frm-receiver" id="frm-receiver" class="col-sm-12" style="display:inline;"></iframe>
 
 
 <div class="input-group">
 	<span class="input-group-addon" >id</span>
 	<input class="form-control" id="id" name="id" value=0 >
 	<span class="input-group-addon" >Project number</span>
-	<input class="form-control" name="pnum" type="text"  placeholder="..." aria-describedby="basic-addon1" value="-">
+	<input class="form-control" name="pnum" type="text"  placeholder="..." aria-describedby="basic-addon1" value="BLDG17-001">
   
   <span class="input-group-addon" >Client</span>
-  <input name="client" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="7">
+  <input name="client" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="Client">
   
   <span class="input-group-addon" >GC</span>
-  <input name="gc" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="8">
+  <input name="gc" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="GC">
 </div>
 
 <div class="input-group"> 
   <span class="input-group-addon " >Project name</span>
-  <input name="pname" type="text"  class="form-control " placeholder="..." aria-describedby="basic-addon1" value="-">
+  <input name="pname" type="text"  class="form-control " placeholder="..." aria-describedby="basic-addon1" value="Renovation">
 </div>
 
 <div class="input-group">
   <span class="input-group-addon" >Address</span>
-  <input name="address" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="-">
+  <input name="address" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="Problem_street">
 </div>
 
 <div class="input-group">
