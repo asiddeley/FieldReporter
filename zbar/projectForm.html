@@ -1,8 +1,12 @@
 <script type="text/javascript">
+
+const INIT="CREATE TABLE IF NOT EXISTS projects (id, pnum, pname, address, client, gc);";
+var count=0;
+
 //ready
 $(function(){
 
-const SQL="CREATE TABLE IF NOT EXISTS projects (pnum, pname, address, client, gc);";
+
 
 //using jquery keeps global space polution free
 $("#frm-project").submit(function(){
@@ -23,7 +27,7 @@ $("#frm-receiver").on("load", function(){
 });
 
 $("#btn-apply").on("click", function(){
-	$("#SQL").val("UPDATE projects SET pnum=$pnum, pname=$pname, address=$address, client=$client, gc=$gc WHERE pnum=$pnum;");
+	$("#SQL").val("UPDATE projects SET id=$id, pnum=$pnum, pname=$pname, address=$address, client=$client, gc=$gc WHERE pnum=$pnum");
 });
 
 $("#btn-del").on("click", function(){
@@ -31,7 +35,9 @@ $("#btn-del").on("click", function(){
 });
 
 $("#btn-new").on("click", function(){
-	$("#SQL").val(SQL+"INSERT INTO project VALUES ( $pnum, $pname, $address, $client, $gc );");
+	$("#id").val(count);
+	count+=1;
+	$("#SQL").val(INIT + "INSERT INTO projects VALUES ( $id, $pnum, $pname, $address, $client, $gc )");
 });
 
 $("#btn-first").on("click", function(){
@@ -39,15 +45,15 @@ $("#btn-first").on("click", function(){
 });
 
 $("#btn-next").on("click", function(){
-	$("#SQL").val("SELECT * FROM projects WHERE pnum > $pnum ORDER BY pnum ASC LIMIT 1");
+	$("#SQL").val("SELECT * FROM projects WHERE id > $id ORDER BY id ASC LIMIT 1");
 });
 
 $("#btn-prev").on("click", function(){
-	$("#SQL").val("SELECT * FROM projects WHERE pnum < $pnum ORDER BY pnum DESC LIMIT 1");
+	$("#SQL").val("SELECT * FROM projects WHERE id < $id ORDER BY id DESC LIMIT 1");
 });
 
 $("#btn-last").on("click", function(){
-	$("#SQL").val("SELECT * FROM projects ORDER BY pnum DESC LIMIT 1");
+	$("#SQL").val("SELECT * FROM projects ORDER BY id DESC LIMIT 1");
 });
 
 
@@ -55,19 +61,19 @@ $("#btn-last").on("click", function(){
 </script>
 
 
-
 <div class="container-fluid">
 
-<form id="frm-project" action="/formHandler" method="post" target="frm-receiver">
-
-<fieldset>
-<legend>Project</legend>
+<form id="frm-project" action="/formHandler" method="post" target="frm-receiver" >
 
 <input id="SQL" type="hidden" name="SQL" value="...SET BY BUTTONS BEFORE SUBMIT...">
+<iframe id="frm-receiver" name="frm-receiver" class="col-sm-12" style="display:inline;"></iframe>
+
 
 <div class="input-group">
-  <span class="input-group-addon" >Project number</span>
-  <input class="form-control" name="pnum" type="text"  placeholder="..." aria-describedby="basic-addon1" value="-">
+	<span class="input-group-addon" >id</span>
+	<input class="form-control" id="id" name="id" value=0 >
+	<span class="input-group-addon" >Project number</span>
+	<input class="form-control" name="pnum" type="text"  placeholder="..." aria-describedby="basic-addon1" value="-">
   
   <span class="input-group-addon" >Client</span>
   <input name="client" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="7">
@@ -102,11 +108,8 @@ $("#btn-last").on("click", function(){
 </div>
 
 
-</fieldset>
 </form>
 
-<h4>Status</h4>
-<iframe id="frm-receiver" name="frm-receiver"  style="display:inline, width:100%"></iframe>
 
 </div>
 
