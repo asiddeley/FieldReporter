@@ -59,7 +59,7 @@ $(window).on({
 $(document).on("contextmenu", false);
 
 function loadCurrentFRR(){
-	$("#dock").load("zbar/FRR-XX.html");
+	$("#dock").load("views/FRR-XX.html");
 };
 
 function clr(){
@@ -78,30 +78,7 @@ function getProjectNames(){
 	}); 
 };
 
-function projectForm(){
-	$("#dock").load("zbar/projectForm.html");
-};
-
-
-var submitForm=function(ev){
-	console.log("submitForm...", ev);
-	//ev=ev||event;
-	//ev.preventDefault();
-	/*
-	$.ajax({
-		url: '/formHandler',
-		type: 'POST',
-		data: jQuery.param({sql: "DATA FROM FORM"}),
-		contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-		success: function (response) {$("#result").text(JSON.stringify(response));},
-		error: function () {$("#result").text("error");	}
-	}); 
-	*/
-	return true; //validation OK
-};
-
-
-
+function projectForm(){	$("#dock").load("views/projectForm.html");};
 
 //READY
 $(function() { 
@@ -114,7 +91,6 @@ $(function() {
 
 </head>
 <body>
-
 <nav class="navbar navbar-fixed-top navbar-default">
 	<div class="container-fluid">
 		<div class="nav navbar">
@@ -212,88 +188,73 @@ $(function() {
 				</div>
 				
 				<div role="tabpanel" class="tab-pane" id="DELTAS">
-				<p>Log and management of:</p>
-				<ol>
-				<li>Change Orders</li>
-				<li>Change Directives</li>
-				<li>Change Orders</li>
-				</ol>				
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-default">Change Orders</button>
+					<button type="button" class="btn btn-default">Change Directives</button>
+					<button type="button" class="btn btn-default">Change Orders</button>
+				</div>
 				</div>
 
 				<div role="tabpanel" class="tab-pane" id="LETTERS">
-				<p>Log and management of:</p>
-				<ol>
-				<li>Conformance Letters</li>
-				<li>Supplemental Instructions</li>
-				<li>Site Memos</li>
-				</ol>		
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-default">Conformance Letters</button>
+					<button type="button" class="btn btn-default">Supplemental Instructions</button>
+					<button type="button" class="btn btn-default">Site Memos</button>
+				</div>
 				</div>
 				
 				<div role="tabpanel" class="tab-pane" id="GALLERY">
-				<p>Display, Management and preparation of images and notes:</p>
-				<ol>
-				<li>Progress Pictures for use in timelines</li>
-				<li>Site pictures for use in reports</li>
-				<li>Field notes for use in reports</li>
-				</ol>				
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-default">Progress Pictures (for use in timelines)</button>
+					<button type="button" class="btn btn-default">Site pictures (for use in reports)</button>
+					<button type="button" class="btn btn-default">Field sketches (for use in reports)</button>
+				</div>
 				</div>
 
 				<div role="tabpanel" class="tab-pane" id="MTGS">
-				<p>Log and management of:</p>
-				<ol>
-				<li>OAC Meeting Minutes</li>
-				<li>Action Items</li>
-				<li>Issue Tracking</li>
-				</ol>				
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-default">OAC Meeting Minutes</button>
+					<button type="button" class="btn btn-default">Action Items</button>
+					<button type="button" class="btn btn-default">Issue Tracking</button>
+				</div>
+				
 				</div>
 				
 				<div role="tabpanel" class="tab-pane" id="QUESTIONS">
-				<p>Log and management of:</p>
-				<ol>
-				<li>GC Requests For Information</li>
-				<li>Site Questions</li>
-				</ol><hr>		
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-default">Requests For Information (RFI)</button>
+					<button type="button" class="btn btn-default">Site Questions</button>
+				</div>
 				</div>	
 				
 				<div role="tabpanel" class="tab-pane" id="REPORTS">
-				<p>Log and management of:</p>
-				<ol>
-				<li>Deficiencies</li>
-				<li>Site Visits</li>
-				<li>Monthly Construction Reviews</li>
-				<li>Project Progress and milestones</li>
-				</ol>
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-default">Deficiency Tracking</button>
+					<button type="button" class="btn btn-default">Site Visit Reports</button>
+					<button type="button" class="btn btn-default">Project Timelines</button>
+				</div>
 				</div>
 				
 				<div role="tabpanel" class="tab-pane" id="SHOPS">
-				<p>Log and management of:</p>
-				<ol>
-				<li>Shop Drawing Reviews</li>
-				<li>O &amp; M Manual Reviews</li>
-				</ol>				
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-default">Shop Drawing Reviews</button>
+					<button type="button" class="btn btn-default">O &amp; M Manual Reviews</button>
+				</div>
 				</div>
 				
 				<div role="tabpanel" class="tab-pane" id="WELCOME">
-				<ol>
-				<li>About</li>
-				<li>Help</li>
-				<li><a onclick="projectForm()">Add Project</a></li>
-				<li>Change Project</li>
-				<li>Remove Project</li>
-				</ol>
-				
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-default">About</button>
+					<button type="button" class="btn btn-default">Help</button>
+					<button type="button" class="btn btn-primary" onclick="projectForm()">Projects</button>
+				</div>				
 				</div>
-				
 				
 			</div>
 		</div>
 	</div>
 </nav>
-
-<br><br><br><br><br>
 <div id="dock"></div>
-
-
 </body>
 
 </html>

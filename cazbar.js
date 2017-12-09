@@ -7,9 +7,12 @@ const bodyParser=require("body-parser")
 
 const app = express()
 
-//ensure folder zdatabase exists or there will be an error
-const dbpath=path.join(__dirname, "/zdatabase/cazbar.db")
-
+//Open database
+const dbdir = __dirname + '/zdatabase';
+const dbpath=dbdir+"/cazbar.db"
+try {fs.mkdirSync(dbdir, 0744)} catch(er){console.log(er)}
+const db=new sqlite.Database(dbpath)
+process.on("exit", function(){db.close();console.log("Database closed.");})
 var sqlcount=1
 
 //Main entry
@@ -27,49 +30,40 @@ app.use( bodyParser.json());
 app.post('/formHandler', function (req, res) {
 
 	const rows=[]	
-	//function concatRows(r){rows.concat(r)}
-	
-	let msg="SQL count:"+sqlcount.toString()
-	sqlcount+=1
-	let db=new sqlite.Database(dbpath)
-	let sqls=req.body.SQL.split(";")
+	sqlcount+=1	
+	let msg="SQL#"+sqlcount.toString()
+	const sql=req.body.SQL
 	//console.log("SQLs to process...", sqls.length)
 
 	//console.log("SQLs...", sqls);
 	try {
 		db.serialize( function () {
-			for (var i in sqls){
-				var first_term=sqls[i].split(" ")[0]
-				switch(first_term){
+			//switch based on first term of SQL
+			switch(sql.split(" ")[0]){
 					
-					case "CREATE": 
-					case "INSERT": 
-					case "UPDATE":
-					db.run(sql_params(sqls[i], req.body), function(err){
-						console.log("UPDATE(db.run)...", err);
-						res.json({msg:"Update", rows:rows})	
-					})
-					break
-					case "SELECT":
-					db.all(sql_params(sqls[i],	req.body), function(err, rows){
-						console.log("SELECT(db.all)...", err); 
-						//res.append("rows", rows);
-						res.json({msg:msg, rows:rows})	
-					})			
-					break
-					default:
-					res.json({msg:msg, rows:rows})					
-				}
+				case "CREATE": 
+				case "INSERT": 
+				case "UPDATE":
+				db.run(sql_params(sql, req.body), function(err){
+					var stat=(err==null)?" - db run ok":"db run error - "+err
+					console.log(msg + stat)
+					res.json({msg:msg+stat, rows:rows})	
+				})
+				break
+				case "SELECT":
+				db.all(sql_params(sql,	req.body), function(err, rows){
+					var stat=(err==null)?" - db all ok":"db run error - "+err
+					console.log(msg + stat)
+					res.json({msg:msg+stat, rows:rows})
+				})			
+				break
+				default:
+				res.json({msg:msg, rows:rows})					
 			}
 		})
 	} 
 	catch(err) {console.log("SQL ERROR...", err)}
 
-	//send results
-	//res.setHeader('Content-Type', 'application/json');
-	console.log("Rows...", rows)
-	//db.close()	
-	//res.json({msg:msg, rows:rows})	
 })
 
 
@@ -79,25 +73,29 @@ app.listen(8080, function () {console.log('CAzbar server listening on port 8080!
 
 //prepare SQL by substituting parameters with corresponding values
 function sql_params(sql, params){
+	/**************
+	Why is this function required when db.run has it built in db.run(sql, params, callback) ?
+	Because if params have more elements than the sql has placeholders it throws an error
+	This function is more forgiving
+	*************/
+	
 	//console.log("sql_params...")
-	//ensure these are not touching term
+	//ensure these aren't touching terms
 	sql=sql.replace(/\(/g, " ( ") 
 	sql=sql.replace(/\)/g, " ) ") 
 	sql=sql.replace(/=/g, " = ") 
 	sql=sql.replace(/,/g , " , ") 
 	//console.log("sql after grooming...", sql)
-	var terms=sql.split(" ") //break SQL into terms (words) 
+	var terms=sql.split(" ") 
 	for (var i in terms){
 		
-		//term starts with '$' meaning it's a parameter, substitute it with it's corresponding vlaue
+		//term starts with '$' so a parameter, substitute it with it's corresponding vlaue
 		if ( terms[i].indexOf("$")==0 ) {
 			//console.log("term before...", terms[i].substring(1))
 			terms[i]='"'+params[terms[i].substring(1)]+'"'
 			//console.log("term after...", terms[i])
 		}		
 	}
-	//console.log("SQL...\n", sql)
-	//console.log("sql with subs...\n", terms.join(" "))
 	return terms.join(" ") //unsplit
 }
 
