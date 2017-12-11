@@ -4,13 +4,17 @@ const url = require('url')
 const path = require('path')
 const sqlite=require('sqlite3').verbose()
 const bodyParser=require("body-parser") 
+const cm=require("cazbar")
+
+//cm.hw()
 
 const app = express()
 
 //Open database
 const dbdir = __dirname + '/zdatabase';
 const dbpath=dbdir+"/cazbar.db"
-try {fs.mkdirSync(dbdir, 0744)} catch(er){console.log(er)}
+try {fs.mkdirSync(dbdir, 0744); console.log("Database folder created.";}
+catch(er){console.log("Database folder exists.")}
 const db=new sqlite.Database(dbpath)
 process.on("exit", function(){db.close();console.log("Database closed.");})
 var sqlcount=1

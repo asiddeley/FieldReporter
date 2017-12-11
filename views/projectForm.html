@@ -1,5 +1,7 @@
 <script type="text/javascript">
 
+
+
 //ready
 $(function(){
 
@@ -19,20 +21,18 @@ $("#frmReceiver").on("load", function(){
 	//var c=$("#frmReciever").find("body");
 	//var ret = frames["frmReceiver"].document.getElementsByTagName("body")[0].innerHTML; 
 	var raw=$("#frmReceiver").contents().find("body>pre").text();
-	var result;
 	
-	try	{result=JSON.parse(raw);} catch(er){console.log(er);}
-
-	//console.log("raw...", raw);
-	//console.log("result...", result);
-	//console.log("pnum...", result.rows[0].pnum);
-	//show results
-	$("#pnum").val(result.rows[0].pnum);
-	$("#pname").val(result.rows[0].pname);
-	$("#client").val(result.rows[0].client);
-	$("#gc").val(result.rows[0].gc);
-	$("#address").val(result.rows[0].address);
-	$("#status").val(result.msg);
+	try	{
+		var result=JSON.parse(raw);
+		$("#pnum").val(result.rows[0].pnum);
+		$("#pname").val(result.rows[0].pname);
+		$("#client").val(result.rows[0].client);
+		$("#gc").val(result.rows[0].gc);
+		$("#address").val(result.rows[0].address);
+		$("#status").val(result.msg);
+	} 
+	catch(er){console.log(er);}
+	
 	
 });
 
@@ -69,10 +69,25 @@ $("#btn-last").on("click", function(){
 	$("#SQL").val("SELECT * FROM projects ORDER BY rowid DESC LIMIT 1");
 });
 
+$("#btn-current").on("click", function(){
+	var cpnum=$("#pnum").val();
+	setCookie("cpnum", cpnum, 60); //expires after 60 days
+	alert("Current Project: "+getCookie("cpnum"));
+});
+
+
+//Lastly... get current project cookie and fill in the form for the first time
+var cpnum=getCookie("cpnum");
+if (cpnum){
+	//get current record from database...
+	//set up query
+	$("#SQL").val("SELECT * FROM projects WHERE pnum = '" + cpnum + "'");
+	//trigger submit
+	$("#frm-project").trigger("submit");
+}
 
 });
 </script>
-
 
 
 <div class="container-fluid">
@@ -97,7 +112,7 @@ $("#btn-last").on("click", function(){
 
 <div class="input-group">
   <span class="input-group-addon" >Address</span>
-  <input id="address" name="address" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="Problem_street">
+  <input id="address" name="address" type="text" class="form-control" placeholder="..." aria-describedby="basic-addon1" value="123 Some Street, Town, Province">
 </div>
 
 
