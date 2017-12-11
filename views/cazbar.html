@@ -23,12 +23,12 @@
 
 
 <style rel="stylesheet">
-body { padding-top: 150px; }
+
 
 .small {font-size:xx-small;}
 .logobox {
 float:left;
-font-size:small;
+font-size:medium;
 font-weight:bold;
 font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
 line-height:95%;
@@ -37,9 +37,11 @@ border-style:solid;
 border-width:0px;
 border-color:black; 
 padding:5px 20px 5px 20px;
-margin: 5px;
+margin-top:5px;
 background: skyblue;
 }
+
+#BUMPER {background:skyblue; height:50px; width:100%;}
 .cazbar {background: linear-gradient(skyblue, tan); }
 .bolivian {background: linear-gradient(red, yellow, yellow, green); }
 
@@ -57,15 +59,6 @@ $(window).on({
 
 //inhibit the browser's right-click context menu
 $(document).on("contextmenu", false);
-
-function loadCurrentFRR(){
-	$("#dock").load("views/FRR-XX.html");
-};
-
-function clr(){
-	$("#dock").empty();
-};
-
 
 function getProjectNames(){
 	$.ajax({
@@ -105,11 +98,47 @@ function setCookie(cname, cvalue, exdays) {
 }
 
 
-
-function projectForm(){	$("#dock").load("views/projectForm.html");};
-
 //READY
 $(function() { 
+
+	$(window).on("resize",function(){
+		//var h=$("#zbar").innerHeight();
+		//console.log("navbar height", h);
+		//$("#bumper").height(h);
+		$("#BUMPER").height($("#zbar").innerHeight());
+	});
+
+	$("#ACTION").on("click",function(){
+		$(".dock").hide();
+		$("#actiondock").show();	
+	});
+
+	$("#reportstab").on("click",function(){
+		$(".dock").hide();
+		$("#reportdock").show();	
+	});
+	
+	$("#shopstab").on("click",function(){
+		$(".dock").hide();
+		$("#shopdock").show();	
+	});
+
+	$("#welcometab").on("click",function(){
+		$(".dock").hide();
+		$("#welcomedock").show();		
+	});
+	
+	$("#projectsbtn").on("click", function(){
+		$("#welcomedock").load("views/projectForm.html");
+	});
+	
+	$("#svrbtn").on("click", function(){
+		$("#reportdock").show().load("views/SVR-XX.html");
+	});
+
+
+	
+	
 	
 }); 
 
@@ -119,7 +148,8 @@ $(function() {
 
 </head>
 <body>
-<nav class="navbar navbar-fixed-top navbar-default">
+<nav id="zbar" class="navbar navbar-default navbar-fixed-top " >
+<!-- nav id="zbar" class="navbar navbar-default navbar-static-top " -->
 	<div class="container-fluid">
 		<div class="nav navbar">
 			<center class="logobox cazbar col-md-1">
@@ -132,49 +162,49 @@ $(function() {
 			<ul class="nav nav-tabs" role="tablist">
 			
 			<li role="presentation" class="active">
-			<a href="#ACTION" aria-controls="admin" role="tab" data-toggle="tab" onclick="clr()">Action</a>
+			<a href="#ACTION" aria-controls="admin" role="tab" data-toggle="tab" >Action</a>
 			</li>
 	
 			<li role="presentation">
-			<a href="#BILLING" aria-controls="cop" role="tab" data-toggle="tab" onclick="clr()">Billing</a>
+			<a href="#BILLING" aria-controls="cop" role="tab" data-toggle="tab" >Billing</a>
 			</li>
 	
 			<li role="presentation">
-			<a href="#CONTRACT" aria-controls="docs" role="tab" data-toggle="tab" onclick="clr()">Contract</a>
+			<a href="#CONTRACT" aria-controls="docs" role="tab" data-toggle="tab" >Contract</a>
 			</li>
 	
 			<li role="presentation">
-			<a href="#DELTAS" aria-controls="changes" role="tab" data-toggle="tab" onclick="clr()">Deltas</a>
+			<a href="#DELTAS" aria-controls="changes" role="tab" data-toggle="tab" >Deltas</a>
 			</li>
 			
 			<li role="presentation">
-			<a href="#GALLERY" aria-controls="si" role="tab" data-toggle="tab" onclick="clr()">Gallery</a>
+			<a href="#GALLERY" aria-controls="si" role="tab" data-toggle="tab" >Gallery</a>
 			</li>
 			
 			<li role="presentation">
-			<a href="#LETTERS" aria-controls="si" role="tab" data-toggle="tab" onclick="clr()">Letters</a>
+			<a href="#LETTERS" aria-controls="si" role="tab" data-toggle="tab" >Letters</a>
 			</li>
 
 	
 			<li role="presentation">
-			<a href="#MTGS" aria-controls="cr" role="tab" data-toggle="tab" onclick="clr()">Meetings</a>
+			<a href="#MTGS" aria-controls="cr" role="tab" data-toggle="tab" >Meetings</a>
 			</li>
 			
 	
 			<li role="presentation">
-			<a href="#QUESTIONS" aria-controls="RFI" role="tab" data-toggle="tab" onclick="clr()">Questions</a>
+			<a href="#QUESTIONS" aria-controls="RFI" role="tab" data-toggle="tab" >Questions</a>
 			</li>
 			
 			<li role="presentation">
-			<a href="#REPORTS" aria-controls="frr" role="tab" data-toggle="tab" onclick="loadCurrentFRR()">Reports</a>
+			<a id="reportstab" href="#REPORTS" aria-controls="frr" role="tab" data-toggle="tab" >Reports</a>
 			</li>
 			
 			<li role="presentation">
-			<a href="#SHOPS" aria-controls="sdi" role="tab" data-toggle="tab" onclick="clr()">Shops</a>
+			<a id="shopstab" href="#SHOPS" aria-controls="sdi" role="tab" data-toggle="tab" >Shops</a>
 			</li>
 
 			<li role="presentation">
-			<a href="#WELCOME" aria-controls="welcome" role="tab" data-toggle="tab" onclick="clr()">Welcome</a>
+			<a id="welcometab" href="#WELCOME"  aria-controls="welcome" role="tab" data-toggle="tab" >Welcome</a>
 			</li>
 			
 			</ul>
@@ -184,36 +214,34 @@ $(function() {
 
 				
 				<div role="tabpanel" class="tab-pane active" id="ACTION">
-				<ol>
-				<li>Action items from Conference Reports and other sources.</li> 
-				<li>Status report of project with stats from various logs.</li>
-				<li>RFI responses due</li>
-				<li>Outstanding SDIs</li>
-				</ol>
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-default">Action items</button>
+					<button type="button" class="btn btn-default">Project status</button>
+					<button type="button" class="btn btn-default">Outstanding RFIs</button>
+					<button type="button" class="btn btn-default">Outstanding Shops</button>
+				</div>
 				</div>		
 
 				<div role="tabpanel" class="tab-pane" id="BILLING">
-				<p>Logs and management of:</p>
-				<ol>
-				<li>GC Progress billings</li>
-				<li>Certificates of Payment</li>
-				<li>Allowance Authorization Letters</li>
-				<li>Project Progress and milestones</li>
-				</ol>	
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-default">GC progress billing</button>
+					<button type="button" class="btn btn-default">Certificates of Payment</button>
+					<button type="button" class="btn btn-default">Allowance Authorization Letters</button>
+					<button type="button" class="btn btn-default">Project Progress and milestones</button>
+				</div>
 				</div>
 				
 				<div role="tabpanel" class="tab-pane" id="CONTRACT">
-				<p>Links to:</p>
-				<ol>
-				<li>Contact information for Client, Representatives, Consultants, GC and Trades</li> 
-				<li>Contract</li> 
-				<li>addendums</li>
-				<li>bidders questions and answers</li>
-				<li>current drawings</li>
-				<li>current specification</li>
-				<li>GC's Schedule</li>
-				</ol>
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-default">Contract</button>
+					<button type="button" class="btn btn-default">Addendums</button>
+					<button type="button" class="btn btn-default">Bidders Q&amp;A</button>
+					<button type="button" class="btn btn-default">Drawings</button>
+					<button type="button" class="btn btn-default">Specification</button>
+					<button type="button" class="btn btn-default">GC Schedule</button>						
 				</div>
+				</div>
+					
 				
 				<div role="tabpanel" class="tab-pane" id="DELTAS">
 				<div class="btn-group" role="group" aria-label="...">
@@ -258,7 +286,7 @@ $(function() {
 				<div role="tabpanel" class="tab-pane" id="REPORTS">
 				<div class="btn-group" role="group" aria-label="...">
 					<button type="button" class="btn btn-default">Deficiency Tracking</button>
-					<button type="button" class="btn btn-default">Site Visit Reports</button>
+					<button id="svrbtn" type="button" class="btn btn-primary">Site Visit Reports</button>
 					<button type="button" class="btn btn-default">Project Timelines</button>
 				</div>
 				</div>
@@ -274,7 +302,7 @@ $(function() {
 				<div class="btn-group" role="group" aria-label="...">
 					<button type="button" class="btn btn-default">About</button>
 					<button type="button" class="btn btn-default">Help</button>
-					<button type="button" class="btn btn-primary" onclick="projectForm()">Projects</button>
+					<button id="projectsbtn" type="button" class="btn btn-primary">Projects</button>
 				</div>				
 				</div>
 				
@@ -282,7 +310,20 @@ $(function() {
 		</div>
 	</div>
 </nav>
-<div id="dock"></div>
+<div id="BUMPER" >bumper</div>
+<div id="actiondock" class="dock" style="display:none;"><h3>action area</h3></div>
+<div id="billingdock" class="dock" style="display:none;"><h3>billing area</h3></div>
+<div id="contractdock" class="dock" style="display:none;"><h3>contract area</h3></div>
+<div id="deltadock" class="dock" style="display:none;"><h3>delta area</h3></div>
+<div id="letterdock" class="dock" style="display:none;"><h3>letter area</h3></div>
+<div id="gallerydock" class="dock" style="display:none;"><h3>gallery area</h3></div>
+<div id="meetingdock" class="dock" style="display:none;"><h3>meeitng area</h3></div>
+<div id="questiondock" class="dock" style="display:none;"><h3>question area</h3></div>
+<div id="reportdock" class="dock" style="display:none;"><h3>report area</h3></div>
+<div id="shopdock" class="dock" style="display:none;"><h3>shop area</h3></div>
+<div id="welcomedock" class="dock" style="display:none;"><h3>welcome area</h3></div>	
+
+
 </body>
 
 </html>
