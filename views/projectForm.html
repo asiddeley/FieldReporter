@@ -49,9 +49,11 @@ $("#btn-add").on("click", function(){
 	$("#SQL").val("INSERT INTO projects VALUES ($pnum, $pname, $address, $client, $gc )");
 });
 
+/***
 $("#btn-init").on("click", function(){
 	$("#SQL").val("CREATE TABLE IF NOT EXISTS projects (pnum, pname, address, client, gc, UNIQUE ( pnum ) ON CONFLICT IGNORE)");
 });
+***/
 
 $("#btn-first").on("click", function(){
 	$("#SQL").val("SELECT * FROM projects ORDER BY pnum LIMIT 1");
@@ -122,7 +124,7 @@ if (cpnum){
 	<button id="btn-add" type="submit" class="btn btn-default ">Add</button>
 	<button id="btn-current" type="submit" class="btn btn-default ">Current</button>
 	<button id="btn-delete" type="submit" class="btn btn-default ">Delete</button>
-	<button id="btn-init" type="submit" class="btn btn-default ">Initialize</button>
+	<!--button id="btn-init" type="submit" class="btn btn-default ">Initialize</button -->
 	<button id="btn-save" type="submit" class="btn btn-default ">Save</button>
 </div>
 <div class="btn-group" role="group" aria-label="...">
