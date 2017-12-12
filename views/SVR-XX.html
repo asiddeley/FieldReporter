@@ -12,9 +12,12 @@ label {display: block;  margin: 30px 0 0 0; }
 select {width: 200px; }
 .overflow {height:200px;}
 
+.marz{margin-top:0px; margin-bottom:0px;}
+.col-first{border-right:2px solid #000;}
 .row_{border-bottom:1px solid #aaa;}
-.row__{border-top:2px solid #000; border-bottom:1px solid #aaa;}
-p, h2, h3, strong {font-family:'Book Antiqua';}
+.row__{border-top:2px solid #000; border-bottom:1px solid #aaa;} 
+
+p, h2, h3, strong {font-family:'segoe';}
 
 .pocket {
 	margin:5px;
@@ -152,16 +155,16 @@ $(function() {
 <template id='comments-template' type="text/x-handlebars-template">
 
 	{{#each comments}}
-	<div class='row row_'
+	<div class='row marz'
 			indexx={{@index}}
 			onmouseenter='$(this).css("background-color","pink")'
 			onmouseleave='$(this).css("background-color","white")'
 			oncontextmenu='showMenu(CM$, event)'>
-		<p id='itemNo'  indexx={{@index}} class='col-xs-1 itemNo'>
+		<p id='itemNo'  indexx={{@index}} class='col-xs-1 itemNo col-first marz'>
 		{{#indexPlusOne @index}}{{/indexPlusOne}}
 		</p>
-		<p id='comment' indexx={{@index}} class='col-xs-10 comment-cell'>{{msg}}</p>
-		<p id='picNo' indexx={{@index}} class='col-xs-1 picNo'>{{picRef}}</p>
+		<p id='comment' indexx={{@index}} class='col-xs-10 comment-cell marz'>{{msg}}</p>
+		<p id='picNo' indexx={{@index}} class='col-xs-1 picNo marz'>{{picRef}}</p>
 	</div>
 	{{/each}}
 	
@@ -229,87 +232,79 @@ $(function() {
 	</div>
 	
 	<div class='row row_'>
-		<p class='col-xs-1'>1.1</p>
-		<p id='generalStatement' class='col-xs-10' soup-cell >This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by NORR Limited.  Refer also to Mechanical and Electrical field reports issued separately.  
+		<p id='generalStatement' class='col-xs-12' >This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by NORR Limited.  Refer also to Mechanical and Electrical field reports issued separately.  
 		</p>
 	</div>	
-	
+
 	<br><br>
 
-	<div class='row row__'>
-		<h3 class='col-xs-1'>1.0</h3>
-		<h3 class='col-xs-10'>General</h3>
+	<div class='row marz'>
+		<h3 class='col-xs-1 col-first marz'>1.0</h3>
+		<h3 class='col-xs-10 marz'>General</h3>
+		<h3 class='col-xs-1 marz'>Ref.</h3>
+	</div>
+	
+	<div class='row marz'>
+		<p class='col-xs-1 col-first marz'>1.1</p>
+		<p id='generalComment' class='col-xs-10 marz' >general comment</p>
+		<p class='col-xs-1 marz'>--</p>
 	</div>
 
-	<div class='row row_'>
-		<p class='col-xs-1'>1.1</p>
-		<p id='generalComment' class='col-xs-10' soup-cell >general comment
-		</p>
-	</div>
-
-	<div class='row row__'>
-		<h3 class='col-xs-1'>2.0</h3>
-		<h3 class='col-xs-10'>Observatons and Comments</h3>
-		<h3 class='col-xs-1'>Pic.</h3>
+	<div class='row marz'>
+		<h3 class='col-xs-1 col-first marz'>2.0</h3>
+		<h3 class='col-xs-10 marz'>Observatons and Comments</h3>
+		<h3 class='col-xs-1 marz'>Pic.</h3>
 	</div>
 	
 	<!-- Placeholder for comments -->
-	<div id='comments-placeholder'></div>
+	<div id='comments-placeholder' class='marz'></div>
 
-	
-	
-	
-	<br>
-	
-	<div class='row row__'>
-		<h3 class='col-xs-1'>3.0</h3>
-		<h3 class='col-xs-10'>Issues Resolved</h3>
-		<h3 class='col-xs-1'>Ref</h3>
+
+	<div class='row marz'>
+		<h3 class='col-xs-1 col-first marz'>3.0</h3>
+		<h3 class='col-xs-10 marz'>Issues Resolved</h3>
+		<h3 class='col-xs-1 marz'>Ref</h3>
 	</div>
 	
 
-
-	<div id='resolved' class='soup-foreach' soup-foreach='[1]'  >
-		<div class='row row_' 
+	<div id='resolved' class='soup-foreach marz' soup-foreach='[1]'  >
+		<div class='row marz' 
 			onmouseenter='$(this).css("background-color","pink")'
 			onmouseleave='$(this).css("background-color","white")'
 			oncontextmenu='showMenu(CM2, event)'
 		>
-		<p id='itemNo' class='col-xs-1 itemNo' soup-action='$(this.child).text(this.child.foreachIndex1);'>99</p>
-		<p id='resolved' class='col-xs-10 comment' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>comment</p>
-		<p id='picNo' class='col-xs-1 picNo' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>pic</p>
+		<p id='itemNo' class='col-xs-1 col-first itemNo marz' soup-action='$(this.child).text(this.child.foreachIndex1);'>99</p>
+		<p id='resolved' class='col-xs-10 comment marz' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>comment</p>
+		<p id='picNo' class='col-xs-1 picNo marz' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>pic</p>
 		</div>
 	</div>
-	<br>	
 	
-	<div class='row row__'>
-		<h3 class='col-xs-1'>4.0</h3>
-		<h3 class='col-xs-10'>Issues Outstanding</h3>
-		<h3 class='col-xs-1'>Ref</h3>
+	<div class='row marz'>
+		<h3 class='col-xs-1 col-first marz'>4.0</h3>
+		<h3 class='col-xs-10 marz'>Issues Outstanding</h3>
+		<h3 class='col-xs-1 marz'>Ref</h3>
 	</div>
 	<div id='outstanding' soup-foreach='[1]'  >
-		<div class='row row_'  soup-template='+1'
+		<div class='row marz'  soup-template='+1'
 			onmouseenter='$(this).css("background-color","pink")'
 			onmouseleave='$(this).css("background-color","white")'
 			oncontextmenu='showMenu(CM2, event)'
 		>
-		<p id='itemNo' class='col-xs-1 itemNo' soup-action='$(this.child).text(this.child.foreachIndex1);'>99</p>
-		<p id='outstanding' class='col-xs-10 comment' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>comment</p>
-		<p id='picNo' class='col-xs-1 picNo' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>pic</p>
+		<p id='itemNo' class='col-xs-1 col-first itemNo marz' soup-action='$(this.child).text(this.child.foreachIndex1);'>99</p>
+		<p id='outstanding' class='col-xs-10 comment marz' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>comment</p>
+		<p id='picNo' class='col-xs-1 picNo marz' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>pic</p>
 		</div>
 	</div>
-	<br>	
-	
-	<br>
-	<div class='row row__'>
-		<h3 class='col-xs-1'>5.0</h3>
-		<h3 class='col-xs-10'>Pictures</h3>
-		<h3 class='col-xs-1'>Pic.</h3>
+
+	<div class='row marz'>
+		<h3 class='col-xs-1 col-first marz'>5.0</h3>
+		<h3 class='col-xs-10 marz'>Pictures</h3>
+		<h3 class='col-xs-1 marz'>Pic.</h3>
 	</div>
 	
-	<div id='pictures'  soup-foreach='[1, 2]'  >
+	<div id='pictures' class='marz' soup-foreach='[1, 2]'  >
 		<div 
-			class='row' 
+			class='row marz' 
 			style='height:300px; display:block'
 			onmouseenter='$(this).css("background-color","pink");'
 			onmouseleave='$(this).css("background-color","white");'

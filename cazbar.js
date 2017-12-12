@@ -4,7 +4,7 @@ const url = require('url')
 const path = require('path')
 const sqlite=require('sqlite3').verbose()
 const bodyParser=require("body-parser") 
-const casql=require("../zdatabase/casql.js")
+const casql=require(__dirname+"/zdatabase/casql.js")
 
 //cm.hw()
 
@@ -17,10 +17,13 @@ try {fs.mkdirSync(dbdir, 0744); console.log("Database folder created.");}
 catch(er){console.log("Database folder exists.")}
 const db=new sqlite.Database(dbpath)
 
-//initialize db if not already
-db.serialize( function () {
-	db.run(casql.CreateProjectTable, function(err){})
+//ensure database tables created
+console.log("casql", casql)
+db.serialize( function () {	
+	db.run(casql.createTableProjects, function(err){})
+	db.run(casql.createTableSVRs, function(err){})
 })
+
 
 process.on("exit", function(){db.close();console.log("Database closed.");})
 var sqlcount=1

@@ -24,7 +24,6 @@
 
 <style rel="stylesheet">
 
-
 .small {font-size:xx-small;}
 .logobox {
 float:left;
@@ -101,6 +100,8 @@ function setCookie(cname, cvalue, exdays) {
 //READY
 $(function() { 
 
+	$("#BUMPER").height($("#zbar").innerHeight());
+
 	$(window).on("resize",function(){
 		//var h=$("#zbar").innerHeight();
 		//console.log("navbar height", h);
@@ -135,13 +136,8 @@ $(function() {
 	$("#svrbtn").on("click", function(){
 		$("#reportdock").show().load("views/SVR-XX.html");
 	});
-
-
-	
-	
 	
 }); 
-
 
 
 </script>
@@ -154,7 +150,7 @@ $(function() {
 		<div class="nav navbar">
 			<center class="logobox cazbar col-md-1">
 			<div>C-A Z</div>
-			<div>B A R</div>
+			<div>B A H</div>
 			<!--div class="small">Contract Administration</div-->
 			</center><br>
 

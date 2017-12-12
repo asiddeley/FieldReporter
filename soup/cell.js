@@ -81,7 +81,7 @@ $.widget ("soup.cell", {
 		//this.element.css('background-color','silver'); 
 		this.options.xtxt=$("#" + this.options.idi).val();
 		//$("#"+this.options.idn).show();
-		$("#"+this.options.idi).show().css({'position':'relative', 'z-index':10000, 'background':'silver'});
+		$("#"+this.options.idi).show().css({'position':'relative', 'z-index':10000, 'background':'silver', 'class':'marz'});
 		$("#"+this.options.idr).hide();	
 	},
 	
@@ -117,13 +117,13 @@ $.widget ("soup.cell", {
 		//wrap text so it can be saved & edited
 		//console.log('cell foreachItem:'+this.element.foreachItem); //undefined
 		this.element.html(
-			"<p id='"+ this.options.idn + "' style='display:none;' >"+ this.options.name +"</p>"+
+			"<p id='"+ this.options.idn + "' style='display:none;' class='marz'>"+ this.options.name +"</p>"+
 			"<textarea id='"+this.options.idi+"' type='text' style='z-index=10001; "+
-			"display:none;width:100%;height:auto;'"+
+			"display:none;width:100%;height:auto;' class='marz'"+
 			"onclick='soup.autoHeight(this)' onkeyup='soup.autoHeight(this)' >"+
 			this.options.text+
 			"</textarea>"+
-			"<p id='"+this.options.idr+"' class='cellresult'>"+
+			"<p id='"+this.options.idr+"' class='cellresult marz'>"+
 			this._process(this.options.text)+
 			"</p>"	
 		);

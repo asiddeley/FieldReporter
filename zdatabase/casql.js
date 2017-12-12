@@ -2,11 +2,10 @@
 
 Contract
 Admin
-SQL
-B
-Architecture
-H
-
+Site | SQL database
+Built for
+Architectural
+Heros
 
 Andrew Siddeley
 
@@ -14,9 +13,14 @@ Andrew Siddeley
 ********************************/
 
 
-var casql={};
-sql.createProjectTable="CREATE TABLE IF NOT EXISTS projects (pnum, pname, address, client, gc, UNIQUE ( pnum ) ON CONFLICT IGNORE)";
+exports.createTableProjects="CREATE TABLE IF NOT EXISTS projects (pnum, pname, address, client, gc, xdata, UNIQUE ( pnum ) ON CONFLICT IGNORE)";
 
-exports.casql=casql;
+exports.createTableSVRs="CREATE TABLE IF NOT EXISTS svrs (svrnum, pnum, title, dateofvisit, timeofvisit, dateofreport, reviewer, xdata, UNIQUE ( svrnum ) ON CONFLICT IGNORE)";
+
+
+
+
+
+
 
 
