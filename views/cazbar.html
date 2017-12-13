@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
 
 <!-- soup Library -->
-<script type='text/javascript' src="soup/dist/soup.js"></script>
+<script type='text/javascript' src="casbahClient.js"></script>
 
 <!-- Handlebars Template engine -->
 <script type='text/javascript' src="handlebars/handlebars-v4.0.10.js"></script>
@@ -58,44 +58,6 @@ $(window).on({
 
 //inhibit the browser's right-click context menu
 $(document).on("contextmenu", false);
-
-function getProjectNames(){
-	$.ajax({
-		url: 'sql',
-		type: 'POST',
-		data: jQuery.param({sql: "SELECT name FROM projects"}),
-		contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-		success: function (response) {$("#result").text(JSON.stringify(response));},
-		error: function () {$("#result").text("error");	}
-	}); 
-};
-
-function getCookie(cname) {
-	console.log("getCookie...", cname);
-    var name = cname + "=";
-    var decodedCookie = decodeURIComponent(document.cookie);
-    var ca = decodedCookie.split(';');
-	console.log("ca...", ca);	
-    for(var i = 0; i <ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') {
-            c = c.substring(1);
-        }
-        if (c.indexOf(name) == 0) {
-            return c.substring(name.length, c.length);
-        }
-    }
-    return null;
-}
-
-function setCookie(cname, cvalue, exdays) {
-	console.log("setCookie...");
-    var d = new Date();
-    d.setTime(d.getTime() + (exdays*24*60*60*1000));
-    var expires = "expires="+ d.toUTCString();
-    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-}
-
 
 //READY
 $(function() { 
@@ -149,9 +111,8 @@ $(function() {
 	<div class="container-fluid">
 		<div class="nav navbar">
 			<center class="logobox cazbar col-md-1">
-			<div>C-A Z</div>
-			<div>B A H</div>
-			<!--div class="small">Contract Administration</div-->
+			<div>* C-A *</div>
+			<div>S B A H</div>
 			</center><br>
 
 			<!-- Nav tabs -->

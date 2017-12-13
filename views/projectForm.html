@@ -1,19 +1,42 @@
 <script type="text/javascript">
 
-
-
 //ready
 $(function(){
 
 //using jquery keeps global space polution free
 $("#frm-project").submit(function(ev){
-	//ev.preventDefault()
 	/********
 	Form onsubmit event handler.  This took forever to get right yet so simple! Important to return true which proceeds with post to server. Returning false or no return prevents submitting values to server. 
 	Do input field validation here. Note that iexplore iframe doesn't work as a target and there's no simple work-around so may have to use own ajax methods.
 	****/
+	//return true;
 
-	return true;
+	//Use own submit handler, not the default built-in submit handler as iexplorer doesn't use
+	ev.preventDefault();
+	submitHandler({
+			SQL:$("#SQL").val(),
+			pnum:$("#pnum").val(),
+			pname:$("#pname").val(),
+			client:$("#client").val(),
+			gc:$("#gc").val(),
+			address:$("#address").val()
+		},
+		function(result){
+			try{
+				//alert(JSON.stringify(result));
+				$("#pnum").val(result.rows[0].pnum);
+				$("#pname").val(result.rows[0].pname);
+				$("#client").val(result.rows[0].client);
+				$("#gc").val(result.rows[0].gc);
+				$("#address").val(result.rows[0].address);
+				$("#status").val(result.msg);
+			} catch(err){$("#status").val(err);}
+		},
+		function(err){$("#status").val(err);}	
+	);
+	
+	return false;
+	
 });
 
 $("#frmReceiver").on("load", function(){
@@ -94,7 +117,8 @@ if (cpnum){
 
 <div class="container-fluid">
 <h3><span class="label label-default">Project Form</span></h3>
-<form id="frm-project" name="frm-project" action="/formHandler" method="post" target="frmReceiver" >
+<form id="frm-project" name="frm-project" action="/formHandler" method="post" target="frmReceiver">
+<!-- form id="frm-project" name="frm-project" -->
 <input id="SQL" type="hidden" name="SQL" value="...SET BY BUTTONS BEFORE SUBMIT...">
 <div class="input-group">
 	<span class="input-group-addon" >Project number</span>

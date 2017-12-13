@@ -34,6 +34,11 @@ app.get('/', function (req, res) {res.sendFile(path.join(__dirname + "/views/caz
 //Static file server.  Use '../' to get parent path
 app.use(express.static(path.join(__dirname)));
 
+//Static files withouth need for dirname.  Todo move Jquery, Bootstrap, caman etc to node_modules
+//var pathToModule = require.resolve('module');
+
+
+
 //Logger
 app.use(function(req, res, next){console.log("LOG...",req.url);	next();});
 
