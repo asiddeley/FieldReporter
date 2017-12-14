@@ -13,19 +13,33 @@ Andrew Siddeley
 ********************************/
 
 
-const autoForm($div, table, field, valu){
-	$div.empty();
-	var $labl=$("<h3 class='label label-default'>"+table+"</h3>");
-	var $cont=$("<div class='container-fluid'></div>");
-	var $form=$("<form></form>");
-	var $ig=$("<div class='input-group'></div>">
-	
-	<span class="input-group-addon" >Project number</span>
-	<input id="pnum" name="pnum" class="form-control" type="text"  placeholder="..." aria-describedby=
-	
+const autoForm(div$, params){
+	//params={table:"projects", rows:[{pnum:"abc", pname:"abc",...},{},{}], ccsclass:[]}
+	var cont$=$("<div class='container-fluid'></div>");	
+	div$.empty();
+	div$.append(cont$);
+
+	var labl$=$("<h3 class='label label-default'>"+params.table+"</h3>");
+	var form$=$("<form></form>");
+	cont$.append($labl, $form);
+
+	for (var i in params.rows){
+		autoFormIG(form$, params, i);		
+	}
 }
 
-const autoFormField($div, name, valu)
+const autoFormIG(form$, params, i){
+	//row = {pnum:val, pname:val...  }
+	var row=params.row[i];
+	var ig$=$("<div class='input-group'></div>");
+	var name$, inpt$; 
+	for (var j in row){
+		name$=("<span class='input-group-addon'>"+ row[j] +"Project number</span>");
+		inpt$=("<input name='"+ row[j] +"' class='form-control' type='text'  placeholder='...' aria-describedby='' val='"+row[j]+"'>");
+		ig$.append(name$, inpt$);
+	}
+	form$.append(ig$);
+}
 
 
 const ieSplice=function(list, index, remove, ins){
