@@ -13,7 +13,22 @@ Andrew Siddeley
 ********************************/
 
 
-var ieSplice=function(list, index, remove, ins){
+const autoForm($div, table, field, valu){
+	$div.empty();
+	var $labl=$("<h3 class='label label-default'>"+table+"</h3>");
+	var $cont=$("<div class='container-fluid'></div>");
+	var $form=$("<form></form>");
+	var $ig=$("<div class='input-group'></div>">
+	
+	<span class="input-group-addon" >Project number</span>
+	<input id="pnum" name="pnum" class="form-control" type="text"  placeholder="..." aria-describedby=
+	
+}
+
+const autoFormField($div, name, valu)
+
+
+const ieSplice=function(list, index, remove, ins){
 	//similar to splice, which seems to be wonky in iexplorer
 	if (Array.isArray(list)) {
 		if (typeof ins=='undefined') ins=[];
@@ -57,7 +72,6 @@ function setCookie(cname, cvalue, exdays) {
     var expires = "expires="+ d.toUTCString();
     document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 };
-
 
 
 function submitHandler(param, onsuccess, onerror){

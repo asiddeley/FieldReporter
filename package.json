@@ -1,18 +1,27 @@
 {
-  "name": "cazbar",
-  "version": "1.0.0",
-  "description": "a test app",
+  "name": "casbah",
+  "version": "0.0.1",
+  "description": "Contract Administration Site built-for Architecural Heroes",
   "main": "cazbar.js",
   "scripts": {
-    "caz": "node cazbar.js",
-    "test": "test",
+    "cas": "node casbah_server.js",
+    "test": "lh",
     "lh": "iexplore localhost8080.url"
   },
   "keywords": [
-    "hello",
-    "world"
+	"Architect",
+    "Architecture",
+    "Contract Administration", 
+	"Contract Management", 
+	"Change Order Management",
+	"Deficiency Tracking",
+	"Punch-list",
+	"Site Picture Management",
+	"Site Resident",
+	"Site Visit Report",
+	"Architectural Technologist"
   ],
-  "author": "asiddeley",
+  "author": "Andrew Siddeley",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.18.2",

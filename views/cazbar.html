@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="bootstrap/bootstrap.min.css">
 
 <!-- soup Library -->
-<script type='text/javascript' src="casbahClient.js"></script>
+<script type='text/javascript' src="casbah_client.js"></script>
 
 <!-- Handlebars Template engine -->
 <script type='text/javascript' src="handlebars/handlebars-v4.0.10.js"></script>
@@ -62,12 +62,10 @@ $(document).on("contextmenu", false);
 //READY
 $(function() { 
 
+	//bumper shoves the top of the dock-area down to prevent the static navbar from covering it
 	$("#BUMPER").height($("#zbar").innerHeight());
 
 	$(window).on("resize",function(){
-		//var h=$("#zbar").innerHeight();
-		//console.log("navbar height", h);
-		//$("#bumper").height(h);
 		$("#BUMPER").height($("#zbar").innerHeight());
 	});
 
