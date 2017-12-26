@@ -17,7 +17,7 @@ exports.createTableProjects="CREATE TABLE IF NOT EXISTS projects (pnum, pname, a
 
 exports.createTableSVRs="CREATE TABLE IF NOT EXISTS svrs (svrnum, pnum, title, dateofvisit, timeofvisit, dateofreport, reviewer, xdata, UNIQUE ( svrnum ) ON CONFLICT IGNORE)";
 
-exports.createTableComments="CREATE TABLE IF NOT EXISTS comments (cid, pnum, svrnum, order, comment, idrefs, UNIQUE ( cid ) ON CONFLICT IGNORE)";
+exports.createTableComments="CREATE TABLE IF NOT EXISTS comments ( itemno, pnum, svrnum, comment, refs )";
 
 exports.createTableIssues="CREATE TABLE IF NOT EXISTS issues (iid, pnum, description, dateopened, dateclosed, status, idrefs, UNIQUE ( iid ) ON CONFLICT IGNORE)";
 

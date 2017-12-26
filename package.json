@@ -9,23 +9,25 @@
     "lh": "iexplore localhost8080.url"
   },
   "keywords": [
-	"Architect",
+    "Architect",
     "Architecture",
-    "Contract Administration", 
-	"Contract Management", 
-	"Change Order Management",
-	"Deficiency Tracking",
-	"Punch-list",
-	"Site Picture Management",
-	"Site Resident",
-	"Site Visit Report",
-	"Architectural Technologist"
+    "Contract Administration",
+    "Contract Management",
+    "Change Order Management",
+    "Deficiency Tracking",
+    "Punch-list",
+    "Site Picture Management",
+    "Site Resident",
+    "Site Visit Report",
+    "Architectural Technologist"
   ],
   "author": "Andrew Siddeley",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
+    "jquery": "^3.2.1",
+    "jquery-ui": "^1.12.1",
     "sqlite3": "^3.1.13"
   }
 }

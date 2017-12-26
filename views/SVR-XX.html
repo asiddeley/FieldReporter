@@ -4,14 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title id='browserTab' >browserTab</title>
-
 <style>
 fieldset {border: 0;}
 .savable {width:200px;}
 label {display: block;  margin: 30px 0 0 0; }
 select {width: 200px; }
 .overflow {height:200px;}
-
+.left-border {border-left:2px solid #000;}
 .marz{margin-top:0px; margin-bottom:0px;}
 .col-first{border-right:2px solid #000;}
 .row_{border-bottom:1px solid #aaa;}
@@ -30,79 +29,87 @@ p, h2, h3, strong {font-family:'segoe';}
 .pocket-row{height:300px;}
 </style>
 
+
 <script type='text/javascript'>
 
-//Global variable reserved for Context Menu for Section 2, 3 & 4.  Initialized later
-var CM$; 
+function commentsDelete(){
 
-// Define our data object
-var commentsData={
-	comments:[
-		{itemNo:"1", msg:"comment 1 goes here", picRef:"1, 2, 3"},
-		{itemNo:"2", msg:"this is comment 2", picRef:"4 & 5"},
-		{itemNo:"3", msg:"last comment", picRef:"6"}
-	]
-};
+	//get row that called the menu, caller is set by showMenu() 
+	var caller=CM$.menu("option", 'caller'); 
+	
+	//index of that was clicked
+	var rowid=$(caller).attr("rowid");
 
-function commentsDelete(ev){
-/** TODO rework withouth soup...
-	var caller=CM2.menu("option", 'caller'); //get row that called the menu, caller is set by showMenu() function below
-	var rows=caller.foreach.items(); //get list of all rows from row's parent 'foreach' element 
-	var index=parseInt(caller.index); //get index of selected item or row for deletion
-	//console.log('caller index', index);
-	//Ensure at least 1 row is kept since removing last item would make it impossible to add rows in future. 
-	if (rows.length>1){	
-		$(caller).css('background','gold').hide(500,
-			function(){	
-				//this callback function is executed after row is hidden
-				var rowsRevised=soup.edit(rows, index, 1);
-				caller.foreach.items(rowsRevised); //update rows and refresh 'foreach' elements on page
-				//TO DO... purge database
-				CM2.hide(); //done with contecMenu
-			}
-		);
-	};
-*/	
-};
-
-function commentsInsert(offset, commentsData){
-
-	//offset=0,1: insert before, insert after
-	var caller=CM$.menu("option", 'caller'); //get row that called the menu, caller is set by showMenu() function below
+	//index of that was clicked
 	var index=parseInt($(caller).attr("indexx"));
-	//console.log("commentsData.comments", commentsData.comments);
 	
-	//Prep new data. Note that commentsData is global
-	var newid=commentsData.comments.length+1;	
-	var newComment={itemNo:newid, msg:"new comment", picRef:"-"};
+	//ignore delete from header row
+	if (index==0) {return;}
 	
-	var comments=ieSplice(commentsData.comments, index+offset, 0, [newComment]); //splice in new default item into commentsData
-	commentsData.comments=comments;
-	//console.log("commentsData.comments", JSON.stringify(commentsData.comments));
+	//grand send off
+	$("#commentrow"+rowid).css('background','gold').hide(500);
+	
+	//delete from database
+	database(SQLdeleteComments(rowid)
+		//, function(changes, next){
+		//	alert("callback changes"+JSON.stringify(changes));
+		//	next();
+		//}
+	);
 
-	commentsRefresh();
-	//console.log("caller, indexx:", caller, $(caller).attr("indexx"));
-	
-	//grand reveal for the new row
-	$('#comments-placeholder').children('[indexx="'+index+'"]').css('background','gold').hide().show(500);
+	//update order column for remaining rows
+	var u1="UPDATE comments SET itemno=itemno-1 "+
+	"WHERE pnum='"+cpnum+"' AND svrnum='"+csvrnum+"' AND CAST (itemno AS INTEGER) > "+index;
+	database(u1);
 
+	//refresh comments
+	database(SQLselectComments(cpnum, csvrnum),	function(result){
+		$('#comments-placeholder').html(commentsTemplate(result));
+	});
+	
+};
+
+function commentsInsert(){
+
+	//get row that called the menu, caller is set by showMenu() 
+	var caller=CM$.menu("option", 'caller'); 
+	
+	//index of that was clicked
+	var index=parseInt($(caller).attr("indexx"));
+	
+	//Make way for newbie...
+	var u1="UPDATE comments SET itemno=itemno+1 "+
+	"WHERE pnum='"+cpnum+"' AND svrnum='"+csvrnum+"' AND CAST (itemno AS INTEGER) > "+index;
+	database(u1);
+	
+	//Add newbie...
+	var newrow=$.extend({}, commentsEntry, {itemno:(Number(index)+1), comment:"new comment, follows..."+index}); //substitute itemno 
+	database(SQLinsertComments(newrow));
+
+	database(SQLselectComments(cpnum, csvrnum),	function(result){
+		$('#comments-placeholder').html(commentsTemplate(result));
+		//grand reveal for the new row
+		$('#comments-placeholder').children('[indexx="'+(index+1)+'"]').css('background','gold').hide().show(500);
+	});
+	
 	CM$.hide();
-}
+};
 
-function commentsRefresh(template, dataObj){
+function commentsUpdate(){
 
-	//console.log('refresh', JSON.stringify(commentsData.comments));
-	// Pass our data to the template
-	var compiledHtml = commentsTemplate(commentsData);
-	// Add the compiled html to the page
-	$('#comments-placeholder').html(compiledHtml);
-
-	//soup.cell(".comment-cell"); //doesn't work with handlebars,shows {{msg}}
-}
-
-var commentsTemplate;
-
-/////////////////////////////////////////
+	//get row that called the menu, caller is set by showMenu() 
+	var caller=CM$.menu("option", 'caller'); 
+	
+	//index of that was clicked
+	var rowid=$(caller).attr("rowid");
+	
+	//database(SQLupdateComments(row, rowid), function(r){console.log(r);});
+	
+	////refresh comments
+	//database(SQLselectComments(cpnum, csvrnum),	function(result){
+	//	$('#comments-placeholder').html(commentsTemplate(result));
+	//});
+};
 
 function highlightCaller(on) {
 	//if (on==1) $(CM2.caller()).css('background-color','pink');
@@ -124,23 +131,73 @@ function selectFolder(e) {
     alert(folder[0]);
 };
 
+//Global variable reserved for Context Menu for Section 2, 3 & 4.  Initialized later
+var CM$; 
+var commentsTemplate;
+var cpnum=getCookie("cpnum");
+var csvrnum=getCookie("csvrnum");
+if (csvrnum==null){csvrnum=setCookie("csvrnum", "SVR-001", "30");}
+var commentsEntry={
+	itemno:"1", 
+	pnum:cpnum, 
+	svrnum:csvrnum, 
+	comment:"New comment",
+	refs:"--"
+};
 
+var SQLdeleteComments=function(rowid){
+	var sql= "DELETE FROM comments WHERE rowid="+rowid;
+	
+	
+	console.log("SQL...", sql);
+	return sql;
+};
+
+var SQLselectComments=function(pnum, svrnum){
+	var sql= "SELECT rowid, * FROM comments WHERE pnum='"+pnum+
+	"' AND svrnum='"+svrnum+
+	"' ORDER BY CAST (itemno AS INTEGER) ASC";
+	return sql;
+};
+
+var SQLinsertComments=function (row){
+	var keys=Object.keys(row); //array of keys
+	var vals=keys.map( function(k){return ("'"+row[k]+"'");} ); //array of quoted values
+	var sql="INSERT INTO comments ( " + keys.join(", ") + " ) VALUES ( "+vals.join(", ")+" )";
+	//console.log("SQL:", a1);
+	return sql;
+};
+
+var SQLupdateComments=function (row, rowid){
+	var keys=Object.keys(row); //array of keys
+	var vals=keys.map( function(k){return ("'"+row[k]+"'");} ); //array of quoted values
+	var sql="UPDATE comments ( " + keys.join(", ") +
+	" ) VALUES ( "+vals.join(", ")+
+	" ) WHERE rowid="+rowid;
+	console.log("SQL:", sql);
+	return sql;
+};
+
+//READY
 $(function() { 
-
-	//requirejs(['handlebars-v4.0.10', 'soup'], function(Handlebars, soup){ //Handlebars undefined error
 
 	//initialize context menu...
 	CM$=$("#commentsMenu").menu().css("position","absolute", "width", "200px").hide();
 
 	// Setup Handlebars
-	Handlebars.registerHelper("indexPlusOne", function(index, content){return Number(index)+1;});
+	Handlebars.registerHelper("plusOne", function(obj){return Number(obj.data.index)+1;});
 
-	// get template html then Compile it to a function, commentsTemplate is global
+	// get template html then compile it to a template-function, commentsTemplate is global
 	commentsTemplate = Handlebars.compile($("#comments-template").html());
-	commentsRefresh();
-	//soup.cell('[soup-cell]');
-	
-}); //ready
+
+	if (typeof cpnum == "undefined")
+		{alert("Please specify a project number under Welcome tab.");}
+	else {
+		database(SQLselectComments(cpnum, csvrnum), 
+			function(result){$('#comments-placeholder').html(commentsTemplate(result));}
+		);
+	}
+}); //READY
 
 
 
@@ -156,42 +213,56 @@ $(function() {
 <!-- TEMPLATES               -->
 <template id='comments-template' type="text/x-handlebars-template">
 
-	{{#each comments}}
-	<div class='row marz'
-			indexx={{@index}}
-			onmouseenter='$(this).css("background-color","pink")'
-			onmouseleave='$(this).css("background-color","white")'
-			oncontextmenu='showMenu(CM$, event)'>
-		<p id='itemNo'  indexx={{@index}} class='col-xs-1 itemNo col-first marz'>
-		{{#indexPlusOne @index}}{{/indexPlusOne}}
-		</p>
-		<p id='comment' indexx={{@index}} class='col-xs-10 comment-cell marz'>{{msg}}</p>
-		<p id='picNo' indexx={{@index}} class='col-xs-1 picNo marz'>{{picRef}}</p>
+	{{#each rows}}
+	<div class='row marz '
+		id=commentrow{{rowid}}
+		indexx={{itemno}} 
+		rowid={{rowid}}
+		onmouseenter='$(this).css("background-color","pink")'
+		onmouseleave='$(this).css("background-color","white")'
+		oncontextmenu='showMenu(CM$, event)'>
+	<p type='text' id='itemno' 
+		indexx={{itemno}}
+		rowid={{rowid}}
+		class='col-xs-1 col-first marz'>2.{{itemno}}</p>
+	<input type='text' 
+		id='comment' 
+		indexx={{itemno}}
+		rowid={{rowid}}
+		class="col-xs-10 marz" 
+		value={{comment}}
+		onclick="autoHeight(this)" 
+		onkeyup="autoHeight(this)"	>
+	<input type='text'
+		id='refs' 
+		indexx={{itemno}}
+		rowid={{rowid}}
+		class='col-xs-1 marz' 
+		value={{rowid}} >
 	</div>
 	{{/each}}
+
 	
 </template>
-
+<!-- p id='itemNo' indexx={{@index}} class='col-xs-1 itemNo col-first marz'>
+{{#indexPlusOne @index}}{{/indexPlusOne}} 
+</p -->
 
 <!-- MENUS               -->
 <div id='commentsMenu' onmouseleave='CM$.hide()' style='display:none'>
-	<p onclick='commentsInsert(0, commentsData)'>Insert before</p>
-	<p onclick='commentsInsert(1, commentsData)'>Insert after</p>
-	<hr>
-	<p onclick='console.log("Move up");$("#rowOptions").hide();'>Move up</p>
+	<!--p onclick='commentsInsert(0)'>Insert before</p-->
+	<p onclick='commentsInsert(1)'>Insert after</p>
+	<p onclick='commentsDelete()'>Delete</p>
+	<!-- p onclick='console.log("Move up");$("#rowOptions").hide();'>Move up</p>
 	<p onclick='console.log("Move dn");$("#rowOptions").hide();'>Move dn</p>
-	<hr>
 	<p onclick='commentsDelete(event);'>Delete</p>
-	<hr>
 	<p onclick='console.log("hide");'>Hide</p>
 	<p onclick='console.log("show");'>Show hidden</p>
-	<hr>
-	<p onclick='testInsert();'>Test insert</p>
-	<hr>
+	<p onclick='testInsert();'>Test insert</p   -->
 	<p onclick='CM$.hide()'>Exit</p>
 </div>
 
-<!-- PAGE STARTS HERE        -->
+<!-- PAGE STARTS HERE -->
 
 <div class='container'>
 	<img src='./images/private/logo.png' style='width:100px; float:left;'>
@@ -200,41 +271,41 @@ $(function() {
 
 	<div class='row row__'>
 		<strong class='col-xs-2'>Report No:</strong>
-		<p id='docName' class='col-xs-4'>CCW1A-FRR-A001</p>
+		<p id='docName' class='col-xs-4'>SVR-A01</p>
 		<strong class='col-xs-2'>Permit No:</strong>
-		<p id='permitNo' class='col-xs-4 soup-cell'>16 143485 BLD 00 BA</p>
+		<p id='permitNo' class='col-xs-4 soup-cell'>16 xxxxxx BLD 00 BA</p>
 	</div>
 
 	<div class='row row_'>
 		<strong class='col-xs-2'>Project:</strong>
-		<p class='col-xs-4'>St. Michaels Redevelopment Cardinal Carter Wing 1A CCW1A</p>
+		<p class='col-xs-4'>Some Street Building Redevelopment</p>
 		<strong class='col-xs-2'>Date of Visit:</strong>
 		<p id='visitDate' class='col-xs-4 soup-cell'>June 15 &amp; 17, 2016</p>
 	</div>
 	
 	<div class='row row_'>
 		<strong class='col-xs-2'>Project No.:</strong>
-		<p class='col-xs-4'>ECBL16-0053</p>
+		<p class='col-xs-4'>BLDG-0001</p>
 		<strong class='col-xs-2'>Time of Visit:</strong>
 		<p id='visitTime' class='col-xs-4 soup-cell'>4pm to 6pm</p>
 	</div>
 				
 	<div class='row row_'>
 		<strong class='col-xs-2'>Project Location:</strong>
-		<p class='col-xs-4'>30 Bond Street, Totonto, On, M5B 1W8</p>
+		<p class='col-xs-4'>123 Some Street, City, Prov, M5B 1W8</p>
 		<strong class='col-xs-2'>Reviewer:</strong>
 		<p id='reviewerName' class='col-xs-4 soup-cell'>Andrew Siddeley</p>
 	</div>
 
 	<div class='row row_'>
 		<strong class='col-xs-2'>Contractor:</strong>
-		<p class='col-xs-4'>BCCL</p>
+		<p class='col-xs-4'>GC</p>
 		<strong class='col-xs-2'>Date of Report:</strong>
 		<p id='reportDate' class='col-xs-4 soup-cell'>Jun 17, 2016</p>
 	</div>
 	
 	<div class='row row_'>
-		<p id='generalStatement' class='col-xs-12' >This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by NORR Limited.  Refer also to Mechanical and Electrical field reports issued separately.  
+		<p id='generalStatement' class='col-xs-12' >This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by this firm.  Refer also to Mechanical and Electrical field reports issued separately.  
 		</p>
 	</div>	
 
@@ -252,10 +323,14 @@ $(function() {
 		<p class='col-xs-1 marz'>--</p>
 	</div>
 
-	<div class='row marz'>
-		<h3 class='col-xs-1 col-first marz'>2.0</h3>
-		<h3 class='col-xs-10 marz'>Observatons and Comments</h3>
-		<h3 class='col-xs-1 marz'>Pic.</h3>
+	<div class='row marz' 
+		indexx=0
+		onmouseenter='$(this).css("background-color","pink")'
+		onmouseleave='$(this).css("background-color","white")'
+		oncontextmenu='showMenu(CM$, event)' >
+		<h3 class='col-xs-1 col-first marz' indexx=0>2.0</h3>
+		<h3 class='col-xs-10 marz' indexx=0>Observatons and Comments</h3>
+		<h3 class='col-xs-1 marz' indexx=0>Pic.</h3>
 	</div>
 	
 	<!-- Placeholder for comments -->
