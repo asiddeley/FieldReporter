@@ -32,6 +32,8 @@ p, h2, h3, strong {font-family:'segoe';}
 
 <script type='text/javascript'>
 
+
+
 function commentsDelete(){
 
 	//get row that called the menu, caller is set by showMenu() 
@@ -39,34 +41,34 @@ function commentsDelete(){
 	
 	//index of that was clicked
 	var rowid=$(caller).attr("rowid");
-
+	console.log("Delete rowid",rowid);	
+	
 	//index of that was clicked
 	var index=parseInt($(caller).attr("indexx"));
 	
-	//ignore delete from header row
-	if (index==0) {return;}
-	
-	//grand send off
-	$("#commentrow"+rowid).css('background','gold').hide(500);
-	
-	//delete from database
-	database(SQLdeleteComments(rowid)
-		//, function(changes, next){
-		//	alert("callback changes"+JSON.stringify(changes));
-		//	next();
-		//}
-	);
+	//exit early if delete made from header row or problem with rowid
+	if (index==0 || typeof rowid=="undefined") {return;}
 
-	//update order column for remaining rows
-	var u1="UPDATE comments SET itemno=itemno-1 "+
-	"WHERE pnum='"+cpnum+"' AND svrnum='"+csvrnum+"' AND CAST (itemno AS INTEGER) > "+index;
-	database(u1);
+	//grand send off and removal 
+	$("#commentrow"+rowid).css('background','gold').hide(500);
+
+	//delete from database
+	database(SQLdeleteComments(rowid));
 
 	//refresh comments
 	database(SQLselectComments(cpnum, csvrnum),	function(result){
-		$('#comments-placeholder').html(commentsTemplate(result));
+		if (result.rows.length < commentsCount){
+			//DELETE actually removed a row so update order column for remaining rows
+			var u1="UPDATE comments SET itemno=itemno-1 "+
+			"WHERE pnum='"+cpnum+"' AND svrnum='"+csvrnum+"' AND CAST (itemno AS INTEGER) > "+index;
+			database(u1);
+			database(SQLselectComments(cpnum, csvrnum, function(result){
+				$('#comments-placeholder').html(commentsTemplate(result));
+			}));
+		}
+		
 	});
-	
+
 };
 
 function commentsInsert(){
@@ -82,18 +84,20 @@ function commentsInsert(){
 	"WHERE pnum='"+cpnum+"' AND svrnum='"+csvrnum+"' AND CAST (itemno AS INTEGER) > "+index;
 	database(u1);
 	
-	//Add newbie...
-	var newrow=$.extend({}, commentsEntry, {itemno:(Number(index)+1), comment:"new comment, follows..."+index}); //substitute itemno 
+	//Add newbie... Substitute itemno 
+	var newrow=$.extend({}, commentsEntry, {itemno:(Number(index)+1), comment:"new comment, follows..."+index}); 
 	database(SQLinsertComments(newrow));
 
 	database(SQLselectComments(cpnum, csvrnum),	function(result){
+		//console.log("SQL Result...", result);
 		$('#comments-placeholder').html(commentsTemplate(result));
 		//grand reveal for the new row
-		$('#comments-placeholder').children('[indexx="'+(index+1)+'"]').css('background','gold').hide().show(500);
+		$('#comments-placeholder').children('[indexx="'+(index+1)+'"]').css('background','tan').hide().show(500);
 	});
 	
 	CM$.hide();
 };
+
 
 function commentsUpdate(){
 
@@ -110,6 +114,7 @@ function commentsUpdate(){
 	//	$('#comments-placeholder').html(commentsTemplate(result));
 	//});
 };
+
 
 function highlightCaller(on) {
 	//if (on==1) $(CM2.caller()).css('background-color','pink');
@@ -133,6 +138,7 @@ function selectFolder(e) {
 
 //Global variable reserved for Context Menu for Section 2, 3 & 4.  Initialized later
 var CM$; 
+var commentsCount=0;
 var commentsTemplate;
 var cpnum=getCookie("cpnum");
 var csvrnum=getCookie("csvrnum");
@@ -147,9 +153,7 @@ var commentsEntry={
 
 var SQLdeleteComments=function(rowid){
 	var sql= "DELETE FROM comments WHERE rowid="+rowid;
-	
-	
-	console.log("SQL...", sql);
+	//console.log("SQL...", sql);
 	return sql;
 };
 
@@ -190,12 +194,12 @@ $(function() {
 	// get template html then compile it to a template-function, commentsTemplate is global
 	commentsTemplate = Handlebars.compile($("#comments-template").html());
 
-	if (typeof cpnum == "undefined")
-		{alert("Please specify a project number under Welcome tab.");}
+	if (typeof cpnum == "undefined") {alert("Please specify a project number under Welcome tab.");}
 	else {
-		database(SQLselectComments(cpnum, csvrnum), 
-			function(result){$('#comments-placeholder').html(commentsTemplate(result));}
-		);
+		database(SQLselectComments(cpnum, csvrnum),	function(result){
+			commentsCount=result.rows.length;
+			$('#comments-placeholder').html(commentsTemplate(result));
+		});
 	}
 }); //READY
 

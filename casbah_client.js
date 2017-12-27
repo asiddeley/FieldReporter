@@ -59,21 +59,13 @@ const autoForm=function(div$, params){
 
 function autoHeight(el) {$(el).css('height', 'auto').css('height', el.scrollHeight + 5);}
 
-function database(sql, dbcallback){
-		
-	if (typeof dbcallback=="undefined"){
-		dbcallback=function(args, next){
-			console.log(args);
-			next();
-		}
-	};
-
+function database(sql, callback){
 	$.ajax({
 		url: '/formHandler',
 		type: 'POST',
-		data: jQuery.param({SQL:sql, dbcallback:dbcallback}),
+		data: jQuery.param({SQL:sql}),
 		contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-		success:function(){/*console.log("ajax success");*/},
+		success:callback,
 		error:function(err){/*console.log("ajax error",err);*/}
 	});	
 };
