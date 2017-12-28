@@ -61,7 +61,8 @@ function autoHeight(el) {$(el).css('height', 'auto').css('height', el.scrollHeig
 
 function database(sql, callback){
 	$.ajax({
-		url: '/formHandler',
+		//url: '/formHandler',
+		url: '/database',
 		type: 'POST',
 		data: jQuery.param({SQL:sql}),
 		contentType: 'application/x-www-form-urlencoded; charset=UTF-8',

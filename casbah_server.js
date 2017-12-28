@@ -116,6 +116,28 @@ app.post('/formHandler', function (req, res) {
 
 })
 
+app.post('/database', function (req, res) {
+
+	const rows=[]	
+	sqlcount+=1	
+	let msg="SQL#"+sqlcount.toString()
+	const sql=req.body.SQL
+	//console.log("SQLs to process...", sqls.length)
+	
+	//console.log("SQLs...", sqls);
+	try {
+		db.serialize( function () {
+			db.all(sql_params(sql,	req.body), function(err, rows){
+				var stat=(err==null)?" - db all ok":"db run error - "+err
+				console.log(msg + stat)
+				res.json({msg:msg+stat, rows:rows})
+			})		
+		})
+	} 
+	catch(err) {console.log("SQLITE ERROR...", err)}
+
+})
+
 
 //start serving
 app.listen(8080, function () {console.log('CASBAR server listening on port 8080!')});

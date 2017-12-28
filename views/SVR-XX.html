@@ -18,6 +18,12 @@ select {width: 200px; }
 
 p, h2, h3, strong {font-family:'segoe';}
 
+textarea {
+font-family:'segoe';
+background-color:silver;
+}
+
+
 .pocket {
 	margin:5px;
 	padding:5px;
@@ -33,7 +39,6 @@ p, h2, h3, strong {font-family:'segoe';}
 <script type='text/javascript'>
 
 
-
 function commentsDelete(){
 
 	//get row that called the menu, caller is set by showMenu() 
@@ -41,32 +46,32 @@ function commentsDelete(){
 	
 	//index of that was clicked
 	var rowid=$(caller).attr("rowid");
-	console.log("Delete rowid",rowid);	
+	//console.log("Delete rowid",rowid);	
 	
 	//index of that was clicked
-	var index=parseInt($(caller).attr("indexx"));
+	var index=parseInt($(caller).attr("rank"));
 	
 	//exit early if delete made from header row or problem with rowid
 	if (index==0 || typeof rowid=="undefined") {return;}
-
-	//grand send off and removal 
-	$("#commentrow"+rowid).css('background','gold').hide(500);
 
 	//delete from database
 	database(SQLdeleteComments(rowid));
 
 	//refresh comments
 	database(SQLselectComments(cpnum, csvrnum),	function(result){
-		if (result.rows.length < commentsCount){
-			//DELETE actually removed a row so update order column for remaining rows
-			var u1="UPDATE comments SET itemno=itemno-1 "+
-			"WHERE pnum='"+cpnum+"' AND svrnum='"+csvrnum+"' AND CAST (itemno AS INTEGER) > "+index;
-			database(u1);
-			database(SQLselectComments(cpnum, csvrnum, function(result){
-				$('#comments-placeholder').html(commentsTemplate(result));
-			}));
-		}
+		//console.log("delete refresh result < CC... ", result.rows.length, commentsCount, (typeof rowid), rowid);
 		
+		//test if DELETE actually removed a row then update rank column for remaining rows
+		if (result.rows.length < commentsCount){
+			//console.log("# selected for deletion..." ,$("#commentsRow"+rowid).length);
+			//grand send off and removal 
+			$("#commentsRow"+rowid).css('background','tan').hide(500, function(){
+				var u1="UPDATE comments SET itemno=itemno-1 "+
+				"WHERE pnum='"+cpnum+"' AND svrnum='"+csvrnum+"' AND CAST (itemno AS INTEGER) > "+index;
+				database(u1);
+				commentsRender();
+			});
+		}
 	});
 
 };
@@ -77,7 +82,7 @@ function commentsInsert(){
 	var caller=CM$.menu("option", 'caller'); 
 	
 	//index of that was clicked
-	var index=parseInt($(caller).attr("indexx"));
+	var index=parseInt($(caller).attr("rank"));
 	
 	//Make way for newbie...
 	var u1="UPDATE comments SET itemno=itemno+1 "+
@@ -85,19 +90,29 @@ function commentsInsert(){
 	database(u1);
 	
 	//Add newbie... Substitute itemno 
-	var newrow=$.extend({}, commentsEntry, {itemno:(Number(index)+1), comment:"new comment, follows..."+index}); 
+	var newrow=$.extend({}, commentsEntry, {itemno:(Number(index)+1), comment:"new comment"}); 
 	database(SQLinsertComments(newrow));
 
-	database(SQLselectComments(cpnum, csvrnum),	function(result){
-		//console.log("SQL Result...", result);
-		$('#comments-placeholder').html(commentsTemplate(result));
-		//grand reveal for the new row
-		$('#comments-placeholder').children('[indexx="'+(index+1)+'"]').css('background','tan').hide().show(500);
+	commentsRender(function(){
+		//grand reveal for the new row 
+		$('#comments-placeholder').children('[rank="'+(index+1)+'"]').css('background','tan').hide().show(500);
 	});
-	
+
 	CM$.hide();
 };
 
+function commentsRender(posteffect){
+
+	if (typeof cpnum == "undefined") {alert("Please specify a project number under Welcome tab.");}
+	else {
+		database(SQLselectComments(cpnum, csvrnum),	function(result){
+			//commentsCount is a global variable thats used to determine whether delete operations are successfull 
+			commentsCount=result.rows.length;
+			$('#comments-placeholder').html(commentsTemplate(result));
+			try {posteffect();} catch(err){ }
+		});
+	}	
+}
 
 function commentsUpdate(){
 
@@ -121,8 +136,13 @@ function highlightCaller(on) {
 	//else $(CM2.caller()).css('background-color','white');
 };
 
-function showMenu(cm$, ev){
-	cm$.zIndex(1000);
+function highlite(that){
+	$(".highlite").css("background-color","white");
+	$(that).css("background-color","skyblue");
+}
+
+function showMenu(cm$, ev){	
+	texteditor(); //call texteditor with no arguments to turn it off in case its on
 	cm$.show().position({my:'left top',	at:'left bottom', of:ev});
 	//remember caller, that is the <div> or <p> element that launched the contextMenu
 	cm$.menu('option', 'caller', ev.target);
@@ -136,20 +156,6 @@ function selectFolder(e) {
     alert(folder[0]);
 };
 
-//Global variable reserved for Context Menu for Section 2, 3 & 4.  Initialized later
-var CM$; 
-var commentsCount=0;
-var commentsTemplate;
-var cpnum=getCookie("cpnum");
-var csvrnum=getCookie("csvrnum");
-if (csvrnum==null){csvrnum=setCookie("csvrnum", "SVR-001", "30");}
-var commentsEntry={
-	itemno:"1", 
-	pnum:cpnum, 
-	svrnum:csvrnum, 
-	comment:"New comment",
-	refs:"--"
-};
 
 var SQLdeleteComments=function(rowid){
 	var sql= "DELETE FROM comments WHERE rowid="+rowid;
@@ -182,25 +188,87 @@ var SQLupdateComments=function (row, rowid){
 	return sql;
 };
 
+//var texteditorCount=0;
+
+function texteditorFit(){
+	console.log("texteditor Fit");
+	var x$=$("#texteditor");
+	var e$=$("[edit-in-progress=1]"); //attribute selector 
+	//fit textarea to element	
+	x$.width(e$.width());
+	x$.css("height","auto");
+	x$.css("padding-left", e$.css("padding-left"));
+	if (x$[0].scrollHeight > 0) {x$.css("height", x$[0].scrollHeight);}
+	//element to match textarea height
+	e$.height(x$.height()+5);
+	//this needs to be done last per trial-and-error
+	x$.show().position({my:'left top', at:'left top', of:e$});
+};
+
+function texteditor(element){
+	//console.log("TEXT edit...", texteditorCount); texteditorCount+=1;
+	var x$=$("#texteditor");
+
+	//turn-off editor
+	if(typeof element=="undefined"){
+		//restore row height of previously accessed elements 
+		$(".texteditor").css("height","auto");
+		x$.hide();
+		$(window).off("resize", texteditorFit);
+		return;
+	}
+
+	//activate texteditor on element
+	var e$=$(element);
+	
+	//restore row height of previously accessed elements and unflag
+	$(".texteditor").css("height","auto");
+	//clear flags
+	$("[edit-in-progress]").attr("edit-in-progress",0);
+	//flag current element being edited
+	e$.attr("edit-in-progress", 1);
+	
+	//initialize various events...
+	//x$.off("click keyup resize", texteditorFit).on("click keyup resize", texteditorFit);
+	$(window).off("resize", texteditorFit).on("resize", texteditorFit);
+
+	x$.val( e$.text() );	
+	texteditorFit();	
+};
+
+//Global variable reserved for Context Menu for Section 2, 3 & 4.  Initialized later
+var CM$; 
+var commentsCount=0;
+var commentsTemplate;
+var cpnum=getCookie("cpnum");
+var csvrnum=getCookie("csvrnum");
+if (csvrnum==null){csvrnum=setCookie("csvrnum", "SVR-001", "30");}
+var commentsEntry={
+	itemno:"1", 
+	pnum:cpnum, 
+	svrnum:csvrnum, 
+	comment:"New comment",
+	refs:"--"
+};
+
+
 //READY
 $(function() { 
 
 	//initialize context menu...
 	CM$=$("#commentsMenu").menu().css("position","absolute", "width", "200px").hide();
+	//initialize various events...
+	$("#texteditor").on("click keyup resize", texteditorFit);
 
 	// Setup Handlebars
-	Handlebars.registerHelper("plusOne", function(obj){return Number(obj.data.index)+1;});
+	// handlebars.registerHelper("plusOne", function(obj){return Number(obj.data.index)+1;});
 
 	// get template html then compile it to a template-function, commentsTemplate is global
 	commentsTemplate = Handlebars.compile($("#comments-template").html());
+	commentsRender();
 
-	if (typeof cpnum == "undefined") {alert("Please specify a project number under Welcome tab.");}
-	else {
-		database(SQLselectComments(cpnum, csvrnum),	function(result){
-			commentsCount=result.rows.length;
-			$('#comments-placeholder').html(commentsTemplate(result));
-		});
-	}
+	
+
 }); //READY
 
 
@@ -218,53 +286,42 @@ $(function() {
 <template id='comments-template' type="text/x-handlebars-template">
 
 	{{#each rows}}
-	<div class='row marz '
-		id=commentrow{{rowid}}
-		indexx={{itemno}} 
+	<div class="row marz highlite"
+		id="commentsRow{{rowid}}"
+		rank={{itemno}} 
 		rowid={{rowid}}
-		onmouseenter='$(this).css("background-color","pink")'
-		onmouseleave='$(this).css("background-color","white")'
+		onmouseenter='highlite(this)'
 		oncontextmenu='showMenu(CM$, event)'>
-	<p type='text' id='itemno' 
-		indexx={{itemno}}
+	<p 	rank={{itemno}}
 		rowid={{rowid}}
 		class='col-xs-1 col-first marz'>2.{{itemno}}</p>
-	<input type='text' 
-		id='comment' 
-		indexx={{itemno}}
+	<p 	rank={{itemno}}
 		rowid={{rowid}}
-		class="col-xs-10 marz" 
-		value={{comment}}
-		onclick="autoHeight(this)" 
-		onkeyup="autoHeight(this)"	>
-	<input type='text'
-		id='refs' 
-		indexx={{itemno}}
+		onclick="texteditor(this)"
+		class="col-xs-10 marz texteditor">{{comment}}</p>	
+	<p 	rank={{itemno}}
 		rowid={{rowid}}
-		class='col-xs-1 marz' 
-		value={{rowid}} >
+		class='col-xs-1 marz'>{{rowid}}</p>	
 	</div>
-	{{/each}}
-
-	
+	{{/each}}	
 </template>
+
 <!-- p id='itemNo' indexx={{@index}} class='col-xs-1 itemNo col-first marz'>
 {{#indexPlusOne @index}}{{/indexPlusOne}} 
 </p -->
 
-<!-- MENUS               -->
-<div id='commentsMenu' onmouseleave='CM$.hide()' style='display:none'>
+<!-- MENUS -->
+<div id="commentsMenu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
 	<!--p onclick='commentsInsert(0)'>Insert before</p-->
-	<p onclick='commentsInsert(1)'>Insert after</p>
-	<p onclick='commentsDelete()'>Delete</p>
+	<p onclick="commentsInsert()">Add new comment</p>
+	<p onclick="commentsDelete()">Delete</p>
 	<!-- p onclick='console.log("Move up");$("#rowOptions").hide();'>Move up</p>
-	<p onclick='console.log("Move dn");$("#rowOptions").hide();'>Move dn</p>
-	<p onclick='commentsDelete(event);'>Delete</p>
-	<p onclick='console.log("hide");'>Hide</p>
-	<p onclick='console.log("show");'>Show hidden</p>
-	<p onclick='testInsert();'>Test insert</p   -->
+	<p onclick='console.log("Move dn");$("#rowOptions").hide();'>Move dn</p 
+	-->
 	<p onclick='CM$.hide()'>Exit</p>
 </div>
+
+<textarea id="texteditor" style="display:none; z-index:999" ></textarea>
 
 <!-- PAGE STARTS HERE -->
 
@@ -327,21 +384,19 @@ $(function() {
 		<p class='col-xs-1 marz'>--</p>
 	</div>
 
-	<div class='row marz' 
-		indexx=0
-		onmouseenter='$(this).css("background-color","pink")'
-		onmouseleave='$(this).css("background-color","white")'
+	<div class='row marz highlite' rank=0
+		onmouseenter='highlite(this)'
 		oncontextmenu='showMenu(CM$, event)' >
-		<h3 class='col-xs-1 col-first marz' indexx=0>2.0</h3>
-		<h3 class='col-xs-10 marz' indexx=0>Observatons and Comments</h3>
-		<h3 class='col-xs-1 marz' indexx=0>Pic.</h3>
+		<h3 class='col-xs-1 col-first marz' rank=0>2.0</h3>
+		<h3 class='col-xs-10 marz' rank=0>Observatons and Comments</h3>
+		<h3 class='col-xs-1 marz' rank=0>Pic.</h3>
 	</div>
 	
 	<!-- Placeholder for comments -->
 	<div id='comments-placeholder' class='marz'></div>
 
 
-	<div class='row marz'>
+	<div class='row marz highlite' onmouseenter='highlite(this)'>
 		<h3 class='col-xs-1 col-first marz'>3.0</h3>
 		<h3 class='col-xs-10 marz'>Issues Resolved</h3>
 		<h3 class='col-xs-1 marz'>Ref</h3>
@@ -349,9 +404,8 @@ $(function() {
 	
 
 	<div id='resolved' class='soup-foreach marz' soup-foreach='[1]'  >
-		<div class='row marz' 
-			onmouseenter='$(this).css("background-color","pink")'
-			onmouseleave='$(this).css("background-color","white")'
+		<div class='row marz highlite' 
+			onmouseenter='highlite()'
 			oncontextmenu='showMenu(CM2, event)'
 		>
 		<p id='itemNo' class='col-xs-1 col-first itemNo marz' soup-action='$(this.child).text(this.child.foreachIndex1);'>99</p>
