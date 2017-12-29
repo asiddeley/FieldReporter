@@ -10,9 +10,8 @@ fieldset {border: 0;}
 label {display: block;  margin: 30px 0 0 0; }
 select {width: 200px; }
 .overflow {height:200px;}
-.left-border {border-left:2px solid #000;}
+.border-left {border-left:2px solid #000;}
 .marz{margin-top:0px; margin-bottom:0px;}
-.col-first{border-right:2px solid #000;}
 .row_{border-bottom:1px solid #aaa;}
 .row__{border-top:2px solid #000; border-bottom:1px solid #aaa;} 
 
@@ -98,7 +97,6 @@ function commentsInsert(){
 		$('#comments-placeholder').children('[rank="'+(index+1)+'"]').css('background','tan').hide().show(500);
 	});
 
-	CM$.hide();
 };
 
 function commentsRender(posteffect){
@@ -114,20 +112,24 @@ function commentsRender(posteffect){
 	}	
 }
 
-function commentsUpdate(){
+function commentsUpdate(ev){
 
-	//get row that called the menu, caller is set by showMenu() 
-	var caller=CM$.menu("option", 'caller'); 
+	var x$=$(ev.data.texteditor);
+	//x$=$("#texteditor");
+	//alert(x$.val());
 	
-	//index of that was clicked
-	var rowid=$(caller).attr("rowid");
+	var valu=x$.val();
+	var rowid=x$.attr("rowid");
+	var field=x$.attr("field");
+	var SQL="UPDATE comments SET " + field + "='"+ valu +"' WHERE rowid="+rowid;
 	
-	//database(SQLupdateComments(row, rowid), function(r){console.log(r);});
+	//console.log("SQL...", SQL);
+	database(SQL, function(r){console.log(r);});
 	
-	////refresh comments
-	//database(SQLselectComments(cpnum, csvrnum),	function(result){
-	//	$('#comments-placeholder').html(commentsTemplate(result));
-	//});
+	//done so hide texteditor
+	texteditor();
+	
+	commentsRender();
 };
 
 
@@ -188,53 +190,6 @@ var SQLupdateComments=function (row, rowid){
 	return sql;
 };
 
-//var texteditorCount=0;
-
-function texteditorFit(){
-	console.log("texteditor Fit");
-	var x$=$("#texteditor");
-	var e$=$("[edit-in-progress=1]"); //attribute selector 
-	//fit textarea to element	
-	x$.width(e$.width());
-	x$.css("height","auto");
-	x$.css("padding-left", e$.css("padding-left"));
-	if (x$[0].scrollHeight > 0) {x$.css("height", x$[0].scrollHeight);}
-	//element to match textarea height
-	e$.height(x$.height()+5);
-	//this needs to be done last per trial-and-error
-	x$.show().position({my:'left top', at:'left top', of:e$});
-};
-
-function texteditor(element){
-	//console.log("TEXT edit...", texteditorCount); texteditorCount+=1;
-	var x$=$("#texteditor");
-
-	//turn-off editor
-	if(typeof element=="undefined"){
-		//restore row height of previously accessed elements 
-		$(".texteditor").css("height","auto");
-		x$.hide();
-		$(window).off("resize", texteditorFit);
-		return;
-	}
-
-	//activate texteditor on element
-	var e$=$(element);
-	
-	//restore row height of previously accessed elements and unflag
-	$(".texteditor").css("height","auto");
-	//clear flags
-	$("[edit-in-progress]").attr("edit-in-progress",0);
-	//flag current element being edited
-	e$.attr("edit-in-progress", 1);
-	
-	//initialize various events...
-	//x$.off("click keyup resize", texteditorFit).on("click keyup resize", texteditorFit);
-	$(window).off("resize", texteditorFit).on("resize", texteditorFit);
-
-	x$.val( e$.text() );	
-	texteditorFit();	
-};
 
 //Global variable reserved for Context Menu for Section 2, 3 & 4.  Initialized later
 var CM$; 
@@ -252,22 +207,19 @@ var commentsEntry={
 };
 
 
+
 //READY
 $(function() { 
 
 	//initialize context menu...
 	CM$=$("#commentsMenu").menu().css("position","absolute", "width", "200px").hide();
-	//initialize various events...
-	$("#texteditor").on("click keyup resize", texteditorFit);
 
 	// Setup Handlebars
-	// handlebars.registerHelper("plusOne", function(obj){return Number(obj.data.index)+1;});
+	Handlebars.registerHelper("plusOne", function(obj){return Number(obj.data.index)+1;});
 
 	// get template html then compile it to a template-function, commentsTemplate is global
 	commentsTemplate = Handlebars.compile($("#comments-template").html());
 	commentsRender();
-
-	
 
 }); //READY
 
@@ -294,11 +246,14 @@ $(function() {
 		oncontextmenu='showMenu(CM$, event)'>
 	<p 	rank={{itemno}}
 		rowid={{rowid}}
-		class='col-xs-1 col-first marz'>2.{{itemno}}</p>
+		class='col-xs-1 marz'
+		style="height:100%;">2.{{itemno}}</p>
 	<p 	rank={{itemno}}
+		table="comments"
+		field="comment"
 		rowid={{rowid}}
-		onclick="texteditor(this)"
-		class="col-xs-10 marz texteditor">{{comment}}</p>	
+		onclick="texteditor(this, commentsUpdate)"
+		class="col-xs-10 border-left marz">{{comment}}</p>	
 	<p 	rank={{itemno}}
 		rowid={{rowid}}
 		class='col-xs-1 marz'>{{rowid}}</p>	
@@ -306,22 +261,54 @@ $(function() {
 	{{/each}}	
 </template>
 
-<!-- p id='itemNo' indexx={{@index}} class='col-xs-1 itemNo col-first marz'>
-{{#indexPlusOne @index}}{{/indexPlusOne}} 
-</p -->
+<template id='issues-template' type="text/x-handlebars-template">
+	{{#each rows}}
+	<div class="row marz highlite"
+		id="issuesClosedRow{{rowid}}"
+		rank={{#indexPlusOne @index}}{{/indexPlusOne}}  
+		rowid={{rowid}}
+		onmouseenter='highlite(this)'
+		oncontextmenu='showMenu(IM$, event)'>
+	<p 	rank={{#indexPlusOne @index}}{{/indexPlusOne}}
+		rowid={{rowid}}
+		class='col-xs-1 marz'
+		style="height:100%;">3.{{#indexPlusOne @index}}{{/indexPlusOne}}</p>
+	<p 	rank={{#indexPlusOne @index}}{{/indexPlusOne}}
+		table="issues"
+		field="descrption"
+		rowid={{rowid}}
+		onclick="texteditor(this, function(){issues.update(); texteditor();})"
+		class="col-xs-10 border-left marz">{{description}}</p>	
+	<p 	rank={{#indexPlusOne @index}}{{/indexPlusOne}}
+		rowid={{rowid}}
+		class='col-xs-1 marz'>{{rowid}}</p>	
+	</div>
+	{{/each}}	
+</template>
+
 
 <!-- MENUS -->
 <div id="commentsMenu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
-	<!--p onclick='commentsInsert(0)'>Insert before</p-->
-	<p onclick="commentsInsert()">Add new comment</p>
+	<p onclick="commentsInsert();CM$.hide();">Insert</p>
 	<p onclick="commentsDelete()">Delete</p>
-	<!-- p onclick='console.log("Move up");$("#rowOptions").hide();'>Move up</p>
-	<p onclick='console.log("Move dn");$("#rowOptions").hide();'>Move dn</p 
-	-->
+	<p onclick='console.log("Move up");'>Move up</p>
+	<p onclick='console.log("Move dn");'>Move dn</p 
 	<p onclick='CM$.hide()'>Exit</p>
+	<p onclick='alert(function(){return "hello world";}())'>Test</p>
 </div>
 
-<textarea id="texteditor" style="display:none; z-index:999" ></textarea>
+<div id="issuesClosedMenu" onmouseleave="ICM$.hide()" style="display:none; z-index:10000">
+	<p onclick="ic.insert()">Insert</p>
+	<p onclick="ic.remove()">Delete</p>
+	<p onclick='ICM$.hide()'>Exit</p>
+</div>
+
+<div id="issuesOpenMenu" onmouseleave="IOM$.hide()" style="display:none; z-index:10000">
+	<p onclick="io.insert()">Insert</p>
+	<p onclick="io.remove()">Delete</p>
+	<p onclick='IOM$.hide()'>Exit</p>
+</div>
+
 
 <!-- PAGE STARTS HERE -->
 
@@ -373,70 +360,56 @@ $(function() {
 	<br><br>
 
 	<div class='row marz'>
-		<h3 class='col-xs-1 col-first marz'>1.0</h3>
-		<h3 class='col-xs-10 marz'>General</h3>
+		<h3 class='col-xs-1 marz'>1.0</h3>
+		<h3 class='col-xs-10 border-left marz'>General</h3>
 		<h3 class='col-xs-1 marz'>Ref.</h3>
 	</div>
 	
 	<div class='row marz'>
-		<p class='col-xs-1 col-first marz'>1.1</p>
-		<p id='generalComment' class='col-xs-10 marz' >general comment</p>
+		<p class='col-xs-1 marz'>1.1</p>
+		<p id='generalComment' class='col-xs-10 border-left marz' >general comment</p>
 		<p class='col-xs-1 marz'>--</p>
 	</div>
 
 	<div class='row marz highlite' rank=0
 		onmouseenter='highlite(this)'
 		oncontextmenu='showMenu(CM$, event)' >
-		<h3 class='col-xs-1 col-first marz' rank=0>2.0</h3>
-		<h3 class='col-xs-10 marz' rank=0>Observatons and Comments</h3>
+		<h3 class='col-xs-1 marz' rank=0>2.0</h3>
+		<h3 class='col-xs-10 border-left marz' rank=0>Observatons and Comments</h3>
 		<h3 class='col-xs-1 marz' rank=0>Pic.</h3>
 	</div>
 	
-	<!-- Placeholder for comments -->
+	<!-- Placeholder -->
 	<div id='comments-placeholder' class='marz'></div>
 
-
 	<div class='row marz highlite' onmouseenter='highlite(this)'>
-		<h3 class='col-xs-1 col-first marz'>3.0</h3>
-		<h3 class='col-xs-10 marz'>Issues Resolved</h3>
+		<h3 class='col-xs-1 marz'>3.0</h3>
+		<h3 class='col-xs-10 border-left marz'>Issues Resolved</h3>
 		<h3 class='col-xs-1 marz'>Ref</h3>
 	</div>
-	
 
-	<div id='resolved' class='soup-foreach marz' soup-foreach='[1]'  >
-		<div class='row marz highlite' 
-			onmouseenter='highlite()'
-			oncontextmenu='showMenu(CM2, event)'
-		>
-		<p id='itemNo' class='col-xs-1 col-first itemNo marz' soup-action='$(this.child).text(this.child.foreachIndex1);'>99</p>
-		<p id='resolved' class='col-xs-10 comment marz' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>comment</p>
-		<p id='picNo' class='col-xs-1 picNo marz' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>pic</p>
-		</div>
-	</div>
+	<!-- Placeholder -->
+	<div id='issues-closed-placeholder' class='marz'></div>
 	
 	<div class='row marz'>
-		<h3 class='col-xs-1 col-first marz'>4.0</h3>
-		<h3 class='col-xs-10 marz'>Issues Outstanding</h3>
+		<h3 class='col-xs-1 marz'>4.0</h3>
+		<h3 class='col-xs-10 border-left marz'>Issues Outstanding</h3>
 		<h3 class='col-xs-1 marz'>Ref</h3>
 	</div>
-	<div id='outstanding' soup-foreach='[1]'  >
-		<div class='row marz'  soup-template='+1'
-			onmouseenter='$(this).css("background-color","pink")'
-			onmouseleave='$(this).css("background-color","white")'
-			oncontextmenu='showMenu(CM2, event)'
-		>
-		<p id='itemNo' class='col-xs-1 col-first itemNo marz' soup-action='$(this.child).text(this.child.foreachIndex1);'>99</p>
-		<p id='outstanding' class='col-xs-10 comment marz' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>comment</p>
-		<p id='picNo' class='col-xs-1 picNo marz' soup-action='soup.idfix(this.child, this.item).cell(this.child);'>pic</p>
-		</div>
-	</div>
+
+	<!-- Placeholder -->
+	<div id='issues-open-placeholder' class='marz'></div>
 
 	<div class='row marz'>
-		<h3 class='col-xs-1 col-first marz'>5.0</h3>
-		<h3 class='col-xs-10 marz'>Pictures</h3>
+		<h3 class='col-xs-1 marz'>5.0</h3>
+		<h3 class='col-xs-10 border-left marz'>Pictures</h3>
 		<h3 class='col-xs-1 marz'>Pic.</h3>
 	</div>
 	
+	<!-- Placeholder -->
+	<div id='pictures-placeholder' class='marz'></div>
+
+	<!--
 	<div id='pictures' class='marz' soup-foreach='[1, 2]'  >
 		<div 
 			class='row marz' 
@@ -462,7 +435,7 @@ $(function() {
 				>='Row:' + $(this.element).prop('foreachItem')</p>
 			</div>
 			
-			<div class='col-xs-4'>
+			<div class='col-xs-4 border-left'>
 				<div 
 					id='pocket_b'
 					class='pocket'
@@ -499,15 +472,11 @@ $(function() {
 		
 		</div>
 	</div>
-	<br>
-	<br>
-		
-	<br>
-	<br>
+
+	-->
+
+<br><br><br><br>
 </div>
-
-
 </body>
-
 </html>
 
