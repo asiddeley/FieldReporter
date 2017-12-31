@@ -51,7 +51,7 @@ const autoForm=function(div$, params){
 	var btn8=$("<button class='btn btn-info'>Last</button>");
 	bg1$.append(btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8);
 	form$.append(bg1$);
-	
+	return con$;
 }
 
 function database(sql, callback){
@@ -61,40 +61,52 @@ function database(sql, callback){
 		type: 'POST',
 		data: jQuery.param({SQL:sql}),
 		contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+		//callback(result)
 		success:callback,
 		error:function(err){/*console.log("ajax error",err);*/}
 	});	
 };
 
 
-function getCookie(cname) {
-	//console.log("getCookie...", cname);
-    var name = cname + "=";
-    var decodedCookie = decodeURIComponent(document.cookie);
-    var ca = decodedCookie.split(';');
-	//console.log("ca...", ca);	
-    for(var i = 0; i <ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') {
-            c = c.substring(1);
-        }
-        if (c.indexOf(name) == 0) {
-            return c.substring(name.length, c.length);
-        }
-    }
-    return null;
+function cookie(cname, cvalue, exdays) {
+	
+	if (typeof cvalue=="undefined"){
+		//GET COOKIE
+		//console.log("getCookie...", cname);
+		var name = cname + "=";
+		var decodedCookie = decodeURIComponent(document.cookie);
+		var ca = decodedCookie.split(';');
+		//console.log("ca...", ca);	
+		for(var i = 0; i <ca.length; i++) {
+			var c = ca[i];
+			while (c.charAt(0) == ' ') {
+				c = c.substring(1);
+			}
+			if (c.indexOf(name) == 0) {
+				return c.substring(name.length, c.length);
+			}
+		}
+		return null;
+	} 
+	else {
+		//SET COOKIE
+		//console.log("setCookie...");
+		var d = new Date();
+		d.setTime(d.getTime() + (exdays*24*60*60*1000));
+		var expires = "expires="+ d.toUTCString();
+		document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+		return cvalue;
+	}
+
 };
 
-function setCookie(cname, cvalue, exdays) {
-	//console.log("setCookie...");
-    var d = new Date();
-    d.setTime(d.getTime() + (exdays*24*60*60*1000));
-    var expires = "expires="+ d.toUTCString();
-    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
-	return cvalue;
-};
+function highlite(that){
+	$(".highlite").css("background-color","white");
+	$(that).css("background-color","skyblue").addClass("highlite");
+}
 
-
+/**
+//DEPRECATED - use database instead
 function submitHandler(param, onsuccess, onerror){
 	$.ajax({
 		url: '/formHandler',
@@ -108,14 +120,18 @@ function submitHandler(param, onsuccess, onerror){
 		error:onerror
 	}); 
 };
+****/
 
 ///////////////////////////
 function substitute(sql, params){
 	/**************
 	Returns a sql string based on sql with key:value substitutions from params {} 
+	Note that placeholders for substitution must have '$' prefix
 	sql = "WHERE rowid in ( $rowidlist )"
 	params = {$rowidlist:"1,2,3,4"}
 	*************/
+	//exit early
+	if (typeof params=="undefined || params==null"){return sql;}
 	
 	//console.log("sql_params...")
 	//ensure these aren't touching terms
@@ -129,7 +145,12 @@ function substitute(sql, params){
 		//term starts with '$' so a parameter, substitute it with it's corresponding vlaue
 		if ( terms[i].indexOf("$")==0 ) {
 			//console.log("term before...", terms[i].substring(1))
-			terms[i]=params[terms[i]];
+			var p=params[terms[i]];
+			//add quotes if p is literal
+			if (typeof p =="string") {p="'"+p+"'";}
+			//convert to string if an array
+			else if (p instanceof Array) {p=p.join(",");}
+			terms[i]=p;
 			//console.log("term after...", terms[i])
 		}		
 	}
@@ -138,6 +159,8 @@ function substitute(sql, params){
 
 
 //////////////////////////////////
+// TEXTEDITOR
+
 function texteditor(element, dblclick){
 
 	var x$=$("#texteditor");
@@ -149,7 +172,7 @@ function texteditor(element, dblclick){
 	}
 
 	//no argument means hide editor
-	if(typeof element=="undefined"){
+	if(typeof element=="undefined" || element==null){
 		x$.hide();
 		//restore row height of previously accessed elements 
 		$("[onclick^='texteditor']").css("height","auto");
@@ -159,6 +182,8 @@ function texteditor(element, dblclick){
 
 	//activate texteditor on element
 	var e$=$(element);
+	
+	var data={texteditor:x$, x$:x$, element:e$, e$:e$};
 	
 	//restore row height of any previously edited elements
 	//$(".texteditor").css("height","auto");
@@ -171,21 +196,25 @@ function texteditor(element, dblclick){
 	e$.attr("edit-in-progress", 1);
 	
 	//initialize or reset various event handlers...
-	x$.off("click keyup resize", texteditorFit).on("click keyup resize", texteditorFit);
-	$(window).off("resize", texteditorFit).on("resize", texteditorFit);
-	if (typeof dblclick=="function"){x$.off("dblclick").on("dblclick", {texteditor:x$}, dblclick);};
+	x$.off("click keyup resize", texteditorFit).on("click keyup resize", data, texteditorFit);
+	$(window).off("resize", texteditorFit).on("resize", data, texteditorFit);
+	if (typeof dblclick=="function"){x$.off("dblclick").on("dblclick", data, dblclick);};
 	
 	//get database rowid, field and value info and save as attributes for possible update
 	x$.attr("rowid", e$.attr("rowid"));
 	x$.attr("field", e$.attr("field"));
 	x$.val( e$.text() );
 	
-	texteditorFit();	
+	//dummy ev with critical data member as argument
+	texteditorFit({data:data});	
 };
 
-function texteditorFit(){
-	var x$=$("#texteditor");
-	var e$=$("[edit-in-progress=1]"); //attribute selector 
+function texteditorFit(ev){
+	//var x$=$("#texteditor");
+	//var e$=$("[edit-in-progress=1]"); //attribute selector
+	var x$=ev.data.texteditor;
+	var e$=ev.data.element;
+	
 	x$.show();
 	//fit textarea to element	
 	x$.width(e$.width());
@@ -201,82 +230,116 @@ function texteditorFit(){
 ///////////////////////////
 // Table
 
-function Table(options){
+function TableView(options){
 	this.options=$.extend({
-		table:"comments",
-		fields:["itemno", "pnum", "svrnum", "comment", "refs"],
-		values:[1,"bldg-001","svr-001", "new comment", "1,2,3"],
-		selection:"WHERE rowid in ( $rowidlist )",
-		substitutions:{$rowidlist:"1,2,3,4"},
-		renderer:function(result){}
-	}, options);	
+		//name of table
+		table:"issues",
+		//default row
+		defrow:{
+			pnum:"test-001", 
+			description:"New issue", 
+			by:"--", 
+			dateopened:Date(), 
+			dateclosed:"NA", 
+			refs:"123"},
+		//main selector - default below selects all 
+		select:"rowid = rowid",
+		//parameters for main selection - default below
+		params:null,
+		//placeholder element (wrapped with jquery) where table results are displayed for default renderer
+		place$:null,
+		//fn to run to refresh placeholder, should encapsulate handlebar template etc
+		render:function(result){
+			//default render function
+			if (this.options.place$==null){
+				this.options.place$=$("<div></div>");
+				$("body").append(this.options.place$);
+			}
+			autoform(this.options.place$, $.extend({table:this.table}, result));
+		}, 
+		//fn to run following render if row count decreases (IE delete success)
+		fxless:function(result){console.log("fxless...");}, 
+		//fn to run following render if row count increases (IE insert success)
+		fxmore:function(result){console.log("fxmore...");}
+	}, options);
+	
+	//row count
+	this.count = {current:0, previous:0};
+	this.div$ = null;
+	this.result={};
+	
+	
+
 };
 
-Table.prototype.insert=function(index){
+TableView.prototype.init=function(){
+	var that=this;
+	//need to encapsulate that.render, 'this' context changes when inside database fn
+	var render=function(result){that.render(result);};
+	//database(SQLstring, callback);
+	database(this.SQLcreate(), database(this.SQLselect(), render));
+};
 
-	//get row that called the menu, caller is set by showMenu() 
-	//var caller=CM$.menu("option", 'caller'); 
-	
-	//index of that was clicked
-	//var index=parseInt($(caller).attr("rank"));
-	
-	//Make way for newbie...
-	//var u1="UPDATE comments SET itemno=itemno+1 "+
-	//"WHERE pnum='"+cpnum+"' AND svrnum='"+csvrnum+"' AND CAST (itemno AS INTEGER) > "+index;
-	//database(u1);
-	
-	//Add newbie... Substitute itemno 
-	var newrow=$.extend({}, commentsEntry, {itemno:(Number(index)+1), comment:"new comment"}); 
-	database(SQLinsert(newrow));
+TableView.prototype.insert=function(row){
 
-	commentsRender(function(){
-		//grand reveal for the new row 
-		$('#comments-placeholder').children('[rank="'+(index+1)+'"]').css('background','tan').hide().show(500);
-	});
+	var that=this;
+	//need to encapsulate that.render, 'this' context changes when inside database fn
+	var render=function(result){that.render(result);};
+	//database(SQLstring, callback);
+	database(this.SQLinsert(row), database(this.SQLselect(), render));
 
 };
 
+TableView.prototype.options=function(optionRevs){
+	$.extend(this.options, optionRevs);	
+};
 
-Table.prototype.remove=function(rowid){
+TableView.prototype.remove=function(rowid){
 	//delete from database
-	database(this.SQLdelete(rowid));
-	database(this.SQLselect(), this.options.renderer);
-
-	/**
-	//refresh comments
-	database(SQLselectComments(cpnum, csvrnum),	function(result){
-		//console.log("delete refresh result < CC... ", result.rows.length, commentsCount, (typeof rowid), rowid);
-		
-		//test if DELETE actually removed a row then update rank column for remaining rows
-		if (result.rows.length < commentsCount){
-			//console.log("# selected for deletion..." ,$("#commentsRow"+rowid).length);
-			//grand send off and removal 
-			$("#commentsRow"+rowid).css('background','tan').hide(500, function(){
-				var u1="UPDATE comments SET itemno=itemno-1 "+
-				"WHERE pnum='"+cpnum+"' AND svrnum='"+csvrnum+"' AND CAST (itemno AS INTEGER) > "+index;
-				database(u1);
-				commentsRender();
-			});
-		}
-	});
-	**/
+	//database(SQLstring, callback);
+	var that=this;
+	var render=function(result){that.render(result);}	
+	database(this.SQLdelete(rowid), database(this.SQLselect(), render));
 
 };
 
-Table.prototype.update=function(row, rowid){
+TableView.prototype.render=function(result){
 
-	database(this.SQLupdate(row, rowid), this.renderer);
+	//update stats
+	this.result=result;
+	this.count.previous = this.count.current;
+	this.count.current=result.rows.length;
+	//run the provided renderer
+	try { this.options.render();} catch(err){console.log(err); }
+	if (this.count.previous < this.count.current) {
+		try { this.options.fxmore(result);} catch(err){console.log(err); }
+	} else if (this.count.previous > this.count.current) {
+		try { this.options.fxless(result);} catch(err){console.log(err); }
+	}
+}
+
+TableView.prototype.update=function(row, rowid){
+	var that=this;
+	var render=function(result){that.render(result);}	
+	database(this.SQLupdate(row, rowid), database(this.SQLselect(), render));
 
 };
+//////////// SQLfunctions
+TableView.prototype.SQLcreate=function(){
+	var sql="CREATE TABLE IF NOT EXISTS "+
+	this.options.table+
+	" ( "+Object.keys(this.options.defrow).join(", ")+" ) ";
+	//console.log("SQL...", sql);
+	return sql;
+};
 
-
-Table.prototype.SQLdelete=function(rowid){
+TableView.prototype.SQLdelete=function(rowid){
 	var sql= "DELETE FROM "+this.options.table+" WHERE rowid="+rowid;
 	//console.log("SQL...", sql);
 	return sql;
 };
 
-Table.prototype.SQLinsert=function(row){
+TableView.prototype.SQLinsert=function(row){
 	var keys=Object.keys(row); //array of keys
 	var vals=keys.map( function(k){return ("'"+row[k]+"'");} ); //array of quoted values
 	var sql="INSERT INTO "+this.options.table+" ( " + keys.join(", ") + " ) VALUES ( "+vals.join(", ")+" )";
@@ -284,17 +347,17 @@ Table.prototype.SQLinsert=function(row){
 	return sql;
 };
 
-Table.prototype.SQLselect=function(){
+TableView.prototype.SQLselect=function(){
 	var sql= "SELECT rowid, * FROM "+this.options.table+
-	substitute( this.options.selection, this.options.substitutions);
+	" WHERE "+substitute(this.options.select, this.options.params);
 	console.log("Table SQL:", sql);
 	return sql;
 };
 
-Table.prototype.SQLupdate=function (row, rowid){
+TableView.prototype.SQLupdate=function (row, rowid){
 	var keys=Object.keys(row); //array of keys
 	var vals=keys.map( function(k){return ("'"+row[k]+"'");} ); //array of quoted values
-	var sql="UPDATE comments ( " + keys.join(", ") +
+	var sql="UPDATE "+this.options.table+" ( " + keys.join(", ") +
 	" ) VALUES ( "+vals.join(", ")+
 	" ) WHERE rowid="+rowid;
 	console.log("Table SQL:", sql);

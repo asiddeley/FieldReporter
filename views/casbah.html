@@ -40,10 +40,12 @@ border-color:black;
 padding:5px 20px 5px 20px;
 margin:5px 5px 0px 0px;
 background: skyblue;
+color:gray;
 }
 
 #BUMPER {background:skyblue; height:50px; width:100%;}
-.cazbar {background: linear-gradient(skyblue, tan); }
+.cazbart {background: linear-gradient(skyblue, tan); }
+.cazbar {background: linear-gradient(skyblue, gold); }
 .bolivian {background: linear-gradient(red, yellow, yellow, green); }
 
 /* box-shadow: 2px 2px 4px gray; */
@@ -146,13 +148,15 @@ $(function() {
 			<a href="#CONTRACT" aria-controls="docs" role="tab" data-toggle="tab" >Contract</a>
 			</li>
 	
-			<li role="presentation">
-			<a href="#DELTAS" aria-controls="changes" role="tab" data-toggle="tab" >Deltas</a>
-			</li>
-			
+		
 			<li role="presentation">
 			<a href="#GALLERY" aria-controls="si" role="tab" data-toggle="tab" >Gallery</a>
 			</li>
+			
+			<li role="presentation">
+			<a href="#INFO" aria-controls="RFI" role="tab" data-toggle="tab" >Information</a>
+			</li>
+
 			
 			<li role="presentation">
 			<a href="#LETTERS" aria-controls="si" role="tab" data-toggle="tab" >Letters</a>
@@ -164,10 +168,6 @@ $(function() {
 			</li>
 			
 	
-			<li role="presentation">
-			<a href="#QUESTIONS" aria-controls="RFI" role="tab" data-toggle="tab" >Questions</a>
-			</li>
-			
 			<li role="presentation">
 			<a id="reportstab" href="#REPORTS" aria-controls="frr" role="tab" data-toggle="tab" >Reports</a>
 			</li>
@@ -196,10 +196,10 @@ $(function() {
 
 				<div role="tabpanel" class="tab-pane" id="BILLING">
 				<div class="btn-group" role="group" aria-label="...">
-					<button type="button" class="btn btn-default">GC progress billing</button>
-					<button type="button" class="btn btn-default">Certificates of Payment</button>
 					<button type="button" class="btn btn-default">Allowance Authorization Letters</button>
-					<button type="button" class="btn btn-default">Project Progress and milestones</button>
+					<button type="button" class="btn btn-default">Billing (GC progress draws)</button>
+					<button type="button" class="btn btn-default">Certificates of Payment</button>
+					<button type="button" class="btn btn-default">Progress Summary</button>
 				</div>
 				</div>
 				
@@ -210,19 +210,15 @@ $(function() {
 					<button type="button" class="btn btn-default">Bidders Q&amp;A</button>
 					<button type="button" class="btn btn-default">Drawings</button>
 					<button type="button" class="btn btn-default">Specification</button>
-					<button type="button" class="btn btn-default">GC Schedule</button>						
+					<button type="button" class="btn btn-default">GC Schedule</button>	
+				</div>
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-info">Change Directives</button>
+					<button type="button" class="btn btn-info">Contemplated Change Orders</button>
+					<button type="button" class="btn btn-info">Change Orders</button>
 				</div>
 				</div>
 					
-				
-				<div role="tabpanel" class="tab-pane" id="DELTAS">
-				<div class="btn-group" role="group" aria-label="...">
-					<button type="button" class="btn btn-default">Change Orders</button>
-					<button type="button" class="btn btn-default">Change Directives</button>
-					<button type="button" class="btn btn-default">Change Orders</button>
-				</div>
-				</div>
-
 				<div role="tabpanel" class="tab-pane" id="LETTERS">
 				<div class="btn-group" role="group" aria-label="...">
 					<button type="button" class="btn btn-default">Conformance Letters</button>
@@ -248,9 +244,9 @@ $(function() {
 				
 				</div>
 				
-				<div role="tabpanel" class="tab-pane" id="QUESTIONS">
+				<div role="tabpanel" class="tab-pane" id="INFO">
 				<div class="btn-group" role="group" aria-label="...">
-					<button type="button" class="btn btn-default">Requests For Information (RFI)</button>
+					<button type="button" class="btn btn-default">Information Requests (RFI)</button>
 					<button type="button" class="btn btn-default">Site Questions</button>
 				</div>
 				</div>	
@@ -259,7 +255,6 @@ $(function() {
 				<div class="btn-group" role="group" aria-label="...">
 					<button type="button" class="btn btn-default">Deficiency Tracking</button>
 					<button id="svrbtn" type="button" class="btn btn-primary">Site Visit Reports</button>
-					<button type="button" class="btn btn-default">Project Timelines</button>
 				</div>
 				</div>
 				
@@ -287,11 +282,10 @@ $(function() {
 <div id="actiondock" class="dock" style="display:none;"><h3>action area</h3></div>
 <div id="billingdock" class="dock" style="display:none;"><h3>billing area</h3></div>
 <div id="contractdock" class="dock" style="display:none;"><h3>contract area</h3></div>
-<div id="deltadock" class="dock" style="display:none;"><h3>delta area</h3></div>
+<div id="infodock" class="dock" style="display:none;"><h3>Info area</h3></div>
 <div id="letterdock" class="dock" style="display:none;"><h3>letter area</h3></div>
 <div id="gallerydock" class="dock" style="display:none;"><h3>gallery area</h3></div>
 <div id="meetingdock" class="dock" style="display:none;"><h3>meeitng area</h3></div>
-<div id="questiondock" class="dock" style="display:none;"><h3>question area</h3></div>
 <div id="reportdock" class="dock" style="display:none;"><h3>report area</h3></div>
 <div id="shopdock" class="dock" style="display:none;"><h3>shop area</h3></div>
 <div id="welcomedock" class="dock" style="display:none;"><h3>welcome area</h3></div>	

@@ -19,12 +19,11 @@ const db=new sqlite.Database(dbpath)
 
 //ensure database tables created
 //console.log("casql", casql)
-db.serialize( function () {	
-	db.run(casql.createTableProjects, function(err){})
-	db.run(casql.createTableSVRs, function(err){})
-	db.run(casql.createTableComments, function(err){})
-
-})
+//db.serialize( function () {	
+	//db.run(casql.createTableProjects, function(err){})
+	//db.run(casql.createTableSVRs, function(err){})
+	//db.run(casql.createTableComments, function(err){})
+//})
 
 
 process.on("exit", function(){db.close();console.log("Database closed.");})

@@ -57,7 +57,7 @@ function commentsDelete(){
 	database(SQLdeleteComments(rowid));
 
 	//refresh comments
-	database(SQLselectComments(cpnum, csvrnum),	function(result){
+	database(SQLselectComments($pnum, $svrnum),	function(result){
 		//console.log("delete refresh result < CC... ", result.rows.length, commentsCount, (typeof rowid), rowid);
 		
 		//test if DELETE actually removed a row then update rank column for remaining rows
@@ -66,7 +66,7 @@ function commentsDelete(){
 			//grand send off and removal 
 			$("#commentsRow"+rowid).css('background','tan').hide(500, function(){
 				var u1="UPDATE comments SET itemno=itemno-1 "+
-				"WHERE pnum='"+cpnum+"' AND svrnum='"+csvrnum+"' AND CAST (itemno AS INTEGER) > "+index;
+				"WHERE pnum='"+$pnum+"' AND svrnum='"+$svrnum+"' AND CAST (itemno AS INTEGER) > "+index;
 				database(u1);
 				commentsRender();
 			});
@@ -85,7 +85,7 @@ function commentsInsert(){
 	
 	//Make way for newbie...
 	var u1="UPDATE comments SET itemno=itemno+1 "+
-	"WHERE pnum='"+cpnum+"' AND svrnum='"+csvrnum+"' AND CAST (itemno AS INTEGER) > "+index;
+	"WHERE pnum='"+$pnum+"' AND svrnum='"+$svrnum+"' AND CAST (itemno AS INTEGER) > "+index;
 	database(u1);
 	
 	//Add newbie... Substitute itemno 
@@ -101,9 +101,9 @@ function commentsInsert(){
 
 function commentsRender(posteffect){
 
-	if (typeof cpnum == "undefined") {alert("Please specify a project number under Welcome tab.");}
+	if (typeof $pnum == "undefined") {alert("Please specify a project number under Welcome tab.");}
 	else {
-		database(SQLselectComments(cpnum, csvrnum),	function(result){
+		database(SQLselectComments($pnum, $svrnum),	function(result){
 			//commentsCount is a global variable thats used to determine whether delete operations are successfull 
 			commentsCount=result.rows.length;
 			$('#comments-placeholder').html(commentsTemplate(result));
@@ -138,10 +138,6 @@ function highlightCaller(on) {
 	//else $(CM2.caller()).css('background-color','white');
 };
 
-function highlite(that){
-	$(".highlite").css("background-color","white");
-	$(that).css("background-color","skyblue");
-}
 
 function showMenu(cm$, ev){	
 	texteditor(); //call texteditor with no arguments to turn it off in case its on
@@ -195,18 +191,23 @@ var SQLupdateComments=function (row, rowid){
 var CM$; 
 var commentsCount=0;
 var commentsTemplate;
-var cpnum=getCookie("cpnum");
-var csvrnum=getCookie("csvrnum");
-if (csvrnum==null){csvrnum=setCookie("csvrnum", "SVR-001", "30");}
+var $pnum=cookie("$pnum");
+if ($pnum==null){$pnum=cookie("$pnum", "BLDG-001", "30");}
+var $svrnum=cookie("$svrnum");
+if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-001", "30");}
 var commentsEntry={
 	itemno:"1", 
-	pnum:cpnum, 
-	svrnum:csvrnum, 
+	pnum:$pnum, 
+	svrnum:$svrnum, 
 	comment:"New comment",
 	refs:"--"
 };
 
-
+//table view for issues-open
+var icM$;
+var icTV;
+var icTemp;
+var svrTV;
 
 //READY
 $(function() { 
@@ -215,11 +216,34 @@ $(function() {
 	CM$=$("#commentsMenu").menu().css("position","absolute", "width", "200px").hide();
 
 	// Setup Handlebars
-	Handlebars.registerHelper("plusOne", function(obj){return Number(obj.data.index)+1;});
+	//Handlebars.registerHelper("plusOne", function(obj){return Number(obj.data.index)+1;});
+	Handlebars.registerHelper("plusOne", function(obj){return 1;});
 
 	// get template html then compile it to a template-function, commentsTemplate is global
 	commentsTemplate = Handlebars.compile($("#comments-template").html());
 	commentsRender();
+	
+	///////////// issues closed
+	icM$=$("#issues-closed-menu").menu().css("position","absolute", "width", "200px").hide();
+	icTemp=Handlebars.compile($("#issues-closed-template").html());
+	icTV=new TableView({
+		table:"issues",
+		defrow:{
+			pnum:"test-001", 
+			desc:"New issue", 
+			open:Date(), 
+			shut:"date", 
+			refs:"123",
+			by:"--"},
+		select:" pnum = $pnum ",
+		params:{"$pnum":$pnum},
+		render:function(result){
+			$('#issues-closed-placeholder').html(icTemp(result));
+		}, 
+		fxless:function(result){console.log("fxless...");}, 
+		fxmore:function(result){console.log("fxmore...");}
+	});
+	icTV.init();
 
 }); //READY
 
@@ -261,26 +285,22 @@ $(function() {
 	{{/each}}	
 </template>
 
-<template id='issues-template' type="text/x-handlebars-template">
+<template id='issues-closed-template' type="text/x-handlebars-template">
 	{{#each rows}}
 	<div class="row marz highlite"
 		id="issuesClosedRow{{rowid}}"
-		rank={{#indexPlusOne @index}}{{/indexPlusOne}}  
 		rowid={{rowid}}
 		onmouseenter='highlite(this)'
 		oncontextmenu='showMenu(IM$, event)'>
-	<p 	rank={{#indexPlusOne @index}}{{/indexPlusOne}}
-		rowid={{rowid}}
+	<p 	rowid={{rowid}}
 		class='col-xs-1 marz'
-		style="height:100%;">3.{{#indexPlusOne @index}}{{/indexPlusOne}}</p>
-	<p 	rank={{#indexPlusOne @index}}{{/indexPlusOne}}
-		table="issues"
+		style="height:100%;">3.{{#plusOne @index}}{{/plusOne}}</p>
+	<p 	table="issues"
 		field="descrption"
 		rowid={{rowid}}
 		onclick="texteditor(this, function(){issues.update(); texteditor();})"
 		class="col-xs-10 border-left marz">{{description}}</p>	
-	<p 	rank={{#indexPlusOne @index}}{{/indexPlusOne}}
-		rowid={{rowid}}
+	<p 	rowid={{rowid}}
 		class='col-xs-1 marz'>{{rowid}}</p>	
 	</div>
 	{{/each}}	
@@ -292,21 +312,21 @@ $(function() {
 	<p onclick="commentsInsert();CM$.hide();">Insert</p>
 	<p onclick="commentsDelete()">Delete</p>
 	<p onclick='console.log("Move up");'>Move up</p>
-	<p onclick='console.log("Move dn");'>Move dn</p 
+	<p onclick='console.log("Move dn");'>Move dn</p> 
 	<p onclick='CM$.hide()'>Exit</p>
 	<p onclick='alert(function(){return "hello world";}())'>Test</p>
 </div>
 
-<div id="issuesClosedMenu" onmouseleave="ICM$.hide()" style="display:none; z-index:10000">
+<div id="issues-closed-menu" onmouseleave="icM$.hide()" style="display:none; z-index:10000">
 	<p onclick="ic.insert()">Insert</p>
 	<p onclick="ic.remove()">Delete</p>
-	<p onclick='ICM$.hide()'>Exit</p>
+	<p onclick='icM$.hide()'>Exit</p>
 </div>
 
-<div id="issuesOpenMenu" onmouseleave="IOM$.hide()" style="display:none; z-index:10000">
+<div id="issues-open-menu" onmouseleave="ioM$.hide()" style="display:none; z-index:10000">
 	<p onclick="io.insert()">Insert</p>
 	<p onclick="io.remove()">Delete</p>
-	<p onclick='IOM$.hide()'>Exit</p>
+	<p onclick='ioM$.hide()'>Exit</p>
 </div>
 
 
@@ -352,8 +372,15 @@ $(function() {
 		<p id='reportDate' class='col-xs-4 soup-cell'>Jun 17, 2016</p>
 	</div>
 	
-	<div class='row row_'>
-		<p id='generalStatement' class='col-xs-12' >This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by this firm.  Refer also to Mechanical and Electrical field reports issued separately.  
+	<div class='row row_ '>
+		<p id='generalStatement'
+		class='col-xs-12' 
+		table="general"
+		field="values"
+		select="name='svrstatement'"
+		onmouseenter="highlite(this)"
+		onclick="texteditor(this, function(ev){ console.log(ev.data.x$.val()); texteditor(null)})"
+		>This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by this firm.  Refer also to Mechanical and Electrical field reports issued separately.  
 		</p>
 	</div>	
 
@@ -371,7 +398,7 @@ $(function() {
 		<p class='col-xs-1 marz'>--</p>
 	</div>
 
-	<div class='row marz highlite' rank=0
+	<div class='row marz' rank=0
 		onmouseenter='highlite(this)'
 		oncontextmenu='showMenu(CM$, event)' >
 		<h3 class='col-xs-1 marz' rank=0>2.0</h3>
@@ -382,7 +409,7 @@ $(function() {
 	<!-- Placeholder -->
 	<div id='comments-placeholder' class='marz'></div>
 
-	<div class='row marz highlite' onmouseenter='highlite(this)'>
+	<div class='row marz' onmouseenter='highlite(this)'>
 		<h3 class='col-xs-1 marz'>3.0</h3>
 		<h3 class='col-xs-10 border-left marz'>Issues Resolved</h3>
 		<h3 class='col-xs-1 marz'>Ref</h3>

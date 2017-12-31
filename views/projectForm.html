@@ -91,13 +91,13 @@ $("#btn-last").on("click", function(){
 
 $("#btn-current").on("click", function(){
 	var cpnum=$("#pnum").val();
-	setCookie("cpnum", cpnum, 60); //expires after 60 days
-	alert("Current Project: "+getCookie("cpnum"));
+	cookie("cpnum", cpnum, 60); //expires after 60 days
+	alert("Current Project: "+cookie("cpnum"));
 });
 
 
 //Lastly... get current project cookie and fill in the form for the first time
-var cpnum=getCookie("cpnum");
+var cpnum=cookie("cpnum");
 if (cpnum){
 	//get current record from database...
 	//set up query
