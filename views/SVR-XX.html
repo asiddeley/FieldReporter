@@ -138,9 +138,9 @@ function highlightCaller(on) {
 	//else $(CM2.caller()).css('background-color','white');
 };
 
-
-function showMenu(cm$, ev){	
-	texteditor(); //call texteditor with no arguments to turn it off in case its on
+function showMenu(cm$, ev){
+	//first call texteditor with no arguments to turn it off just in case its on
+	texteditor();
 	cm$.show().position({my:'left top',	at:'left bottom', of:ev});
 	//remember caller, that is the <div> or <p> element that launched the contextMenu
 	cm$.menu('option', 'caller', ev.target);
@@ -153,7 +153,6 @@ function selectFolder(e) {
     var folder = relativePath.split("/");
     alert(folder[0]);
 };
-
 
 var SQLdeleteComments=function(rowid){
 	var sql= "DELETE FROM comments WHERE rowid="+rowid;
@@ -173,16 +172,6 @@ var SQLinsertComments=function (row){
 	var vals=keys.map( function(k){return ("'"+row[k]+"'");} ); //array of quoted values
 	var sql="INSERT INTO comments ( " + keys.join(", ") + " ) VALUES ( "+vals.join(", ")+" )";
 	//console.log("SQL:", a1);
-	return sql;
-};
-
-var SQLupdateComments=function (row, rowid){
-	var keys=Object.keys(row); //array of keys
-	var vals=keys.map( function(k){return ("'"+row[k]+"'");} ); //array of quoted values
-	var sql="UPDATE comments ( " + keys.join(", ") +
-	" ) VALUES ( "+vals.join(", ")+
-	" ) WHERE rowid="+rowid;
-	console.log("SQL:", sql);
 	return sql;
 };
 
@@ -216,8 +205,7 @@ $(function() {
 	CM$=$("#commentsMenu").menu().css("position","absolute", "width", "200px").hide();
 
 	// Setup Handlebars
-	//Handlebars.registerHelper("plusOne", function(obj){return Number(obj.data.index)+1;});
-	Handlebars.registerHelper("plusOne", function(obj){return 1;});
+	Handlebars.registerHelper("plusOne", function(val,options){return parseInt(val)+1;});
 
 	// get template html then compile it to a template-function, commentsTemplate is global
 	commentsTemplate = Handlebars.compile($("#comments-template").html());
@@ -229,7 +217,7 @@ $(function() {
 	icTV=new TableView({
 		table:"issues",
 		defrow:{
-			pnum:"test-001", 
+			pnum:"BLDG-001", 
 			desc:"New issue", 
 			open:Date(), 
 			shut:"date", 
@@ -238,12 +226,14 @@ $(function() {
 		select:" pnum = $pnum ",
 		params:{"$pnum":$pnum},
 		render:function(result){
+			//console.log("RENDER result...", JSON.stringify(result.rows));
 			$('#issues-closed-placeholder').html(icTemp(result));
 		}, 
 		fxless:function(result){console.log("fxless...");}, 
-		fxmore:function(result){console.log("fxmore...");}
+		fxmore:function(result){console.log("fxmore...");},
 	});
 	icTV.init();
+	
 
 }); //READY
 
@@ -291,21 +281,22 @@ $(function() {
 		id="issuesClosedRow{{rowid}}"
 		rowid={{rowid}}
 		onmouseenter='highlite(this)'
-		oncontextmenu='showMenu(IM$, event)'>
+		oncontextmenu='showMenu(icM$, event)'>
 	<p 	rowid={{rowid}}
 		class='col-xs-1 marz'
-		style="height:100%;">3.{{#plusOne @index}}{{/plusOne}}</p>
+		style="height:100%;">3.{{plusOne @index}}</p>
 	<p 	table="issues"
-		field="descrption"
+		field="desc"
 		rowid={{rowid}}
-		onclick="texteditor(this, function(){issues.update(); texteditor();})"
-		class="col-xs-10 border-left marz">{{description}}</p>	
+		onclick="texteditor(this, icTV.update(icTV.row(), icTV.rowid()); texteditor();})"
+		class="col-xs-10 border-left marz">{{desc}}</p>	
 	<p 	rowid={{rowid}}
 		class='col-xs-1 marz'>{{rowid}}</p>	
 	</div>
 	{{/each}}	
 </template>
 
+<!-- onclick="texteditor(this, function(ev){icTV.update(icTV.row(ev.data.e$), icTV.rowid(ev.data.e$));  -->
 
 <!-- MENUS -->
 <div id="commentsMenu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
@@ -318,9 +309,9 @@ $(function() {
 </div>
 
 <div id="issues-closed-menu" onmouseleave="icM$.hide()" style="display:none; z-index:10000">
-	<p onclick="ic.insert()">Insert</p>
-	<p onclick="ic.remove()">Delete</p>
-	<p onclick='icM$.hide()'>Exit</p>
+	<p onclick="icTV.insert();icM$.hide();">Insert</p>
+	<p onclick="icTV.remove(icTV.rowid('highlite'));">Delete</p>
+	<p onclick="icM$.hide()">Exit</p>
 </div>
 
 <div id="issues-open-menu" onmouseleave="ioM$.hide()" style="display:none; z-index:10000">
@@ -398,7 +389,8 @@ $(function() {
 		<p class='col-xs-1 marz'>--</p>
 	</div>
 
-	<div class='row marz' rank=0
+	<div class='row marz' 
+		rank=0
 		onmouseenter='highlite(this)'
 		oncontextmenu='showMenu(CM$, event)' >
 		<h3 class='col-xs-1 marz' rank=0>2.0</h3>
@@ -409,7 +401,10 @@ $(function() {
 	<!-- Placeholder -->
 	<div id='comments-placeholder' class='marz'></div>
 
-	<div class='row marz' onmouseenter='highlite(this)'>
+	<div class="row marz"
+		oncontextmenu="showMenu(icM$, event)"
+		onclick="showMenu(icM$, event)"
+		onmouseenter="highlite(this)">
 		<h3 class='col-xs-1 marz'>3.0</h3>
 		<h3 class='col-xs-10 border-left marz'>Issues Resolved</h3>
 		<h3 class='col-xs-1 marz'>Ref</h3>

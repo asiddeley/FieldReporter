@@ -102,7 +102,10 @@ function cookie(cname, cvalue, exdays) {
 
 function highlite(that){
 	$(".highlite").css("background-color","white");
+	//console.log("HIGHLITE...", $("[highlite=1]").length);
+	$("[highlite=1]").attr("highlite",0);
 	$(that).css("background-color","skyblue").addClass("highlite");
+	$(that).attr("highlite",1);
 }
 
 /**
@@ -203,8 +206,17 @@ function texteditor(element, dblclick){
 	//get database rowid, field and value info and save as attributes for possible update
 	x$.attr("rowid", e$.attr("rowid"));
 	x$.attr("field", e$.attr("field"));
-	x$.val( e$.text() );
-	
+	var newval=e$.attr("newval");
+	//console.log("newval",newval);
+	if (typeof newval=="undefined") {
+		//first time this element is edited so initialize editor from element
+		x$.val(e$.text());
+		x$.attr("newval", e$.text());
+	} else {
+		//resume editing from last edited value
+		x$.val(newval);
+	}
+
 	//dummy ev with critical data member as argument
 	texteditorFit({data:data});	
 };
@@ -225,6 +237,10 @@ function texteditorFit(ev){
 	e$.height(x$.height()+5);
 	//this needs to be done last per trial-and-error
 	x$.position({my:'left top', at:'left top', of:e$});
+	
+	//progress backup of edited value
+	e$.attr("newval", x$.val());
+
 };
 
 ///////////////////////////
@@ -277,16 +293,17 @@ TableView.prototype.init=function(){
 	//need to encapsulate that.render, 'this' context changes when inside database fn
 	var render=function(result){that.render(result);};
 	//database(SQLstring, callback);
-	database(this.SQLcreate(), database(this.SQLselect(), render));
+	database(this.SQLcreate(), function(){database(that.SQLselect(), render);});
 };
 
-TableView.prototype.insert=function(row){
+TableView.prototype.insert=function(){
 
 	var that=this;
+	var row=this.options.defrow;
 	//need to encapsulate that.render, 'this' context changes when inside database fn
 	var render=function(result){that.render(result);};
 	//database(SQLstring, callback);
-	database(this.SQLinsert(row), database(this.SQLselect(), render));
+	database(this.SQLinsert(row), function(){database(that.SQLselect(), render);});
 
 };
 
@@ -297,20 +314,22 @@ TableView.prototype.options=function(optionRevs){
 TableView.prototype.remove=function(rowid){
 	//delete from database
 	//database(SQLstring, callback);
+	console.log("REMOVE rowid...", rowid);
 	var that=this;
 	var render=function(result){that.render(result);}	
-	database(this.SQLdelete(rowid), database(this.SQLselect(), render));
+	database(this.SQLdelete(rowid), function(){database(that.SQLselect(), render);});
 
 };
 
 TableView.prototype.render=function(result){
-
+	
 	//update stats
 	this.result=result;
-	this.count.previous = this.count.current;
+	this.count.previous=this.count.current;
 	this.count.current=result.rows.length;
 	//run the provided renderer
-	try { this.options.render();} catch(err){console.log(err); }
+	try { this.options.render(result);} catch(err){console.log(err); }
+	//run any post render functions for special effects such as slow row reveal etc
 	if (this.count.previous < this.count.current) {
 		try { this.options.fxmore(result);} catch(err){console.log(err); }
 	} else if (this.count.previous > this.count.current) {
@@ -318,11 +337,39 @@ TableView.prototype.render=function(result){
 	}
 }
 
+TableView.prototype.row=function(hint){
+	//retrieves from 'that' elment, field, value and returns them as {} for use in update(row, rowid)
+	//console.log("ROW field:newval...", $(that).attr("field"), $(that).attr("newval") );
+	var that$;
+	var r={};
+
+	if (typeof hint=="undefined"){
+		that$=$("[edit-in-progress=1]").attr("newval");
+		r[that$.attr("field")]=that$.attr("newval");
+		return r;
+	} else if (hint=="highlite"){
+		that$=$("[highlite=1]").attr("newval");
+		r[that$.attr("field")]=that$.attr("newval");
+		return r;
+	} else {return r;}
+}
+
+TableView.prototype.rowid=function(hint){
+	//returns active rowid for use in update(row, rowid)
+
+	if (typeof hint=="undefined"){
+		return $("[edit-in-progress=1]").attr("rowid");
+	} else if (hint=="highlite"){
+		//console.log("ROWID...", $("[highlite=1]").attr("rowid"));
+		return $("[highlite=1]").attr("rowid");		
+	} else {return 0;}
+}
+
 TableView.prototype.update=function(row, rowid){
+	//console.log("UPDATE row, rowid:", JSON.stringify(row), rowid);
 	var that=this;
 	var render=function(result){that.render(result);}	
-	database(this.SQLupdate(row, rowid), database(this.SQLselect(), render));
-
+	database(this.SQLupdate(row, rowid), function(){database(that.SQLselect(), render);});
 };
 //////////// SQLfunctions
 TableView.prototype.SQLcreate=function(){
@@ -340,27 +387,32 @@ TableView.prototype.SQLdelete=function(rowid){
 };
 
 TableView.prototype.SQLinsert=function(row){
-	var keys=Object.keys(row); //array of keys
-	var vals=keys.map( function(k){return ("'"+row[k]+"'");} ); //array of quoted values
+	//array of keys
+	var keys=Object.keys(row);
+	//array of quoted values
+	var vals=keys.map( function(k){return ("'"+row[k]+"'");} ); 
 	var sql="INSERT INTO "+this.options.table+" ( " + keys.join(", ") + " ) VALUES ( "+vals.join(", ")+" )";
-	console.log("Table SQL:", sql);
+	//console.log("Table SQL:", sql);
 	return sql;
 };
 
 TableView.prototype.SQLselect=function(){
 	var sql= "SELECT rowid, * FROM "+this.options.table+
 	" WHERE "+substitute(this.options.select, this.options.params);
-	console.log("Table SQL:", sql);
+	//console.log("Table SQL:", sql);
 	return sql;
 };
 
 TableView.prototype.SQLupdate=function (row, rowid){
+	//row = {} //object of any fields to be updated
+	//rowid = 21 //SQLITE automatic row id 
+	console.log("UPDATE row, rowid...",JSON.stringify(row), rowid);
+	if (typeof row == "undefined" || typeof rowid == "undefined"){return;}
 	var keys=Object.keys(row); //array of keys
-	var vals=keys.map( function(k){return ("'"+row[k]+"'");} ); //array of quoted values
-	var sql="UPDATE "+this.options.table+" ( " + keys.join(", ") +
-	" ) VALUES ( "+vals.join(", ")+
-	" ) WHERE rowid="+rowid;
+	//array of assignments ["pnum='BLDG-001'", "field='val'"]
+	var pairs=keys.map( function(k){return (k + "='"+row[k]+"'");} ); //array of quoted values
+	var sql="UPDATE "+this.options.table+" SET " + pairs.join(", ") +
+	" WHERE rowid="+rowid;
 	console.log("Table SQL:", sql);
 	return sql;
 };
-
