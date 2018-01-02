@@ -6,7 +6,6 @@ const sqlite=require('sqlite3').verbose()
 const bodyParser=require("body-parser") 
 const casql=require(__dirname+"/zdatabase/casql.js")
 
-//cm.hw()
 
 const app = express()
 
@@ -16,14 +15,6 @@ const dbpath=dbdir+"/casbah.db"
 try {fs.mkdirSync(dbdir, 0744); console.log("Database folder created.");}
 catch(er){console.log("Database folder exists.")}
 const db=new sqlite.Database(dbpath)
-
-//ensure database tables created
-//console.log("casql", casql)
-//db.serialize( function () {	
-	//db.run(casql.createTableProjects, function(err){})
-	//db.run(casql.createTableSVRs, function(err){})
-	//db.run(casql.createTableComments, function(err){})
-//})
 
 
 process.on("exit", function(){db.close();console.log("Database closed.");})
@@ -60,60 +51,6 @@ app.use(function(req, res, next){console.log("LOG...",req.url);	next();});
 //Database form handler and required middleware parsers
 app.use( bodyParser.urlencoded({extended: true}));
 app.use( bodyParser.json());
-app.post('/formHandler', function (req, res) {
-
-	const rows=[]	
-	sqlcount+=1	
-	let msg="SQL#"+sqlcount.toString()
-	const sql=req.body.SQL
-	//console.log("SQLs to process...", sqls.length)
-	
-	//console.log("SQLs...", sqls);
-	try {
-		db.serialize( function () {
-			//switch based on first term of SQL
-			switch(sql.split(" ")[0]){
-					
-				case "CREATE": 
-				case "DELETE":
-				case "INSERT": 
-				case "UPDATE":
-				//db.run(sql_params(sql, req.body), function(err){
-				//db.run(SQL_with_placeholders, param_obj_with_values_for_placeholders, callback)
-				db.run(sql_params(sql, req.body), function(err){
-					var stat=(err==null)?" - db run ok":"db run error - "+err
-					console.log(msg + stat);
-					//if (typeof req.body.dbcallback == "function") {
-					//	//run dbcallback then conclude with res.json to respond to the ajax call
-					//	req.body.dbcallback(
-					//		this.changes, 
-					//		function(){res.json({msg:msg+stat, rows:rows});	}
-					//	);
-					//} 
-					//no callback so just respond to the ajax call
-					//else {
-						res.json({msg:msg+stat, rows:rows});
-					//}
-			
-				});
-				break
-				case "SELECT":
-				console.log("SELECT...")
-				console.log("SQL...", sql)
-				db.all(sql_params(sql,	req.body), function(err, rows){
-					var stat=(err==null)?" - db all ok":"db run error - "+err
-					console.log(msg + stat)
-					res.json({msg:msg+stat, rows:rows})
-				})			
-				break
-				default:
-				res.json({msg:msg, rows:rows})					
-			}
-		})
-	} 
-	catch(err) {console.log("SQL ERROR...", err)}
-
-})
 
 app.post('/database', function (req, res) {
 

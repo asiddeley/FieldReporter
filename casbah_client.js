@@ -123,14 +123,6 @@ function cookie(cname, cvalue, exdays) {
 
 };
 
-function highlite(that){
-	$(".highlite").css("background-color","white");
-	//console.log("HIGHLITE...", $("[highlite=1]").length);
-	$("[highlite=1]").attr("highlite",0);
-	$(that).css("background-color","skyblue").addClass("highlite");
-	$(that).attr("highlite",1);
-}
-
 ///////////////////////////
 function substitute(sql, params){
 	/**************
@@ -165,6 +157,27 @@ function substitute(sql, params){
 	}
 	return terms.join(" ");
 };
+
+
+////////////////////////////////
+// Highlighter
+// 
+
+function Highlighter(colour){
+	this.colour=colour;
+	var that=this;
+	
+	this.light=function(element){
+		//TO DO restore elements previous background, not whitewash
+		$(".highlite").css("background-color","white");
+		//console.log("HIGHLITE...", $("[highlite=1]").length);
+		$("[highlite=1]").attr("highlite",0);
+		$(element).css("background-color",that.colour).addClass("highlite");
+		$(element).attr("highlite",1);
+	}
+	
+	this.rowid=function(){return $("[highlite=1]").attr("rowid");}	
+}
 
 
 //////////////////////////////////
@@ -364,7 +377,7 @@ TableView.prototype.render=function(result){
 		catch(err){console.log(err); }
 	}
 }
-
+/********************
 TableView.prototype.row=function(hint){
 	//retrieves from 'that' elment, field, value and returns them as {} for use in update(row, rowid)
 	//console.log("ROW field:newval...", $(that).attr("field"), $(that).attr("newval") );
@@ -392,7 +405,7 @@ TableView.prototype.rowid=function(hint){
 		return $("[highlite=1]").attr("rowid");		
 	} else {return 0;}
 }
-
+*/
 TableView.prototype.update=function(row, rowid){
 	//console.log("UPDATE row, rowid:", JSON.stringify(row), rowid);
 	var that=this;

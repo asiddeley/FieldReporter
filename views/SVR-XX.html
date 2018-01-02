@@ -180,10 +180,12 @@ var SQLinsertComments=function (row){
 var CM$; 
 var commentsCount=0;
 var commentsTemplate;
+
 var $pnum=cookie("$pnum");
 if ($pnum==null){$pnum=cookie("$pnum", "BLDG-001", "30");}
 var $svrnum=cookie("$svrnum");
 if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-001", "30");}
+
 var commentsEntry={
 	itemno:"1", 
 	pnum:$pnum, 
@@ -191,16 +193,21 @@ var commentsEntry={
 	comment:"New comment",
 	refs:"--"
 };
-
-//table view for issues-open
+//table view for site visit report
+var svrTV;
+//table view for issues-closed
 var icM$;
 var icTV;
 var icTemp;
-var svrTV;
+//table view for issues-open
+var ioM$;
+var ioTV;
+var ioTemp;
 
 //text editor
-var ed;
-
+var ed=new Editor();
+//highligher
+var hi=new Highlighter("skyblue");
 
 //READY
 $(function() { 
@@ -220,40 +227,45 @@ $(function() {
 	icTemp=Handlebars.compile($("#issues-closed-template").html());
 	icTV=new TableView({
 		table:"issues",
-		defrow:{
-			pnum:"BLDG-001", 
-			desc:"New issue", 
-			open:Date(), 
-			shut:"date", 
-			refs:"123",
-			by:"--"},
+		defrow:{pnum:"BLDG-001", desc:"New issue", open:Date(), shut:"date", refs:"123", by:"--"},
 		select:" pnum = $pnum ",
 		params:{"$pnum":$pnum},
-		render:function(result){
-			console.log("render...");
-			//console.log("RENDER result...", JSON.stringify(result.rows));
-			$('#issues-closed-placeholder').html(icTemp(result));
-		}, 
-		reless:function(result, rowid){
-			console.log("reless...");
+		render:function(result){ $('#issues-closed-placeholder').html(icTemp(result)); }, 
+		reless:function(result, rowid){ //console.log("reless...");
 			//Grand send-off for deleted row then run callback function to render result
 			$("#issues-closed-row"+rowid).css('background','gold').hide(500, function(){
 				$('#issues-closed-placeholder').html(icTemp(result));
 			});
 		}, 
-		remore:function(result, rowid){
-			console.log("remore new rowid...", rowid);
-			//console.log("RENDER result...", JSON.stringify(result.rows));
+		remore:function(result, rowid){ //console.log("remore new rowid...", rowid);
 			$('#issues-closed-placeholder').html(icTemp(result));
 			//Grand Reveal...
-			//To do: Find the new rowid...
 			$('#issues-closed-row'+rowid).css('background','gold').hide().show(500);
 		},
 	});
-	//icTV.init();
-	
-	ed=new Editor();
-	
+
+	///////////// issues open
+	ioM$=$("#issues-open-menu").menu().css("position","absolute", "width", "200px").hide();
+	ioTemp=Handlebars.compile($("#issues-epen-template").html());
+	ioTV=new TableView({
+		table:"issues",
+		defrow:{pnum:"BLDG-001", desc:"New issue", open:Date(), shut:"date", refs:"123", by:"--"},
+		select:" pnum = $pnum ",
+		params:{"$pnum":$pnum},
+		render:function(result){ $('#issues-open-placeholder').html(icTemp(result)); }, 
+		reless:function(result, rowid){ //console.log("reless...");
+			//Grand send-off for deleted row then run callback function to render result
+			$("#issues-open-row"+rowid).css('background','gold').hide(500, function(){
+				$('#issues-open-placeholder').html(icTemp(result));
+			});
+		}, 
+		remore:function(result, rowid){ //console.log("remore new rowid...", rowid);
+			$('#issues-open-placeholder').html(icTemp(result));
+			//Grand Reveal...
+			$('#issues-open-row'+rowid).css('background','gold').hide().show(500);
+		},
+	});	
+
 
 }); //READY
 
@@ -272,11 +284,11 @@ $(function() {
 <template id='comments-template' type="text/x-handlebars-template">
 
 	{{#each rows}}
-	<div class="row marz highlite"
+	<div class="row marz"
 		id="commentsRow{{rowid}}"
 		rank={{itemno}} 
 		rowid={{rowid}}
-		onmouseenter='highlite(this)'
+		onmouseenter='hi.light(this)'
 		oncontextmenu='showMenu(CM$, event)'>
 	<p 	rank={{itemno}}
 		rowid={{rowid}}
@@ -297,10 +309,10 @@ $(function() {
 
 <template id='issues-closed-template' type="text/x-handlebars-template">
 	{{#each rows}}
-	<div class="row marz highlite"
+	<div class="row marz"
 		id="issues-closed-row{{rowid}}"
 		rowid={{rowid}}
-		onmouseenter='highlite(this)'
+		onmouseenter='hi.light(this)'
 		oncontextmenu='showMenu(icM$, event)'>
 	<p 	rowid={{rowid}}
 		class='col-xs-1 marz'
@@ -316,7 +328,26 @@ $(function() {
 	{{/each}}	
 </template>
 
-<!-- onclick="texteditor(this, function(ev){icTV.update(icTV.row(ev.data.e$), icTV.rowid(ev.data.e$));  -->
+<template id='issues-open-template' type="text/x-handlebars-template">
+	{{#each rows}}
+	<div class="row marz"
+		id="issues-open-row{{rowid}}"
+		rowid={{rowid}}
+		onmouseenter='hi.light(this)'
+		oncontextmenu='showMenu(icM$, event)'>
+	<p 	rowid={{rowid}}
+		class='col-xs-1 marz'
+		style="height:100%;">4.{{plusOne @index}}</p>
+	<p 	table="issues"
+		field="desc"
+		rowid={{rowid}}
+		onclick="ed.text(this, function(){icTV.update(ed.row(), ed.rowid()); ed.hide();})"
+		class="col-xs-10 border-left marz">{{desc}}</p>	
+	<p 	rowid={{rowid}}
+		class='col-xs-1 marz'>{{rowid}}</p>	
+	</div>
+	{{/each}}	
+</template>
 
 <!-- MENUS -->
 <div id="commentsMenu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
@@ -329,14 +360,14 @@ $(function() {
 </div>
 
 <div id="issues-closed-menu" onmouseleave="icM$.hide()" style="display:none; z-index:10000">
-	<p onclick="icTV.insert();">Insert</p>
-	<p onclick="icTV.remove(icTV.rowid('highlite'));">Delete</p>
+	<p onclick="icTV.insert()">Insert</p>
+	<p onclick="icTV.remove(hi.rowid())">Delete</p>
 	<p onclick="icM$.hide()">Exit</p>
 </div>
 
 <div id="issues-open-menu" onmouseleave="ioM$.hide()" style="display:none; z-index:10000">
-	<p onclick="io.insert()">Insert</p>
-	<p onclick="io.remove()">Delete</p>
+	<p onclick="ioTV.insert();">Insert</p>
+	<p onclick="ioTV.remove(hi.rowid())">Delete</p>
 	<p onclick='ioM$.hide()'>Exit</p>
 </div>
 
@@ -389,7 +420,7 @@ $(function() {
 		table="general"
 		field="values"
 		select="name='svrstatement'"
-		onmouseenter="highlite(this)"
+		onmouseenter="hi.light(this)"
 		onclick="texteditor(this, function(ev){ console.log(ev.data.x$.val()); texteditor(null)})"
 		>This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by this firm.  Refer also to Mechanical and Electrical field reports issued separately.  
 		</p>
@@ -411,7 +442,7 @@ $(function() {
 
 	<div class='row marz' 
 		rank=0
-		onmouseenter='highlite(this)'
+		onmouseenter='hi.light(this)'
 		oncontextmenu='showMenu(CM$, event)' >
 		<h3 class='col-xs-1 marz' rank=0>2.0</h3>
 		<h3 class='col-xs-10 border-left marz' rank=0>Observatons and Comments</h3>
@@ -424,7 +455,7 @@ $(function() {
 	<div class="row marz"
 		oncontextmenu="showMenu(icM$, event)"
 		onclick="showMenu(icM$, event)"
-		onmouseenter="highlite(this)">
+		onmouseenter="hi.light(this)">
 		<h3 class='col-xs-1 marz'>3.0</h3>
 		<h3 class='col-xs-10 border-left marz'>Issues Resolved</h3>
 		<h3 class='col-xs-1 marz'>Ref</h3>
