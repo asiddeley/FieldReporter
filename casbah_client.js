@@ -67,6 +67,29 @@ function database(sql, callback){
 	});	
 };
 
+/******************************
+	Returns the result of the subtraction method applied to
+	sets (mathematical concept).
+
+	@param a Array one
+	@param b Array two
+	@return An array containing the result
+	
+	https://radu.cotescu.com/javascript-diff-function/
+
+*/
+
+function diffArray(a, b) {
+	//ensure a is larger, swap if not
+	if (a.length < b.length) {var t=a; a=b; b=t;}
+	
+	var seen = []
+	var diff = [];
+	for ( var i = 0; i < b.length; i++) { seen[b[i]] = true; }
+	for ( var i = 0; i < a.length; i++) { if (!seen[a[i]]) { diff.push(a[i]);}}
+	return diff;
+}
+
 
 function cookie(cname, cvalue, exdays) {
 	
@@ -108,23 +131,6 @@ function highlite(that){
 	$(that).attr("highlite",1);
 }
 
-/**
-//DEPRECATED - use database instead
-function submitHandler(param, onsuccess, onerror){
-	$.ajax({
-		url: '/formHandler',
-		type: 'POST',
-		//data: jQuery.param({sql: "SELECT name FROM projects"}),
-		data: jQuery.param(param),
-		contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-		//success: function (response) {$("#result").text(JSON.stringify(response));},
-		//error: function () {$("#result").text("error");	}
-		success:onsuccess,
-		error:onerror
-	}); 
-};
-****/
-
 ///////////////////////////
 function substitute(sql, params){
 	/**************
@@ -163,84 +169,91 @@ function substitute(sql, params){
 
 //////////////////////////////////
 // TEXTEDITOR
+// init...
+// var ed=new Editor();
+// example (icTV is a casbah TableView obj)
+// <div onclick="ed.text(this, function(){icTV.update(ed.row(), ed.rowid()); ed.hide();})" ...>
 
-function texteditor(element, dblclick){
-
-	var x$=$("#texteditor");
+function Editor(){
 	
-	//create editor element if not found
-	if (x$.length==0){
-		x$=$("<textarea id='texteditor' style='display:none; z-index=999;'></textarea>");
-		$("body").append(x$);
-	}
-
-	//no argument means hide editor
-	if(typeof element=="undefined" || element==null){
-		x$.hide();
-		//restore row height of previously accessed elements 
-		$("[onclick^='texteditor']").css("height","auto");
-		$(window).off("resize", texteditorFit);
-		return;
+	var that=this;
+	
+	this.e$=null; //editee - initialized by this.text()
+	
+	this.fit=function(){
+		that.x$.show();
+		//fit textarea to element	
+		that.x$.width(that.e$.width());
+		that.x$.css("height","auto");
+		that.x$.css("padding-left", that.e$.css("padding-left"));
+		if (that.x$[0].scrollHeight > 0) {that.x$.css("height", that.x$[0].scrollHeight);}
+		//element to match textarea height
+		that.e$.height(that.x$.height()+5);
+		//this needs to be done last per trial-and-error
+		that.x$.position({my:'left top', at:'left top', of:that.e$});
+		//progress backup of edited value
+		that.e$.attr("newval", that.x$.val());
 	};
+	
+	this.hide=function(){
+		that.x$.hide();
+		$(window).off("resize", that.fit);
+		//restore row height of previously accessed elements 
+		//select elements with onclick attribute. 
+		//Re. jquery notation...
+		//^= means matches value as begining 
+		//*= means matches value as substring 
+		//~= means matches value as space delimited word
+		$("[onclick*='.text(']").css("height","auto");
+	};
+	
+	this.text=function(el, dblclick){
 
-	//activate texteditor on element
-	var e$=$(element);
+		//restore row height of any previously edited elements
+		$("[onclick*='.text(']").css("height","auto");
 	
-	var data={texteditor:x$, x$:x$, element:e$, e$:e$};
+		that.e$=$(el); 
+		that.x$=$("#texteditor");
+		
+		//initialize or reset various event handlers...
+		//that.x$.off("click keyup resize", that.fit).on("click keyup resize", that.fit);
+		//$(window).off("resize", that.fit).on("resize", that.fit);
+		if (typeof dblclick=="function"){that.x$.off("dblclick").on("dblclick", dblclick);};
+		
+		var newval=that.e$.attr("newval");
+		if (typeof newval=="undefined") {
+			//first time this element is edited so initialize editor from element
+			that.x$.val(that.e$.text());
+			that.x$.attr("newval", that.e$.text());
+		} else {
+			//resume editing from last edited value
+			that.x$.val(newval);
+		}
+		that.fit();
+	};
 	
-	//restore row height of any previously edited elements
-	//$(".texteditor").css("height","auto");
-	//selects elements with onclick attribute begining with texteditor...
-	$("[onclick^='texteditor']").css("height","auto");
+	this.row=function(){
+		var row={};
+		row[that.e$.attr("field")]=that.e$.attr("newval");
+		//console.log("EDITOR field, newval, row...", that.e$.attr("field"), that.e$.attr("newval"), row);
+		return row;
+	};
 	
-	//clear flags
-	$("[edit-in-progress]").attr("edit-in-progress",0);
-	//flag current element being edited
-	e$.attr("edit-in-progress", 1);
+	this.rowid=function(){
+		var rowid=that.e$.attr("rowid");
+		//console.log("EDITOR rowid...", rowid);
+		return rowid;
+	};
+	
+	//INIT
+	//create text area element for editing text
+	this.x$=$("<textarea id='texteditor' style='display:none; z-index=999;'></textarea>");
+	$("body").append(this.x$);
 	
 	//initialize or reset various event handlers...
-	x$.off("click keyup resize", texteditorFit).on("click keyup resize", data, texteditorFit);
-	$(window).off("resize", texteditorFit).on("resize", data, texteditorFit);
-	if (typeof dblclick=="function"){x$.off("dblclick").on("dblclick", data, dblclick);};
+	that.x$.on("click keyup resize", that.fit);
+	$(window).on("resize", that.fit);
 	
-	//get database rowid, field and value info and save as attributes for possible update
-	x$.attr("rowid", e$.attr("rowid"));
-	x$.attr("field", e$.attr("field"));
-	var newval=e$.attr("newval");
-	//console.log("newval",newval);
-	if (typeof newval=="undefined") {
-		//first time this element is edited so initialize editor from element
-		x$.val(e$.text());
-		x$.attr("newval", e$.text());
-	} else {
-		//resume editing from last edited value
-		x$.val(newval);
-	}
-
-	//dummy ev with critical data member as argument
-	texteditorFit({data:data});	
-};
-
-function texteditorFit(ev){
-	//var x$=$("#texteditor");
-	//var e$=$("[edit-in-progress=1]"); //attribute selector
-	var x$=ev.data.texteditor;
-	var e$=ev.data.element;
-	
-	x$.show();
-	//fit textarea to element	
-	x$.width(e$.width());
-	x$.css("height","auto");
-	x$.css("padding-left", e$.css("padding-left"));
-	if (x$[0].scrollHeight > 0) {x$.css("height", x$[0].scrollHeight);}
-	//element to match textarea height
-	e$.height(x$.height()+5);
-	//this needs to be done last per trial-and-error
-	x$.position({my:'left top', at:'left top', of:e$});
-	
-	//progress backup of edited value
-	e$.attr("newval", x$.val());
-
 };
 
 ///////////////////////////
@@ -274,18 +287,18 @@ function TableView(options){
 			autoform(this.options.place$, $.extend({table:this.table}, result));
 		}, 
 		//fn to run following render if row count decreases (IE delete success)
-		fxless:function(result){console.log("fxless...");}, 
+		reless:function(result){console.log("reless...");}, 
 		//fn to run following render if row count increases (IE insert success)
-		fxmore:function(result){console.log("fxmore...");}
+		remore:function(result){console.log("remore...");}
 	}, options);
 	
-	//row count
+	//properties
 	this.count = {current:0, previous:0};
 	this.div$ = null;
-	this.result={};
+	this.result={rows:[]};
 	
-	
-
+	//init
+	this.init();
 };
 
 TableView.prototype.init=function(){
@@ -299,11 +312,12 @@ TableView.prototype.init=function(){
 TableView.prototype.insert=function(){
 
 	var that=this;
-	var row=this.options.defrow;
-	//need to encapsulate that.render, 'this' context changes when inside database fn
+	
+	//need to encapsulate that.render because 'this' context changes when render passed as callback
 	var render=function(result){that.render(result);};
+	
 	//database(SQLstring, callback);
-	database(this.SQLinsert(row), function(){database(that.SQLselect(), render);});
+	database(this.SQLinsert(this.options.defrow),function(){database(that.SQLselect(), render);});
 
 };
 
@@ -314,7 +328,7 @@ TableView.prototype.options=function(optionRevs){
 TableView.prototype.remove=function(rowid){
 	//delete from database
 	//database(SQLstring, callback);
-	console.log("REMOVE rowid...", rowid);
+	//console.log("REMOVE rowid...", rowid);
 	var that=this;
 	var render=function(result){that.render(result);}	
 	database(this.SQLdelete(rowid), function(){database(that.SQLselect(), render);});
@@ -324,16 +338,30 @@ TableView.prototype.remove=function(rowid){
 TableView.prototype.render=function(result){
 	
 	//update stats
+	var rowids=result.rows.map(function(i){return i.rowid;});
+	var rowidsPre=this.result.rows.map(function(i){return i.rowid;});
+	//console.log("INSERT rowidsPre, rowids", JSON.stringify(rowidsPre), JSON.stringify(rowids));
+	var rowid=diffArray(rowids, rowidsPre)[0];
+	console.log("DIFF", rowid);
+	
 	this.result=result;
 	this.count.previous=this.count.current;
 	this.count.current=result.rows.length;
-	//run the provided renderer
-	try { this.options.render(result);} catch(err){console.log(err); }
-	//run any post render functions for special effects such as slow row reveal etc
+
+	//run applicable render function
 	if (this.count.previous < this.count.current) {
-		try { this.options.fxmore(result);} catch(err){console.log(err); }
+		//number of rows increased
+		try { this.options.remore(result, rowid);} 
+		catch(err){console.log(err); }
 	} else if (this.count.previous > this.count.current) {
-		try { this.options.fxless(result);} catch(err){console.log(err); }
+		//number of rows decreased
+		//try { this.options.reless(result, this.rowid("highlite"));} 
+		try { this.options.reless(result, rowid);} 
+		catch(err){console.log(err); }
+	} else { 
+		//number of rows unchanged
+		try { this.options.render(result);} 
+		catch(err){console.log(err); }
 	}
 }
 
@@ -406,13 +434,13 @@ TableView.prototype.SQLselect=function(){
 TableView.prototype.SQLupdate=function (row, rowid){
 	//row = {} //object of any fields to be updated
 	//rowid = 21 //SQLITE automatic row id 
-	console.log("UPDATE row, rowid...",JSON.stringify(row), rowid);
+	//console.log("UPDATE row, rowid...",JSON.stringify(row), rowid);
 	if (typeof row == "undefined" || typeof rowid == "undefined"){return;}
 	var keys=Object.keys(row); //array of keys
 	//array of assignments ["pnum='BLDG-001'", "field='val'"]
 	var pairs=keys.map( function(k){return (k + "='"+row[k]+"'");} ); //array of quoted values
 	var sql="UPDATE "+this.options.table+" SET " + pairs.join(", ") +
 	" WHERE rowid="+rowid;
-	console.log("Table SQL:", sql);
+	//console.log("Table SQL:", sql);
 	return sql;
 };
