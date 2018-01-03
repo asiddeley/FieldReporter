@@ -52,7 +52,7 @@ const autoForm=function(div$, params){
 	bg1$.append(btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8);
 	form$.append(bg1$);
 	return con$;
-}
+};
 
 function database(sql, callback){
 	$.ajax({
@@ -80,15 +80,18 @@ function database(sql, callback){
 */
 
 function diffArray(a, b) {
-	//ensure a is larger, swap if not
+	//saftey first
+	if (typeof a=="undefined"){a=[];}
+	if (typeof b=="undefined"){b=[];}
 	if (a.length < b.length) {var t=a; a=b; b=t;}
 	
+	//diffArray
 	var seen = []
 	var diff = [];
 	for ( var i = 0; i < b.length; i++) { seen[b[i]] = true; }
 	for ( var i = 0; i < a.length; i++) { if (!seen[a[i]]) { diff.push(a[i]);}}
 	return diff;
-}
+};
 
 
 function cookie(cname, cvalue, exdays) {
@@ -149,6 +152,8 @@ function substitute(sql, params){
 			var p=params[terms[i]];
 			//add quotes if p is literal
 			if (typeof p =="string") {p="'"+p+"'";}
+			//evaluate if a function - hopfully the result is a string
+			else if (typeof p=="function") {p=p();}
 			//convert to string if an array
 			else if (p instanceof Array) {p=p.join(",");}
 			terms[i]=p;
@@ -177,7 +182,7 @@ function Highlighter(colour){
 	}
 	
 	this.rowid=function(){return $("[highlite=1]").attr("rowid");}	
-}
+};
 
 
 //////////////////////////////////
@@ -311,15 +316,15 @@ function TableView(options){
 	this.result={rows:[]};
 	
 	//init
-	this.init();
+	//this.init();
 };
 
 TableView.prototype.init=function(){
 	var that=this;
 	//need to encapsulate that.render, 'this' context changes when inside database fn
-	var render=function(result){that.render(result);};
+	var re=function(result){that.render(result);};
 	//database(SQLstring, callback);
-	database(this.SQLcreate(), function(){database(that.SQLselect(), render);});
+	database(this.SQLcreate(), function(){database(that.SQLselect(), re);});
 };
 
 TableView.prototype.insert=function(){
@@ -327,10 +332,10 @@ TableView.prototype.insert=function(){
 	var that=this;
 	
 	//need to encapsulate that.render because 'this' context changes when render passed as callback
-	var render=function(result){that.render(result);};
+	var re=function(result){that.render(result);};
 	
 	//database(SQLstring, callback);
-	database(this.SQLinsert(this.options.defrow),function(){database(that.SQLselect(), render);});
+	database(this.SQLinsert(this.options.defrow),function(){database(that.SQLselect(), re);});
 
 };
 
@@ -343,13 +348,17 @@ TableView.prototype.remove=function(rowid){
 	//database(SQLstring, callback);
 	//console.log("REMOVE rowid...", rowid);
 	var that=this;
-	var render=function(result){that.render(result);}	
-	database(this.SQLdelete(rowid), function(){database(that.SQLselect(), render);});
+	var re=function(result){that.render(result);}	
+	database(this.SQLdelete(rowid), function(){database(that.SQLselect(), re);});
 
 };
 
 TableView.prototype.render=function(result){
 	
+	if (typeof result.rows=="undefined"){
+		console.log("No result for SQL:", this.SQLselect());
+		return;
+	}
 	//update stats
 	var rowids=result.rows.map(function(i){return i.rowid;});
 	var rowidsPre=this.result.rows.map(function(i){return i.rowid;});
@@ -376,46 +385,23 @@ TableView.prototype.render=function(result){
 		try { this.options.render(result);} 
 		catch(err){console.log(err); }
 	}
-}
-/********************
-TableView.prototype.row=function(hint){
-	//retrieves from 'that' elment, field, value and returns them as {} for use in update(row, rowid)
-	//console.log("ROW field:newval...", $(that).attr("field"), $(that).attr("newval") );
-	var that$;
-	var r={};
+};
 
-	if (typeof hint=="undefined"){
-		that$=$("[edit-in-progress=1]").attr("newval");
-		r[that$.attr("field")]=that$.attr("newval");
-		return r;
-	} else if (hint=="highlite"){
-		that$=$("[highlite=1]").attr("newval");
-		r[that$.attr("field")]=that$.attr("newval");
-		return r;
-	} else {return r;}
-}
-
-TableView.prototype.rowid=function(hint){
-	//returns active rowid for use in update(row, rowid)
-
-	if (typeof hint=="undefined"){
-		return $("[edit-in-progress=1]").attr("rowid");
-	} else if (hint=="highlite"){
-		//console.log("ROWID...", $("[highlite=1]").attr("rowid"));
-		return $("[highlite=1]").attr("rowid");		
-	} else {return 0;}
-}
-*/
 TableView.prototype.update=function(row, rowid){
 	//console.log("UPDATE row, rowid:", JSON.stringify(row), rowid);
 	var that=this;
 	var render=function(result){that.render(result);}	
 	database(this.SQLupdate(row, rowid), function(){database(that.SQLselect(), render);});
 };
+
 //////////// SQLfunctions
 TableView.prototype.SQLcreate=function(){
-	var sql="CREATE TABLE IF NOT EXISTS "+
-	this.options.table+
+	var make="CREATE TABLE IF NOT EXISTS ";
+	
+	//special limited time case
+	//if (this.options.table == "comments"){var make="CREATE TABLE ";}
+	
+	var sql= make + this.options.table +
 	" ( "+Object.keys(this.options.defrow).join(", ")+" ) ";
 	//console.log("SQL...", sql);
 	return sql;
