@@ -12,6 +12,21 @@ Andrew Siddeley
 13-Dec-2017
 ********************************/
 
+function arrayDiff(a, b) {
+	//Thanks to https://radu.cotescu.com/javascript-diff-function/
+	//saftey first
+	if (typeof a=="undefined"){a=[];}
+	if (typeof b=="undefined"){b=[];}
+	if (a.length < b.length) {var t=a; a=b; b=t;}
+	
+	//diffArray
+	var seen = []
+	var diff = [];
+	for ( var i = 0; i < b.length; i++) { seen[b[i]] = true; }
+	for ( var i = 0; i < a.length; i++) { if (!seen[a[i]]) { diff.push(a[i]);}}
+	return diff;
+};
+
 const autoForm=function(div$, params){
 	//params={SQL:"SELECT...", table:"projects", rows:[{pnum:"abc", pname:"abc",...},{},{}], ccsclass:[]}
 
@@ -61,37 +76,14 @@ function database(sql, callback){
 		type: 'POST',
 		data: jQuery.param({SQL:sql}),
 		contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-		//callback(result)
-		success:callback,
-		error:function(err){/*console.log("ajax error",err);*/}
+		success:function(result){ 
+			if(typeof result.rows=="undefined"){result.rows=[];}
+			callback(result);},
+		error:function(err){console.log("database function, ajax error:",err);}
 	});	
 };
 
-/******************************
-	Returns the result of the subtraction method applied to
-	sets (mathematical concept).
 
-	@param a Array one
-	@param b Array two
-	@return An array containing the result
-	
-	https://radu.cotescu.com/javascript-diff-function/
-
-*/
-
-function diffArray(a, b) {
-	//saftey first
-	if (typeof a=="undefined"){a=[];}
-	if (typeof b=="undefined"){b=[];}
-	if (a.length < b.length) {var t=a; a=b; b=t;}
-	
-	//diffArray
-	var seen = []
-	var diff = [];
-	for ( var i = 0; i < b.length; i++) { seen[b[i]] = true; }
-	for ( var i = 0; i < a.length; i++) { if (!seen[a[i]]) { diff.push(a[i]);}}
-	return diff;
-};
 
 
 function cookie(cname, cvalue, exdays) {
@@ -296,7 +288,7 @@ function TableView(options){
 		//placeholder element (wrapped with jquery) where table results are displayed for default renderer
 		place$:null,
 		//fn to run to refresh placeholder, should encapsulate handlebar template etc
-		render:function(result){
+		refresh:function(result, diff){
 			//default render function
 			if (this.options.place$==null){
 				this.options.place$=$("<div></div>");
@@ -305,15 +297,15 @@ function TableView(options){
 			autoform(this.options.place$, $.extend({table:this.table}, result));
 		}, 
 		//fn to run following render if row count decreases (IE delete success)
-		reless:function(result){console.log("reless...");}, 
+		//reless:function(result){console.log("reless...");}, 
 		//fn to run following render if row count increases (IE insert success)
-		remore:function(result){console.log("remore...");}
+		//remore:function(result){console.log("remore...");}
 	}, options);
 	
 	//properties
-	this.count = {current:0, previous:0};
+	//this.count = {current:0, previous:0};
 	this.div$ = null;
-	this.result={rows:[]};
+	this.previous={rows:[]};
 	
 	//init
 	//this.init();
@@ -322,20 +314,26 @@ function TableView(options){
 TableView.prototype.init=function(){
 	var that=this;
 	//need to encapsulate that.render, 'this' context changes when inside database fn
-	var re=function(result){that.render(result);};
+	var re=function(result){that.__refresh(result);};
 	//database(SQLstring, callback);
-	database(this.SQLcreate(), function(){database(that.SQLselect(), re);});
+	//create table (if not exists) then add default row (if none exists)
+	database(this.SQLcreate(), function(){
+		database(this.SQLselect1st, function(result){
+			
+			if (result.rows.length==0) {database(that.SQLselect(), re);}
+		})
+	});
+	
 };
 
 TableView.prototype.insert=function(){
 
 	var that=this;
-	
-	//need to encapsulate that.render because 'this' context changes when render passed as callback
-	var re=function(result){that.render(result);};
-	
+	var re=function(result){that.__refresh(result);};
 	//database(SQLstring, callback);
-	database(this.SQLinsert(this.options.defrow),function(){database(that.SQLselect(), re);});
+	database(this.SQLinsert(this.options.defrow),function(){
+		database(that.SQLselect(), re);
+	});
 
 };
 
@@ -348,28 +346,38 @@ TableView.prototype.remove=function(rowid){
 	//database(SQLstring, callback);
 	//console.log("REMOVE rowid...", rowid);
 	var that=this;
-	var re=function(result){that.render(result);}	
-	database(this.SQLdelete(rowid), function(){database(that.SQLselect(), re);});
+	var re=function(result){that.__refresh(result);}	
+	database(this.SQLdelete(rowid), function(){
+		database(that.SQLselect(), re);
+	});
 
 };
 
-TableView.prototype.render=function(result){
+//called by dependencies Ie. controling tableViews
+TableView.prototype.refresh=function(depencency_result){
 	
-	if (typeof result.rows=="undefined"){
-		console.log("No result for SQL:", this.SQLselect());
-		return;
-	}
+	var that=this;
+	var re=function(result){that.__refresh(result);}	
+	database(this.SQLdelete(rowid), function(){
+		database(that.SQLselect(), re);
+	});
+}
+
+//internal use only
+TableView.prototype.__refresh=function(result){
+	
+	if (result.rows.length==0){console.log("No result for SQL:", this.SQLselect());}
 	//update stats
 	var rowids=result.rows.map(function(i){return i.rowid;});
-	var rowidsPre=this.result.rows.map(function(i){return i.rowid;});
+	var rowidsprev=this.result.rows.map(function(i){return i.rowid;});
 	//console.log("INSERT rowidsPre, rowids", JSON.stringify(rowidsPre), JSON.stringify(rowids));
-	var rowid=diffArray(rowids, rowidsPre)[0];
-	console.log("DIFF", rowid);
-	
-	this.result=result;
-	this.count.previous=this.count.current;
-	this.count.current=result.rows.length;
+	//var rowid=diffArray(rowids, rowidsprev);
+	var change={count:(result.rows.length-this.previous.rows.length), rowids:arrayDiff(rowids, rowidsprev)};
+	this.previous=result;
+	console.log("refresh change...", change);
 
+	try { this.options.refresh(result, change);} 
+	/****
 	//run applicable render function
 	if (this.count.previous < this.count.current) {
 		//number of rows increased
@@ -385,22 +393,20 @@ TableView.prototype.render=function(result){
 		try { this.options.render(result);} 
 		catch(err){console.log(err); }
 	}
+	***/
 };
 
 TableView.prototype.update=function(row, rowid){
 	//console.log("UPDATE row, rowid:", JSON.stringify(row), rowid);
 	var that=this;
-	var render=function(result){that.render(result);}	
-	database(this.SQLupdate(row, rowid), function(){database(that.SQLselect(), render);});
+	var re=function(result){that.refresh(result);}	
+	database(this.SQLupdate(row, rowid), function(){database(that.SQLselect(), re);});
 };
 
 //////////// SQLfunctions
 TableView.prototype.SQLcreate=function(){
+	//var make="CREATE TABLE ";
 	var make="CREATE TABLE IF NOT EXISTS ";
-	
-	//special limited time case
-	//if (this.options.table == "comments"){var make="CREATE TABLE ";}
-	
 	var sql= make + this.options.table +
 	" ( "+Object.keys(this.options.defrow).join(", ")+" ) ";
 	//console.log("SQL...", sql);
@@ -428,6 +434,10 @@ TableView.prototype.SQLselect=function(){
 	" WHERE "+substitute(this.options.select, this.options.params);
 	//console.log("Table SQL:", sql);
 	return sql;
+};
+
+TableView.prototype.SQLselect1st=function(){
+	return "SELECT rowid, * FROM " + this.options.table + " LIMIT 1";
 };
 
 TableView.prototype.SQLupdate=function (row, rowid){

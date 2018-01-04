@@ -88,25 +88,12 @@ var svrTV=new TableView({
 	},
 	select:" svrnum = $svrnum ",
 	params:{"$svrnum":$svrnum},
-	render:function(result){	
+	refresh:function(result){	
 		console.log("svrTV render result.rows:", JSON.stringify(result.rows));
-		if (result.rows.length==0 ) {
-			//be carefull, insert calls back this render so if row remains 0 then recursive hell
-			svrTV.insert();
-		}
-		//could call render comments here also
-	}, 
-	reless:function(result, rowid){
-		console.log("svrTV renless result:", result.rows);
-		$cids=result.rows[0].comment_ids;
-		console.log("svrTV result.rows[0].comment_ids:", $cids);
-	
-	}, 
-	remore:function(result, rowid){
-		console.log("svrTV remore result:", result.rows);
-		$cids=result.rows[0].comment_ids;
-		console.log("svrTV result.rows[0].comment_ids:", $cids);
-	
+		//call dependents
+		var params={$cids=result.rows[0].comment_ids};
+		CTV.refresh(params);
+		ioTV.refresh(params);
 	}
 });
 
@@ -119,7 +106,7 @@ var CTV=new TableView({
 	//select:" pnum = $pnum ",
 	select:" rowid IN ( $cids )",
 	params:{"$pnum":$pnum, "$cids":function(){return $cids;} },
-	render:function(result){ 
+	refresh:function(result){ 
 		console.log("comments render...", result);
 		console.log("comments SQLselect...", CTV.SQLselect());
 		$('#comments-placeholder').html(CTemp(result));
@@ -149,7 +136,7 @@ var icTV=new TableView({
 	defrow:{pnum:"BLDG-001", desc:"New closed issue", open:Date(), shut:"date", refs:"1 2 3", by:$user},
 	select:" pnum = $pnum ",
 	params:{"$pnum":$pnum},
-	render:function(result){
+	refresh:function(result){
 		//TODO: filter result based on applicable dates...
 		$('#issues-closed-placeholder').html(icTemp(result));
 	}, 
@@ -180,7 +167,7 @@ var ioTV=new TableView({
 	defrow:{pnum:"BLDG-001", desc:"New issue", open:Date(), shut:"date", refs:"123", by:"--"},
 	select:" pnum = $pnum ",
 	params:{"$pnum":$pnum},
-	render:function(result){ 
+	refresh:function(result){ 
 		//TODO: filter result based on applicable dates...
 		$('#issues-open-placeholder').html(ioTemp(result));
 	}, 
