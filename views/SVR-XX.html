@@ -36,7 +36,7 @@ background-color:silver;
 
 
 <script type='text/javascript'>
-
+//console.log("SCRIPT...");
 ///// Global defs
 
 function showMenu(cm$, ev){
@@ -62,8 +62,8 @@ if ($user==null){$user=cookie("$user", "admin", "30");};
 var $pnum=cookie("$pnum");
 if ($pnum==null){$pnum=cookie("$pnum", "BLDG-001", "30");};
 //var $svrnum=cookie("$svrnum");
-var $svrnum="SVR-A001";
-if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-001", "30");};
+var $svrnum="SVR-A01";
+if ($svrnum==null){$svrnum=cookie("$svrnum", "'SVR-A01'", "30");};
 
 
 
@@ -75,7 +75,7 @@ var RTV=new TableView({
 	table:"svrs",
 	//svrnum, pnum, title, dateofvisit, timeofvisit, dateofreport, reviewer, xdata
 	defrow:{
-		svrnum:"SVR-A001",
+		svrnum:"SVR-A01",
 		pnum:"BLDG-001", 		
 		title:"New comment", 
 		review_date:Date(), 
@@ -181,6 +181,7 @@ var hi=new Highlighter("skyblue");
 ///// READY
 $(function() { 
 
+	console.log("READY...");
 	// Setup Handlebars
 	Handlebars.registerHelper("plusOne", function(val,options){return parseInt(val)+1;});
 
@@ -191,13 +192,13 @@ $(function() {
 	// get template html then compile it to a template-function 
 	CTemp=Handlebars.compile($("#comments-template").html());
 	//create comments table and populate with default row only only if they don't exists
-	CTV.init();
+	//CTV.init();
 	//CTV.refresh();
 	
 	///// issues closed
 	icM$=$("#issues-closed-menu").menu().css("position","absolute", "width", "200px").hide();
 	icTemp=Handlebars.compile($("#issues-closed-template").html());
-	icTV.init();
+	//icTV.init();
 
 	///// issues open
 	ioM$=$("#issues-open-menu").menu().css("position","absolute", "width", "200px").hide();
@@ -206,8 +207,7 @@ $(function() {
 
 	///// report table
 	//create svrs table and populate with default row only if they don't exist
-	RTV.init();
-
+	//RTV.init();
 	
 	//render report which renders dependencies also
 	RTV.refresh();
