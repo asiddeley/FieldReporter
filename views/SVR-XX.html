@@ -71,7 +71,7 @@ if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-001", "30");};
 
 // Site visit report
 var $cids="none";
-var svrTV=new TableView({
+var RTV=new TableView({
 	table:"svrs",
 	//svrnum, pnum, title, dateofvisit, timeofvisit, dateofreport, reviewer, xdata
 	defrow:{
@@ -86,16 +86,16 @@ var svrTV=new TableView({
 		reviewer:$user,
 		xdata:"{comments:[1,2,3,4,5], issues:[1,2,3,4,5], pictures:[]}"
 	},
-	select:" svrnum = $svrnum ",
+	filter:" svrnum = $svrnum ",
 	params:{"$svrnum":$svrnum},
 	refresh:function(result){	
 		console.log("svrTV render result.rows:", JSON.stringify(result.rows));
-		//call dependents
-		var params={$cids=result.rows[0].comment_ids};
-		CTV.refresh(params);
-		ioTV.refresh(params);
-	}
-});
+		//update dependent table views which will cause them to refresh
+		var params={ '$cids':result.rows[0].comment_ids, '$iids':result.rows[0].issue_ids};
+		CTV.params(params);
+		ioTV.params(params);
+		icTV.params(params);
+	}});
 
 // table view for comments
 var CM$;
@@ -103,30 +103,23 @@ var CTemp=function(){};
 var CTV=new TableView({
 	table:"comments",
 	defrow:{pnum:"BLDG-001", comment:"New comment", refs:"none", date:Date(), by:$user},
-	//select:" pnum = $pnum ",
-	select:" rowid IN ( $cids )",
-	params:{"$pnum":$pnum, "$cids":function(){return $cids;} },
-	refresh:function(result){ 
+	filter:" rowid IN ( $cids )",
+	params:{"$pnum":$pnum, "$cids":$cids},
+	refresh:function(result, diff){
 		console.log("comments render...", result);
-		console.log("comments SQLselect...", CTV.SQLselect());
+		//console.log("comments SQLselect...", CTV.SQLselect());
 		$('#comments-placeholder').html(CTemp(result));
-	}, 
-	reless:function(result, rowid){ 
-		//console.log("reless...");
-		//Grand send-off for deleted row then run callback function to render result
-		$("#comments-row"+rowid).css('background','gold').hide(500, function(){
-			$('#comments-placeholder').html(CTemp(result));
-		});
-	}, 
-	remore:function(result, rowid){ 
-		//console.log("remore new rowid...", rowid);
-		$('#comments-placeholder').html(CTemp(result));
-		//Grand Reveal...
-		var cr$=$('#comments-row'+rowid);
-		var callback=function(){cr$.css('background','white');};
-		cr$.css('background','gold').hide().show(500, callback);
-	}
-});
+
+		////Grand send-off for deleted row then run callback function to render result
+		//$("#comments-row"+rowid).css('background','gold').hide(500, function(){
+		//	$('#comments-placeholder').html(CTemp(result));
+		//});
+		
+		////Grand Reveal...
+		//var cr$=$('#comments-row'+rowid);
+		//var callback=function(){cr$.css('background','white');};
+		//cr$.css('background','gold').hide().show(500, callback);
+	}});
 
 // table view for issues-closed
 var icM$;
@@ -134,27 +127,22 @@ var icTemp;
 var icTV=new TableView({
 	table:"issues",
 	defrow:{pnum:"BLDG-001", desc:"New closed issue", open:Date(), shut:"date", refs:"1 2 3", by:$user},
-	select:" pnum = $pnum ",
-	params:{"$pnum":$pnum},
-	refresh:function(result){
+	filter:" pnum = $pnum ",
+	params:{ "$pnum":$pnum },
+	refresh:function(result, diff){
 		//TODO: filter result based on applicable dates...
 		$('#issues-closed-placeholder').html(icTemp(result));
-	}, 
-	reless:function(result, rowid){ //console.log("reless...");
-		//TODO: filter result based on applicable dates...
-		//Grand send-off for deleted row then run callback function to render result
-		$("#issues-closed-row"+rowid).css('background','gold').hide(500, function(){
-			$('#issues-closed-placeholder').html(icTemp(result));
-		});
-	}, 
-	remore:function(result, rowid){ //console.log("remore new rowid...", rowid);
-		//TODO: filter result based on applicable dates...
-		$('#issues-closed-placeholder').html(icTemp(result));
-		//Grand Reveal...
-		$('#issues-closed-row'+rowid).css('background','gold').hide().show(500);
-		var icr$=$('#issues-closed-row'+rowid);
-		var callback=function(){icr$.css('background','white');};
-		icr$.css('background','gold').hide().show(500, callback);
+		
+		////Grand send-off for deleted row then run callback function to render result			
+		//$("#issues-closed-row"+rowid).css('background','gold').hide(500, function(){
+		//	$('#issues-closed-placeholder').html(icTemp(result));
+		//});
+		
+		////Grand Reveal...
+		//$('#issues-closed-row'+rowid).css('background','gold').hide().show(500);
+		//var icr$=$('#issues-closed-row'+rowid);
+		//var callback=function(){icr$.css('background','white');};
+		//icr$.css('background','gold').hide().show(500, callback);
 	}
 });
 
@@ -162,33 +150,27 @@ var icTV=new TableView({
 var ioM$;
 var ioTV;
 var ioTemp;
-var ioTV=new TableView({
+var ioTV=new TableView( {
 	table:"issues",
 	defrow:{pnum:"BLDG-001", desc:"New issue", open:Date(), shut:"date", refs:"123", by:"--"},
-	select:" pnum = $pnum ",
-	params:{"$pnum":$pnum},
-	refresh:function(result){ 
+	filter:" pnum = $pnum ",
+	params:{$pnum:$pnum},
+	refresh:function(result, diff){ 
 		//TODO: filter result based on applicable dates...
 		$('#issues-open-placeholder').html(ioTemp(result));
-	}, 
-	reless:function(result, rowid){ 
-		//console.log("reless...");
-		//TODO: filter result based on applicable dates...
-	
-		//Grand send-off for deleted row then run callback function to render result			
-		$("#issues-open-row"+rowid).css('background','gold').hide(500, function(){
-			$('#issues-open-placeholder').html(ioTemp(result));
-		});
-	},
-	remore:function(result, rowid){ 
-		//console.log("remore new rowid...", rowid);
-		//TODO: filter result based on applicable dates...
-		$('#issues-open-placeholder').html(ioTemp(result));
-		//Grand Reveal...
-		$('#issues-open-row'+rowid).css('background','gold').hide().show(500);
-		var ior$=$('#issues-open-row'+rowid);
-		var callback=function(){ior$.css('background','white');};
-		ior$.css('background','gold').hide().show(500, callback);	}
+		
+		////Grand send-off for deleted row then run callback function to render result			
+		//$("#issues-open-row"+rowid).css('background','gold').hide(500, function(){
+		//	$('#issues-open-placeholder').html(ioTemp(result));
+		//});
+		
+		////Grand Reveal...
+		//$('#issues-open-row'+rowid).css('background','gold').hide().show(500);
+		//var ior$=$('#issues-open-row'+rowid);
+		//var callback=function(){ior$.css('background','white');};
+		//ior$.css('background','gold').hide().show(500, callback);	}
+
+	}
 });	
 
 // text editor
@@ -202,13 +184,16 @@ $(function() {
 	// Setup Handlebars
 	Handlebars.registerHelper("plusOne", function(val,options){return parseInt(val)+1;});
 
-	svrTV.init();
+	///// report table
+	//create svrs table and populate with default row only if they don't exist
+	RTV.init();
 	
 	///// Comments
 	// initialize context menu...
 	CM$=$("#comments-menu").menu().css("position","absolute", "width", "200px").hide();
 	// get template html then compile it to a template-function 
 	CTemp=Handlebars.compile($("#comments-template").html());
+	//create comments table and populate with default row only only if they don't exists
 	CTV.init();
 	
 	///// issues closed
@@ -221,6 +206,8 @@ $(function() {
 	ioTemp=Handlebars.compile($("#issues-open-template").html());
 	ioTV.init();
 
+	//render report which renders dependencies also
+	RTV.refresh();
 }); //READY
 
 

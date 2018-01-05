@@ -70,6 +70,7 @@ const autoForm=function(div$, params){
 };
 
 function database(sql, callback){
+	
 	$.ajax({
 		//url: '/formHandler',
 		url: '/database',
@@ -77,14 +78,12 @@ function database(sql, callback){
 		data: jQuery.param({SQL:sql}),
 		contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
 		success:function(result){ 
-			if(typeof result.rows=="undefined"){result.rows=[];}
-			callback(result);},
+			if(typeof result.rows=="undefined") result.rows=[];
+			if (typeof callback=="function") callback(result);
+		},
 		error:function(err){console.log("database function, ajax error:",err);}
 	});	
 };
-
-
-
 
 function cookie(cname, cvalue, exdays) {
 	
@@ -257,8 +256,9 @@ function Editor(){
 	
 	//INIT
 	//create text area element for editing text
-	this.x$=$("<textarea id='texteditor' style='display:none; z-index=999;'></textarea>");
+	this.x$=$("<textarea id='texteditor' style='z-index=999;'></textarea>");
 	$("body").append(this.x$);
+	this.x$.hide();
 	
 	//initialize or reset various event handlers...
 	that.x$.on("click keyup resize", that.fit);
@@ -280,9 +280,10 @@ function TableView(options){
 			by:"--", 
 			dateopened:Date(), 
 			dateclosed:"NA", 
-			refs:"123"},
+			refs:"123"
+		},
 		//main selector - default below selects all 
-		select:"rowid = rowid",
+		filter:"rowid = rowid",
 		//parameters for main selection - default below
 		params:null,
 		//placeholder element (wrapped with jquery) where table results are displayed for default renderer
@@ -295,11 +296,7 @@ function TableView(options){
 				$("body").append(this.options.place$);
 			}
 			autoform(this.options.place$, $.extend({table:this.table}, result));
-		}, 
-		//fn to run following render if row count decreases (IE delete success)
-		//reless:function(result){console.log("reless...");}, 
-		//fn to run following render if row count increases (IE insert success)
-		//remore:function(result){console.log("remore...");}
+		}
 	}, options);
 	
 	//properties
@@ -313,15 +310,16 @@ function TableView(options){
 
 TableView.prototype.init=function(){
 	var that=this;
+	var SQL1=this.SQLselect1st();
+	var SQL2=that.SQLinsert(that.options.defrow);
 	//need to encapsulate that.render, 'this' context changes when inside database fn
-	var re=function(result){that.__refresh(result);};
+	//var re=function(result){that.__refresh(result);};
 	//database(SQLstring, callback);
 	//create table (if not exists) then add default row (if none exists)
 	database(this.SQLcreate(), function(){
-		database(this.SQLselect1st, function(result){
-			
-			if (result.rows.length==0) {database(that.SQLselect(), re);}
-		})
+		database(SQL1, function(result){if (result.rows.length==0) {
+			database(SQL2);
+		}});
 	});
 	
 };
@@ -337,8 +335,10 @@ TableView.prototype.insert=function(){
 
 };
 
-TableView.prototype.options=function(optionRevs){
-	$.extend(this.options, optionRevs);	
+TableView.prototype.option=function(optionRev){
+	//eq. optionRev={filter:"rowid=rowid LIMIT 1"};
+	if (typeof optionRev=="undefined"){return this.options;}
+	$.extend(this.options, optionRev);	
 };
 
 TableView.prototype.remove=function(rowid){
@@ -354,14 +354,27 @@ TableView.prototype.remove=function(rowid){
 };
 
 //called by dependencies Ie. controling tableViews
-TableView.prototype.refresh=function(depencency_result){
+TableView.prototype.params=function(params){
+	var tableView=this;
+	//saftey
+	if (!(tableView instanceof TableView)){return;}
+	if (typeof params != "object"){return;}
 	
-	var that=this;
-	var re=function(result){that.__refresh(result);}	
-	database(this.SQLdelete(rowid), function(){
-		database(that.SQLselect(), re);
+	//args missing means return params
+	if (typeof params=="undefined"){return this.options.params;}
+		
+	//args present means update params and refresh
+	$.extend(tableView.options.params, params);
+	var re=function(result){tableView.__refresh(result);}	
+	database(tableView.SQLdelete(rowid), function(){
+		database(tableView.SQLselect(), re);
 	});
-}
+};
+
+TableView.prototype.refresh=function(){
+	var that=this;
+	database(that.SQLselect(), function(result){that.__refresh(result);});
+};
 
 //internal use only
 TableView.prototype.__refresh=function(result){
@@ -369,31 +382,21 @@ TableView.prototype.__refresh=function(result){
 	if (result.rows.length==0){console.log("No result for SQL:", this.SQLselect());}
 	//update stats
 	var rowids=result.rows.map(function(i){return i.rowid;});
-	var rowidsprev=this.result.rows.map(function(i){return i.rowid;});
+	var previds=this.previous.rows.map(function(i){return i.rowid;});
 	//console.log("INSERT rowidsPre, rowids", JSON.stringify(rowidsPre), JSON.stringify(rowids));
 	//var rowid=diffArray(rowids, rowidsprev);
-	var change={count:(result.rows.length-this.previous.rows.length), rowids:arrayDiff(rowids, rowidsprev)};
+	var change={
+		count:( result.rows.length - this.previous.rows.length ), 
+		rowids:arrayDiff(rowids, previds)
+	};
 	this.previous=result;
-	console.log("refresh change...", change);
+	console.log("__refresh SQL, res...", this.SQLselect(), result);
 
 	try { this.options.refresh(result, change);} 
-	/****
-	//run applicable render function
-	if (this.count.previous < this.count.current) {
-		//number of rows increased
-		try { this.options.remore(result, rowid);} 
-		catch(err){console.log(err); }
-	} else if (this.count.previous > this.count.current) {
-		//number of rows decreased
-		//try { this.options.reless(result, this.rowid("highlite"));} 
-		try { this.options.reless(result, rowid);} 
-		catch(err){console.log(err); }
-	} else { 
-		//number of rows unchanged
-		try { this.options.render(result);} 
-		catch(err){console.log(err); }
+	catch(er) {
+		console.log("tableView "+this.options.table+", trouble with refresh function:",er);
 	}
-	***/
+
 };
 
 TableView.prototype.update=function(row, rowid){
@@ -431,13 +434,13 @@ TableView.prototype.SQLinsert=function(row){
 
 TableView.prototype.SQLselect=function(){
 	var sql= "SELECT rowid, * FROM "+this.options.table+
-	" WHERE "+substitute(this.options.select, this.options.params);
+	" WHERE "+substitute(this.options.filter, this.options.params);
 	//console.log("Table SQL:", sql);
 	return sql;
 };
 
 TableView.prototype.SQLselect1st=function(){
-	return "SELECT rowid, * FROM " + this.options.table + " LIMIT 1";
+	return ("SELECT rowid, * FROM " + this.options.table + " LIMIT 1");
 };
 
 TableView.prototype.SQLupdate=function (row, rowid){
