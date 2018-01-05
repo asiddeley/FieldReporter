@@ -70,7 +70,7 @@ if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-001", "30");};
 ///// TableViews
 
 // Site visit report
-var $cids="none";
+var $cids="1,2,3";
 var RTV=new TableView({
 	table:"svrs",
 	//svrnum, pnum, title, dateofvisit, timeofvisit, dateofreport, reviewer, xdata
@@ -99,14 +99,14 @@ var RTV=new TableView({
 
 // table view for comments
 var CM$;
-var CTemp=function(){};
+var CTemp=function(r){console.log("OLD render...");};
 var CTV=new TableView({
 	table:"comments",
 	defrow:{pnum:"BLDG-001", comment:"New comment", refs:"none", date:Date(), by:$user},
 	filter:" rowid IN ( $cids )",
 	params:{"$pnum":$pnum, "$cids":$cids},
 	refresh:function(result, diff){
-		console.log("comments render...", result);
+		console.log("comments render...", JSON.stringify(result));
 		//console.log("comments SQLselect...", CTV.SQLselect());
 		$('#comments-placeholder').html(CTemp(result));
 
@@ -184,9 +184,6 @@ $(function() {
 	// Setup Handlebars
 	Handlebars.registerHelper("plusOne", function(val,options){return parseInt(val)+1;});
 
-	///// report table
-	//create svrs table and populate with default row only if they don't exist
-	RTV.init();
 	
 	///// Comments
 	// initialize context menu...
@@ -195,6 +192,7 @@ $(function() {
 	CTemp=Handlebars.compile($("#comments-template").html());
 	//create comments table and populate with default row only only if they don't exists
 	CTV.init();
+	//CTV.refresh();
 	
 	///// issues closed
 	icM$=$("#issues-closed-menu").menu().css("position","absolute", "width", "200px").hide();
@@ -204,8 +202,13 @@ $(function() {
 	///// issues open
 	ioM$=$("#issues-open-menu").menu().css("position","absolute", "width", "200px").hide();
 	ioTemp=Handlebars.compile($("#issues-open-template").html());
-	ioTV.init();
+	//ioTV.init();
 
+	///// report table
+	//create svrs table and populate with default row only if they don't exist
+	RTV.init();
+
+	
 	//render report which renders dependencies also
 	RTV.refresh();
 }); //READY

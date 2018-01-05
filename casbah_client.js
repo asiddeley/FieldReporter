@@ -142,7 +142,9 @@ function substitute(sql, params){
 			//console.log("term before...", terms[i].substring(1))
 			var p=params[terms[i]];
 			//add quotes if p is literal
-			if (typeof p =="string") {p="'"+p+"'";}
+			if (typeof p =="string") {
+				//if (not all digits){ p="'"+p+"'";}
+			}
 			//evaluate if a function - hopfully the result is a string
 			else if (typeof p=="function") {p=p();}
 			//convert to string if an array
@@ -308,17 +310,18 @@ function TableView(options){
 	//this.init();
 };
 
-TableView.prototype.init=function(){
-	var that=this;
+TableView.prototype.init=function(callback){
+	//var that=this;
 	var SQL1=this.SQLselect1st();
-	var SQL2=that.SQLinsert(that.options.defrow);
+	var SQL2=this.SQLinsert(this.options.defrow);
+	var cb=function(result){if (typeof callback=="function"){callback(result);}};
 	//need to encapsulate that.render, 'this' context changes when inside database fn
 	//var re=function(result){that.__refresh(result);};
 	//database(SQLstring, callback);
 	//create table (if not exists) then add default row (if none exists)
 	database(this.SQLcreate(), function(){
 		database(SQL1, function(result){if (result.rows.length==0) {
-			database(SQL2);
+			database(SQL2, cb);
 		}});
 	});
 	
@@ -366,6 +369,7 @@ TableView.prototype.params=function(params){
 	//args present means update params and refresh
 	$.extend(tableView.options.params, params);
 	var re=function(result){tableView.__refresh(result);}	
+	
 	database(tableView.SQLdelete(rowid), function(){
 		database(tableView.SQLselect(), re);
 	});
