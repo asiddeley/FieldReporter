@@ -117,17 +117,36 @@ function cookie(cname, cvalue, exdays) {
 
 };
 
+
+
+var spliceIE=function(list, index, remove, ins){
+	//similar to splice, which seems to be wonky in iexplorer
+	if (Array.isArray(list)) {
+		if (typeof ins=='undefined') ins=[];
+		if (!Array.isArray(ins)) ins=[ins];
+		if (typeof index != 'number') return list;
+		if (typeof remove != 'number') return list;
+		if (index <= 0){
+			return(ins.concat(list.slice(remove)));
+		} else if(index < list.length){			
+			return (list.slice(0,index).concat(ins).concat(list.slice(index+remove)));		
+		} else {
+			return (list.concat(ins));		
+		}
+	}
+};
+
 ///////////////////////////
 function substitute(sql, params){
 	/**************
-	Returns a sql string based on sql with key:value substitutions from params {} 
+	Returns a string from sql with key:value substitutions from params {} 
 	Note that placeholders for substitution must have '$' prefix
 	sql = "WHERE rowid in ( $rowidlist )"
 	params = {$rowidlist:"1,2,3,4"}
 	*************/
 	//exit early
 	if (typeof params=="undefined || params==null"){return sql;}
-	
+
 	//console.log("sql_params...")
 	//ensure these aren't touching terms
 	sql=sql.replace(/\(/g, " ( "); 
@@ -147,6 +166,7 @@ function substitute(sql, params){
 			else if (typeof p=="function") {p=p();}
 			//convert to string if an array
 			else if (p instanceof Array) {p=p.join(",");}
+			//////////////
 			terms[i]=p;
 			//console.log("term after...", terms[i])
 		}		
@@ -190,6 +210,7 @@ function Editor(){
 	this.e$=null; //editee - initialized by this.text()
 	
 	this.fit=function(){
+		if (this.e$==null){return;}
 		that.x$.show();
 		//fit textarea to element	
 		that.x$.width(that.e$.width());
@@ -224,11 +245,12 @@ function Editor(){
 		that.e$=$(el); 
 		that.x$=$("#texteditor");
 		
-		//initialize or reset various event handlers...
-		//that.x$.off("click keyup resize", that.fit).on("click keyup resize", that.fit);
-		//$(window).off("resize", that.fit).on("resize", that.fit);
+		//update editors dblclick callback to the current edited element
+		//dblclick meant to commit the texteditors change
 		if (typeof dblclick=="function"){that.x$.off("dblclick").on("dblclick", dblclick);};
 		
+		//all this newval was working not anymore. Lose it? 
+		//newval allows for edit to resume editing on an element that was left without commiting
 		var newval=that.e$.attr("newval");
 		if (typeof newval=="undefined") {
 			//first time this element is edited so initialize editor from element
@@ -243,7 +265,8 @@ function Editor(){
 	
 	this.row=function(){
 		var row={};
-		row[that.e$.attr("field")]=that.e$.attr("newval");
+		//row[that.e$.attr("field")]=that.e$.attr("newval");
+		row[that.e$.attr("field")]=that.x$.val();
 		//console.log("EDITOR field, newval, row...", that.e$.attr("field"), that.e$.attr("newval"), row);
 		return row;
 	};
@@ -261,7 +284,7 @@ function Editor(){
 	this.x$.hide();
 	
 	//initialize or reset various event handlers...
-	that.x$.on("click keyup resize", that.fit);
+	this.x$.on("click keyup resize", that.fit);
 	$(window).on("resize", that.fit);
 	
 };
@@ -299,30 +322,20 @@ function TableView(options){
 		}
 	}, options);
 	
-	//properties
-	//this.count = {current:0, previous:0};
 	this.div$ = null;
 	this.previous={rows:[]};
-	
-	//init
 	this.__init();
 };
 
 TableView.prototype.__init=function(){
-	//var that=this;
 	var SQL1=this.SQLselect1st();
 	var SQL2=this.SQLinsert(this.options.defrow);
-	//var cb=function(result){if (typeof callback=="function"){callback(result);}};
-	//need to encapsulate that.render, 'this' context changes when inside database fn
-	//var re=function(result){that.__refresh(result);};
-	//database(SQLstring, callback);
 	//create table (if not exists) then add default row (if none exists)
 	database(this.SQLcreate(), function(){
 		database(SQL1, function(result){if (result.rows.length==0) {
 			database(SQL2);
 		}});
 	});
-	
 };
 
 TableView.prototype.insert=function(){
@@ -343,7 +356,6 @@ TableView.prototype.option=function(optionRev){
 };
 
 TableView.prototype.remove=function(rowid){
-	//delete from database
 	//database(SQLstring, callback);
 	//console.log("REMOVE rowid...", rowid);
 	var that=this;
@@ -351,7 +363,6 @@ TableView.prototype.remove=function(rowid){
 	database(this.SQLdelete(rowid), function(){
 		database(that.SQLselect(), re);
 	});
-
 };
 
 //called by dependencies Ie. controling tableViews
@@ -381,37 +392,38 @@ TableView.prototype.params=function(params){
 };
 
 TableView.prototype.refresh=function(){
+	console.log("Refresh...");
 	var that=this;
 	database(that.SQLselect(), function(result){that.__refresh(result);});
 };
 
 //internal use only
 TableView.prototype.__refresh=function(result){
-	
+
 	if (result.rows.length==0){console.log("No result for SQL:", this.SQLselect());}
-	//update stats
+
+	//calculate the change...
 	var rowids=result.rows.map(function(i){return i.rowid;});
 	var previds=this.previous.rows.map(function(i){return i.rowid;});
 	//console.log("INSERT rowidsPre, rowids", JSON.stringify(rowidsPre), JSON.stringify(rowids));
-	//var rowid=diffArray(rowids, rowidsprev);
 	var change={
 		count:( result.rows.length - this.previous.rows.length ), 
 		rowids:arrayDiff(rowids, previds)
 	};
 	this.previous=result;
-	console.log("__refresh SQL, res...", this.SQLselect(), result);
+	//console.log("__refresh SQL, res...", this.SQLselect(), result);
 
+	//call refresh
 	try { this.options.refresh(result, change);} 
 	catch(er) {
 		console.log("tableView "+this.options.table+", trouble with refresh function:",er);
 	}
-
 };
 
 TableView.prototype.update=function(row, rowid){
-	//console.log("UPDATE row, rowid:", JSON.stringify(row), rowid);
+	console.log("UPDATE row, rowid:", JSON.stringify(row), rowid);
 	var that=this;
-	var re=function(result){that.refresh(result);}	
+	var re=function(result){that.__refresh(result);}	
 	database(this.SQLupdate(row, rowid), function(){database(that.SQLselect(), re);});
 };
 
@@ -465,3 +477,28 @@ TableView.prototype.SQLupdate=function (row, rowid){
 	//console.log("Table SQL:", sql);
 	return sql;
 };
+
+
+///////////////
+function renderFX(placeholderID, templateFN, result, delta){
+
+	if (placeholderID.indexOf("#")!=0){placeholderID="#"+placeholderID;}
+	switch(delta.count){
+		case(1):
+			////Grand Reveal for added row then run callback function to render result
+			$(placeholderID).html(templateFN(result));
+			//var cr$=$('#comments-row'+delta.rowids[0]);
+			var cr$=$(placeholderID+" > div").find($("[rowid="+delta.rowids[0]+"]"));
+			cr$.css('background','gold').hide().show(500, function(){cr$.css('background','white');});
+		break;
+		case(-1):
+			var cr$=$(placeholderID+" > div").find($("[rowid="+delta.rowids[0]+"]"));
+			////Grand send-off for deleted row then run callback function to render result
+			cr$.css('background','gold').hide(500, function(){
+				$(placeholderID).html(templateFN(result));
+			});
+		break;
+		default: $(placeholderID).html(templateFN(result));
+	};		
+}
+

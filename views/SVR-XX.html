@@ -55,16 +55,95 @@ function selectFolder(e) {
     alert(folder[0]);
 };
 
+function removeFromReport(rowid, RTV){
 
-// Cookies & parameters 
+
+};
+
+///////////////////////////////////////
+function movedn(rowid, rowids){
+
+//roll rowids towards end
+//var last=rowids.pop();rowids.unshift(last);
+console.log("Move dn before:", rowids);
+	for (var i=0; i<rowids.length-1; i++){
+		if (rowids[i]==rowid){
+			var temp=rowids[i+1];
+			rowids[i+1]=rowid;
+			rowids[i]=temp;
+			console.log("Move dn after:", rowids);
+			return;
+		}
+	};
+	
+};
+
+function moveup(rowid, rowids){
+
+//roll rowids towards begining
+//var first=rowids.shift(); rowids.push(first);
+
+	for (var i=1; i<rowids.length; i++){
+		if (rowids[i]==rowid){
+			var temp=rowids[i-1];
+			rowids[i-1]=rowid;
+			rowids[i]=temp;
+			return;
+		}
+	};
+};
+
+function order_by_index(rows, rowids){
+
+	//rows=[{rowid:1, ...}, {rowid:2, ...}, ...]
+	//rowids=[2,1,3,4,5...]
+	//console.log("ROWS...", JSON.stringify(rows));
+	//console.log("ROWIDS...", rowids);
+	
+	//copy rows array before modifying it
+	var orig=[]; for (var i in rows){orig[i]=rows[i];}
+	
+	//console.log("ORIG...", JSON.stringify(orig));
+	var getrowbyid=function(rowid){
+		for(var i in orig){
+			console.log("GET rowid, orig[i]", rowid, orig[i].rowid);
+			if (orig[i].rowid==rowid) {	return orig[i];	}
+		} 
+		//default 
+		return null;
+	};
+	
+	var r=null, j=0;
+	for (var i in rowids){
+		//console.log("FOR rows[i], getrowbyid", rows[i], getrowbyid( rowids[i] ) )
+		r=getrowbyid( rowids[i] );
+		if (r != null) {rows[j]=r; j++;}
+	};
+	console.log("ORDERED...", JSON.stringify(rows));
+
+};
+
+
+
+
+// Array.prototype.insert = function ( index, item ) {this.splice( index, 0, item );};
+
+
+// Parameters from Cookies 
 var $user=cookie("$user");
 if ($user==null){$user=cookie("$user", "admin", "30");};
 var $pnum=cookie("$pnum");
 if ($pnum==null){$pnum=cookie("$pnum", "BLDG-001", "30");};
 //var $svrnum=cookie("$svrnum");
 var $svrnum="SVR-A01";
-if ($svrnum==null){$svrnum=cookie("$svrnum", "'SVR-A01'", "30");};
+if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-A01", "30");};
 
+var params={$user:$user, $pnum:$pnum, $svrnum:$svrnum}
+//for development only
+$.extend(params, {
+	$cids:[1,2,3,4,5,6,7,8,9,11,12,13],
+	$iids:[1,2,3,4,5,6,7,8,9,11,12,13]
+});
 
 
 ///// TableViews
@@ -76,25 +155,32 @@ var RTV=new TableView({
 	//svrnum, pnum, title, dateofvisit, timeofvisit, dateofreport, reviewer, xdata
 	defrow:{
 		svrnum:"SVR-A01",
-		pnum:"BLDG-001", 		
-		title:"New comment", 
+		pnum:"BLDG-001",
+		title:"New comment",
 		review_date:Date(), 
 		publish_date:"not-issued", 
-		comment_ids:"1, 2, 3, 4, 5", 
-		issue_ids:"1, 2, 3, 4, 5",
-		picture_ids:"none",
+		comment_ids:"[1,2,3,4,5]", 
+		issue_ids:"[1,2,3,4,5]",
+		picture_ids:"[1,2,3,4,5]",
 		reviewer:$user,
-		xdata:"{comments:[1,2,3,4,5], issues:[1,2,3,4,5], pictures:[]}"
+		xdata:"none"
 	},
 	filter:" svrnum = $svrnum ",
 	params:{"$svrnum":$svrnum},
-	refresh:function(result){	
-		console.log("svrTV render result.rows:", JSON.stringify(result.rows));
-		//update dependent table views which will cause them to refresh
-		var params={ '$cids':result.rows[0].comment_ids, '$iids':result.rows[0].issue_ids};
-		CTV.params(params);
-		ioTV.params(params);
-		icTV.params(params);
+	refresh:function(result, diff){	
+		console.log("RTV.refresh result.rows.length...", result.rows.length);
+		console.log("RTV.refresh diff...", diff);
+		if (result.rows.length>0){
+			//update params...
+			//$.extend({
+			//	$cids:JSON.parse(result.rows[0].comment_ids),
+			//	$iids:JSON.parse(result.rows[0].issue_ids)
+			//};
+
+			//dependent table parameter update/refresh
+			CTV.params(params);
+			ITV.params(params);
+		}
 	}});
 
 // table view for comments
@@ -104,74 +190,32 @@ var CTV=new TableView({
 	table:"comments",
 	defrow:{pnum:"BLDG-001", comment:"New comment", refs:"none", date:Date(), by:$user},
 	filter:" rowid IN ( $cids )",
-	params:{"$pnum":$pnum, "$cids":$cids},
-	refresh:function(result, diff){
-		console.log("comments render...", JSON.stringify(result));
-		//console.log("comments SQLselect...", CTV.SQLselect());
-		$('#comments-placeholder').html(CTemp(result));
-
-		////Grand send-off for deleted row then run callback function to render result
-		//$("#comments-row"+rowid).css('background','gold').hide(500, function(){
-		//	$('#comments-placeholder').html(CTemp(result));
-		//});
-		
-		////Grand Reveal...
-		//var cr$=$('#comments-row'+rowid);
-		//var callback=function(){cr$.css('background','white');};
-		//cr$.css('background','gold').hide().show(500, callback);
+	params:{"$pnum":$pnum, "$cids":"[0]"},
+	refresh:function(result, delta){
+		order_by_index(result.rows, params.$cids); 
+		//console.log("CTV render...", JSON.stringify(result));
+		//console.log("CTV SQLselect...", CTV.SQLselect());
+		//console.log("CTV diff...", delta);
+		renderFX("#comments-placeholder", CTemp, result, delta);
 	}});
 
 // table view for issues-closed
-var icM$;
+var IM$;
 var icTemp;
-var icTV=new TableView({
+var ioTemp;
+//var ITV=issuesTableView(...);
+var ITV=new TableView({
 	table:"issues",
 	defrow:{pnum:"BLDG-001", desc:"New closed issue", open:Date(), shut:"date", refs:"1 2 3", by:$user},
 	filter:" pnum = $pnum ",
 	params:{ "$pnum":$pnum },
-	refresh:function(result, diff){
+	refresh:function(result, delta){
 		//TODO: filter result based on applicable dates...
-		$('#issues-closed-placeholder').html(icTemp(result));
-		
-		////Grand send-off for deleted row then run callback function to render result			
-		//$("#issues-closed-row"+rowid).css('background','gold').hide(500, function(){
-		//	$('#issues-closed-placeholder').html(icTemp(result));
-		//});
-		
-		////Grand Reveal...
-		//$('#issues-closed-row'+rowid).css('background','gold').hide().show(500);
-		//var icr$=$('#issues-closed-row'+rowid);
-		//var callback=function(){icr$.css('background','white');};
-		//icr$.css('background','gold').hide().show(500, callback);
+		renderFX("#issues-closed-placeholder", icTemp, result, delta);
+		renderFX("#issues-open-placeholder", ioTemp, result, delta);
 	}
 });
 
-// table view for issues-open
-var ioM$;
-var ioTV;
-var ioTemp;
-var ioTV=new TableView( {
-	table:"issues",
-	defrow:{pnum:"BLDG-001", desc:"New issue", open:Date(), shut:"date", refs:"123", by:"--"},
-	filter:" pnum = $pnum ",
-	params:{$pnum:$pnum},
-	refresh:function(result, diff){ 
-		//TODO: filter result based on applicable dates...
-		$('#issues-open-placeholder').html(ioTemp(result));
-		
-		////Grand send-off for deleted row then run callback function to render result			
-		//$("#issues-open-row"+rowid).css('background','gold').hide(500, function(){
-		//	$('#issues-open-placeholder').html(ioTemp(result));
-		//});
-		
-		////Grand Reveal...
-		//$('#issues-open-row'+rowid).css('background','gold').hide().show(500);
-		//var ior$=$('#issues-open-row'+rowid);
-		//var callback=function(){ior$.css('background','white');};
-		//ior$.css('background','gold').hide().show(500, callback);	}
-
-	}
-});	
 
 // text editor
 var ed=new Editor();
@@ -181,36 +225,25 @@ var hi=new Highlighter("skyblue");
 ///// READY
 $(function() { 
 
-	console.log("READY...");
 	// Setup Handlebars
 	Handlebars.registerHelper("plusOne", function(val,options){return parseInt(val)+1;});
-
 	
 	///// Comments
 	// initialize context menu...
 	CM$=$("#comments-menu").menu().css("position","absolute", "width", "200px").hide();
-	// get template html then compile it to a template-function 
 	CTemp=Handlebars.compile($("#comments-template").html());
-	//create comments table and populate with default row only only if they don't exists
-	//CTV.init();
-	//CTV.refresh();
 	
-	///// issues closed
-	icM$=$("#issues-closed-menu").menu().css("position","absolute", "width", "200px").hide();
+	///// Issues
+	IM$=$("#issues-menu").menu().css("position","absolute", "width", "200px").hide();
 	icTemp=Handlebars.compile($("#issues-closed-template").html());
-	//icTV.init();
-
-	///// issues open
-	ioM$=$("#issues-open-menu").menu().css("position","absolute", "width", "200px").hide();
 	ioTemp=Handlebars.compile($("#issues-open-template").html());
-	//ioTV.init();
 
-	///// report table
-	//create svrs table and populate with default row only if they don't exist
-	//RTV.init();
+	///// Pictures
+	//To do
 	
-	//render report which renders dependencies also
+	//render report table which renders dependent comments and issues table-views also
 	RTV.refresh();
+	
 }); //READY
 
 
@@ -229,19 +262,18 @@ $(function() {
 
 	{{#each rows}}
 	<div class="row marz"
-		id="comments-row{{rowid}}"
 		rowid={{rowid}}
-		onmouseenter='hi.light(this)'
-		oncontextmenu='showMenu(CM$, event)'>
+		onmouseenter="hi.light(this)"
+		oncontextmenu="showMenu(CM$, event)">
 	<p 	rowid={{rowid}}
-		class='col-xs-1 marz'
+		class="col-xs-1 marz"
 		style="height:100%;">2.{{plusOne @index}}</p>
 	<p 	field="comment"
 		rowid={{rowid}}
 		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid()); ed.hide();})"
 		class="col-xs-10 border-left marz">{{comment}}</p>	
 	<p 	rowid={{rowid}}
-		class='col-xs-1 marz'>{{rowid}}</p>	
+		class="col-xs-1 marz">{{rowid}}</p>	
 	</div>
 	{{/each}}	
 </template>
@@ -249,17 +281,21 @@ $(function() {
 <template id='issues-closed-template' type="text/x-handlebars-template">
 	{{#each rows}}
 	<div class="row marz"
-		id="issues-closed-row{{rowid}}"
-		rowid={{rowid}}
-		onmouseenter='hi.light(this)'
-		oncontextmenu='showMenu(icM$, event)'>
-	<p 	class='col-xs-1 marz'>3.{{plusOne @index}}</p>
+		rowid="{{rowid}}"
+		index="{{@index}}"
+		onmouseenter="hi.light(this)"
+		oncontextmenu="showMenu(IM$, event)">
+	<p 	class="col-xs-1 marz"
+		rowid="{{rowid}}"
+		index="{{@index}}">3.{{plusOne @index}}</p>
 	<p 	field="desc"
-		rowid={{rowid}}
-		onclick="ed.text(this, function(){icTV.update(ed.row(), ed.rowid()); ed.hide();})"
+		rowid="{{rowid}}"
+		index="{{@index}}"
+		onclick="ed.text(this, function(){ITV.update(ed.row(), ed.rowid()); ed.hide();})"
 		class="col-xs-10 border-left marz">{{desc}}</p>	
-	<p 	rowid={{rowid}}
-		class='col-xs-1 marz'>{{rowid}}</p>	
+	<p 	rowid="{{rowid}}"
+		index="{{@index}}"
+		class="col-xs-1 marz">{{rowid}}</p>	
 	</div>
 	{{/each}}	
 </template>
@@ -267,18 +303,17 @@ $(function() {
 <template id='issues-open-template' type="text/x-handlebars-template">
 	{{#each rows}}
 	<div class="row marz"
-		id="issues-open-row{{rowid}}"
 		rowid={{rowid}}
-		onmouseenter='hi.light(this)'
-		oncontextmenu='showMenu(ioM$, event)'>
+		onmouseenter="hi.light(this)"
+		oncontextmenu="showMenu(IM$, event)">
 	<p 	rowid={{rowid}}
-		class='col-xs-1 marz'>4.{{plusOne @index}}</p>
+		class="col-xs-1 marz">4.{{plusOne @index}}</p>
 	<p 	field="desc"
 		rowid={{rowid}}
-		onclick="ed.text(this, function(){ioTV.update(ed.row(), ed.rowid()); ed.hide();})"
+		onclick="ed.text(this, function(){ITV.update(ed.row(), ed.rowid()); ed.hide();})"
 		class="col-xs-10 border-left marz">{{desc}}</p>	
 	<p 	rowid={{rowid}}
-		class='col-xs-1 marz'>{{rowid}}</p>	
+		class="col-xs-1 marz">{{rowid}}</p>	
 	</div>
 	{{/each}}	
 </template>
@@ -286,21 +321,21 @@ $(function() {
 <!-- MENUS -->
 <div id="comments-menu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
 	<p onclick="CTV.insert()">Insert</p>
-	<p onclick="CTV.remove(hi.rowid())">Delete</p>
+	<p onclick="removeFromReport(RTV, hi.rowid())">Remove from report</p>
+	<p onclick="CTV.remove(hi.rowid())">Remove from database</p>
+	<p onclick="moveup(hi.rowid(), params.$cids);CTV.refresh();">Move up</p>
+	<p onclick="movedn(hi.rowid(), params.$cids);CTV.refresh();">Move down</p>
 	<p onclick="CM$.hide()">Exit</p>
+	<p onclick="RTV.refresh();CM$.hide()">RTV.refresh</p>
+
 </div>
 
-<div id="issues-closed-menu" onmouseleave="icM$.hide()" style="display:none; z-index:10000">
-	<p onclick="icTV.insert()">Insert</p>
-	<p onclick="icTV.remove(hi.rowid())">Delete</p>
-	<p onclick="icM$.hide()">Exit</p>
+<div id="issues-menu" onmouseleave="IM$.hide()" style="display:none; z-index:10000">
+	<p onclick="ITV.insert()">Insert</p>
+	<p onclick="ITV.remove(hi.rowid())">Delete</p>
+	<p onclick="IM$.hide()">Exit</p>
 </div>
 
-<div id="issues-open-menu" onmouseleave="ioM$.hide()" style="display:none; z-index:10000">
-	<p onclick="ioTV.insert()">Insert</p>
-	<p onclick="ioTV.remove(hi.rowid())">Delete</p>
-	<p onclick='ioM$.hide()'>Exit</p>
-</div>
 
 
 <!-- PAGE STARTS HERE -->
