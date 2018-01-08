@@ -180,17 +180,18 @@ function substitute(sql, params){
 // 
 
 function Highlighter(colour){
-	this.colour=colour;
 	var that=this;
+	this.colour=colour;
+	this.selector="";
+	this.__rowid="-1";
 	
 	this.light=function(element){
-		//no args means recall last element lighted...
+		//element can be this of a DOM element or a jquery id selector
+		
 		if (typeof element=="string"){
-			//if (element.indexOf("#")!=0){element="#"+element;}
-			element=$(element);
-			console.log("hi.light el...", element);
-			//element.css("background-color",that.colour);
-			//return;
+			that.selector=element; element=$(element);
+		} else if (typeof element=="undefined"){
+			element=$(that.selector);			
 		};
 
 		//TO DO restore elements previous background, not whitewash
@@ -198,14 +199,15 @@ function Highlighter(colour){
 		//console.log("HIGHLITE...", $("[highlite=1]").length);
 		$("[highlite=1]").attr("highlite",0);
 
-		if (element==null) return;
 		$(element).css("background-color",that.colour);
 		$(element).addClass("highlite");
 		$(element).attr("highlite",1);
 	}
 
 	this.rowid=function(){
-		that.__rowid=$("[highlite=1]").attr("rowid"); 
+		var rowid=$("[highlite=1]").attr("rowid"); 
+		//remember rowid of last lighted element 
+		if (typeof rowid!="undefined") {that.__rowid=rowid;}		
 		return that.__rowid;
 	}	
 };

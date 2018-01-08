@@ -298,7 +298,7 @@ $(function() {
 <p onclick="removeFromReport(RTV, hi.rowid())">Remove from report</p>
 <p onclick="CTV.remove(hi.rowid())">Remove from database</p>
 <p onclick="moveup(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment'+hi.rowid());">Move up</p>
-<p onclick="movedn(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment');">Move down</p>
+<p onclick="movedn(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment'+hi.rowid());">Move down</p>
 <p onclick="CM$.hide()">Exit</p>
 <p onclick="RTV.refresh();CM$.hide()">RTV.refresh</p>
 
