@@ -62,51 +62,31 @@ function removeFromReport(rowid, RTV){
 
 ///////////////////////////////////////
 function movedn(rowid, rowids){
-
-//roll rowids towards end
-//var last=rowids.pop();rowids.unshift(last);
-console.log("Move dn before:", rowids);
 	for (var i=0; i<rowids.length-1; i++){
 		if (rowids[i]==rowid){
-			var temp=rowids[i+1];
-			rowids[i+1]=rowid;
-			rowids[i]=temp;
-			console.log("Move dn after:", rowids);
-			return;
+			var temp=rowids[i+1];rowids[i+1]=rowid;rowids[i]=temp;return;
 		}
-	};
-	
+	};	
 };
 
 function moveup(rowid, rowids){
-
-//roll rowids towards begining
-//var first=rowids.shift(); rowids.push(first);
-
 	for (var i=1; i<rowids.length; i++){
 		if (rowids[i]==rowid){
-			var temp=rowids[i-1];
-			rowids[i-1]=rowid;
-			rowids[i]=temp;
-			return;
+			var temp=rowids[i-1];rowids[i-1]=rowid;rowids[i]=temp;return;
 		}
 	};
 };
 
 function order_by_index(rows, rowids){
-
 	//rows=[{rowid:1, ...}, {rowid:2, ...}, ...]
 	//rowids=[2,1,3,4,5...]
-	//console.log("ROWS...", JSON.stringify(rows));
-	//console.log("ROWIDS...", rowids);
-	
+
 	//copy rows array before modifying it
 	var orig=[]; for (var i in rows){orig[i]=rows[i];}
 	
-	//console.log("ORIG...", JSON.stringify(orig));
 	var getrowbyid=function(rowid){
 		for(var i in orig){
-			console.log("GET rowid, orig[i]", rowid, orig[i].rowid);
+			//console.log("GET rowid, orig[i]", rowid, orig[i].rowid);
 			if (orig[i].rowid==rowid) {	return orig[i];	}
 		} 
 		//default 
@@ -119,14 +99,7 @@ function order_by_index(rows, rowids){
 		r=getrowbyid( rowids[i] );
 		if (r != null) {rows[j]=r; j++;}
 	};
-	console.log("ORDERED...", JSON.stringify(rows));
-
 };
-
-
-
-
-// Array.prototype.insert = function ( index, item ) {this.splice( index, 0, item );};
 
 
 // Parameters from Cookies 
@@ -262,17 +235,18 @@ $(function() {
 
 	{{#each rows}}
 	<div class="row marz"
-		rowid={{rowid}}
+		id="comment{{rowid}}"
+		rowid="{{rowid}}"
 		onmouseenter="hi.light(this)"
 		oncontextmenu="showMenu(CM$, event)">
-	<p 	rowid={{rowid}}
+	<p 	rowid="{{rowid}}"
 		class="col-xs-1 marz"
 		style="height:100%;">2.{{plusOne @index}}</p>
 	<p 	field="comment"
-		rowid={{rowid}}
+		rowid="{{rowid}}"
 		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid()); ed.hide();})"
 		class="col-xs-10 border-left marz">{{comment}}</p>	
-	<p 	rowid={{rowid}}
+	<p 	rowid="{{rowid}}"
 		class="col-xs-1 marz">{{rowid}}</p>	
 	</div>
 	{{/each}}	
@@ -320,13 +294,13 @@ $(function() {
 
 <!-- MENUS -->
 <div id="comments-menu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
-	<p onclick="CTV.insert()">Insert</p>
-	<p onclick="removeFromReport(RTV, hi.rowid())">Remove from report</p>
-	<p onclick="CTV.remove(hi.rowid())">Remove from database</p>
-	<p onclick="moveup(hi.rowid(), params.$cids);CTV.refresh();">Move up</p>
-	<p onclick="movedn(hi.rowid(), params.$cids);CTV.refresh();">Move down</p>
-	<p onclick="CM$.hide()">Exit</p>
-	<p onclick="RTV.refresh();CM$.hide()">RTV.refresh</p>
+<p onclick="CTV.insert()">Insert</p>
+<p onclick="removeFromReport(RTV, hi.rowid())">Remove from report</p>
+<p onclick="CTV.remove(hi.rowid())">Remove from database</p>
+<p onclick="moveup(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment'+hi.rowid());">Move up</p>
+<p onclick="movedn(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment');">Move down</p>
+<p onclick="CM$.hide()">Exit</p>
+<p onclick="RTV.refresh();CM$.hide()">RTV.refresh</p>
 
 </div>
 

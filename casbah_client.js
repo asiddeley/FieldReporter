@@ -184,15 +184,30 @@ function Highlighter(colour){
 	var that=this;
 	
 	this.light=function(element){
+		//no args means recall last element lighted...
+		if (typeof element=="string"){
+			//if (element.indexOf("#")!=0){element="#"+element;}
+			element=$(element);
+			console.log("hi.light el...", element);
+			//element.css("background-color",that.colour);
+			//return;
+		};
+
 		//TO DO restore elements previous background, not whitewash
 		$(".highlite").css("background-color","white");
 		//console.log("HIGHLITE...", $("[highlite=1]").length);
 		$("[highlite=1]").attr("highlite",0);
-		$(element).css("background-color",that.colour).addClass("highlite");
+
+		if (element==null) return;
+		$(element).css("background-color",that.colour);
+		$(element).addClass("highlite");
 		$(element).attr("highlite",1);
 	}
-	
-	this.rowid=function(){return $("[highlite=1]").attr("rowid");}	
+
+	this.rowid=function(){
+		that.__rowid=$("[highlite=1]").attr("rowid"); 
+		return that.__rowid;
+	}	
 };
 
 
