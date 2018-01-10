@@ -69,21 +69,7 @@ const autoForm=function(div$, params){
 	return con$;
 };
 
-function database(sql, callback){
-	
-	$.ajax({
-		//url: '/formHandler',
-		url: '/database',
-		type: 'POST',
-		data: jQuery.param({SQL:sql}),
-		contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-		success:function(result){ 
-			if(typeof result.rows=="undefined") result.rows=[];
-			if (typeof callback=="function") callback(result);
-		},
-		error:function(err){console.log("database function, ajax error:",err);}
-	});	
-};
+
 
 function cookie(cname, cvalue, exdays) {
 	
@@ -108,6 +94,7 @@ function cookie(cname, cvalue, exdays) {
 	else {
 		//SET COOKIE
 		//console.log("setCookie...");
+		if (typeof exdays=="undefined"){exdays=7;}
 		var d = new Date();
 		d.setTime(d.getTime() + (exdays*24*60*60*1000));
 		var expires = "expires="+ d.toUTCString();
@@ -117,6 +104,118 @@ function cookie(cname, cvalue, exdays) {
 
 };
 
+function database(sql, callback){
+	
+	$.ajax({
+		//url: '/formHandler',
+		url: '/database',
+		type: 'POST',
+		data: jQuery.param({SQL:sql}),
+		contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+		success:function(result){ 
+			if(typeof result.rows=="undefined") result.rows=[];
+			if (typeof callback=="function") callback(result);
+		},
+		error:function(err){console.log("database function, ajax error:",err);}
+	});	
+};
+
+
+
+
+
+////////////////////////////////
+// Highlighter
+// 
+
+function Highlighter(colour){
+	var that=this;
+	this.colour=colour;
+	this.selector="";
+	this.__rowid="-1";
+	
+	this.light=function(element){
+		//element can be this of a DOM element or a jquery id selector
+		//console.log("highlite...", element);
+		
+		if (typeof element=="string"){
+			that.selector=element; element=$(element);
+		} else if (typeof element=="undefined"){
+			element=$(that.selector);			
+		};
+
+		//TO DO restore elements previous background, not whitewash
+		//$(".highlite").css("background-color","white");
+		$(".highliteable").removeClass("highlite");
+		
+		
+		//console.log("HIGHLITE...", $("[highlite=1]").length);
+		//$("[highlite=1]").attr("highlite",0);
+
+		//$(element).css("background-color",that.colour);
+		$(element).addClass("highliteable");
+		$(element).addClass("highlite");
+		//$(element).attr("highlite",1);
+	}
+
+	this.rowid=function(){
+		//var rowid=$("[highlite=1]").attr("rowid"); 
+		var rowid=$(".highlite").attr("rowid"); 
+		//remember rowid of last lighted element 
+		if (typeof rowid!="undefined") {that.__rowid=rowid;}		
+		return that.__rowid;
+	}	
+};
+
+///////////////////////////////////////
+function movedn(rowid, rowids){
+	for (var i=0; i<rowids.length-1; i++){
+		if (rowids[i]==rowid){
+			var temp=rowids[i+1];rowids[i+1]=rowid;rowids[i]=temp;return;
+		}
+	};	
+};
+
+function moveup(rowid, rowids){
+	for (var i=1; i<rowids.length; i++){
+		if (rowids[i]==rowid){
+			var temp=rowids[i-1];rowids[i-1]=rowid;rowids[i]=temp;return;
+		}
+	};
+};
+
+function order_by_index(rows, rowids){
+	//rows=[{rowid:1, ...}, {rowid:2, ...}, ...]
+	//rowids=[2,1,3,4,5...]
+
+	//copy rows array before modifying it
+	var orig=[]; for (var i in rows){orig[i]=rows[i];}
+	
+	var getrowbyid=function(rowid){
+		for(var i in orig){
+			//console.log("GET rowid, orig[i]", rowid, orig[i].rowid);
+			if (orig[i].rowid==rowid) {	return orig[i];	}
+		} 
+		//default 
+		return null;
+	};
+	
+	var r=null, j=0;
+	for (var i in rowids){
+		//console.log("FOR rows[i], getrowbyid", rows[i], getrowbyid( rowids[i] ) )
+		r=getrowbyid( rowids[i] );
+		if (r != null) {rows[j]=r; j++;}
+	};
+};
+
+function showMenu(cm$, ev){
+	//first call texteditor with no arguments to turn it off just in case its on
+	ed.hide();
+	cm$.show().position({my:'left top',	at:'left bottom', of:ev});
+	//remember caller, that is the <div> or <p> element that launched the contextMenu
+	cm$.menu('option', 'caller', ev.target);
+	return false;
+};
 
 
 var spliceIE=function(list, index, remove, ins){
@@ -135,6 +234,7 @@ var spliceIE=function(list, index, remove, ins){
 		}
 	}
 };
+
 
 ///////////////////////////
 function substitute(sql, params){
@@ -172,44 +272,6 @@ function substitute(sql, params){
 		}		
 	}
 	return terms.join(" ");
-};
-
-
-////////////////////////////////
-// Highlighter
-// 
-
-function Highlighter(colour){
-	var that=this;
-	this.colour=colour;
-	this.selector="";
-	this.__rowid="-1";
-	
-	this.light=function(element){
-		//element can be this of a DOM element or a jquery id selector
-		
-		if (typeof element=="string"){
-			that.selector=element; element=$(element);
-		} else if (typeof element=="undefined"){
-			element=$(that.selector);			
-		};
-
-		//TO DO restore elements previous background, not whitewash
-		$(".highlite").css("background-color","white");
-		//console.log("HIGHLITE...", $("[highlite=1]").length);
-		$("[highlite=1]").attr("highlite",0);
-
-		$(element).css("background-color",that.colour);
-		$(element).addClass("highlite");
-		$(element).attr("highlite",1);
-	}
-
-	this.rowid=function(){
-		var rowid=$("[highlite=1]").attr("rowid"); 
-		//remember rowid of last lighted element 
-		if (typeof rowid!="undefined") {that.__rowid=rowid;}		
-		return that.__rowid;
-	}	
 };
 
 
@@ -360,7 +422,7 @@ TableView.prototype.insert=function(){
 	var that=this;
 	var re=function(result){that.__refresh(result);};
 	//database(SQLstring, callback);
-	database(this.SQLinsert(this.options.defrow),function(){
+	database(this.SQLinsert(this.options.defrow), function(){
 		database(that.SQLselect(), re);
 	});
 
@@ -409,7 +471,7 @@ TableView.prototype.params=function(params){
 };
 
 TableView.prototype.refresh=function(){
-	console.log("Refresh...");
+	//console.log("Refresh...");
 	var that=this;
 	database(that.SQLselect(), function(result){that.__refresh(result);});
 };
@@ -441,7 +503,9 @@ TableView.prototype.update=function(row, rowid){
 	console.log("UPDATE row, rowid:", JSON.stringify(row), rowid);
 	var that=this;
 	var re=function(result){that.__refresh(result);}	
-	database(this.SQLupdate(row, rowid), function(){database(that.SQLselect(), re);});
+	database(this.SQLupdate(row, rowid), function(){
+		database(that.SQLselect(), re);
+	});
 };
 
 //////////// SQLfunctions

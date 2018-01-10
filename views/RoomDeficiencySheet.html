@@ -1,7 +1,10 @@
 <!doctype html>
-
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title id='browserTab' >browserTab</title>
 <style>
-.highlite { background-color:skyblue;}
 fieldset {border: 0;}
 .savable {width:200px;}
 label {display: block;  margin: 30px 0 0 0; }
@@ -33,22 +36,8 @@ background-color:silver;
 
 
 <script type='text/javascript'>
-//console.log("SCRIPT...");
-///// Global defs
 
 
-
-function selectFolder(e) {
-    var theFiles = e.target.files;
-    var relativePath = theFiles[0].webkitRelativePath;
-    var folder = relativePath.split("/");
-    alert(folder[0]);
-};
-
-function removeFromReport(rowid, RTV){
-
-
-};
 
 // Parameters from Cookies 
 var $user=cookie("$user");
@@ -69,28 +58,27 @@ $.extend(params, {
 
 ///// TableViews
 
-// Site visit report
-var $cids="1,2,3";
-var RTV=new TableView({
-	table:"svrs",
-	//svrnum, pnum, title, dateofvisit, timeofvisit, dateofreport, reviewer, xdata
+// tableView for Document
+var $dids="1,2,3";
+var rdsTV=new TableView({
+	table:"room_deficiencies",
 	defrow:{
-		svrnum:"SVR-A01",
 		pnum:"BLDG-001",
-		title:"New comment",
+		dnum:"RDS-A01",
+		title:"Room Deficiency Sheets",
 		review_date:Date(), 
 		publish_date:"not-issued", 
-		comment_ids:"[1,2,3,4,5]", 
-		issue_ids:"[1,2,3,4,5]",
-		picture_ids:"[1,2,3,4,5]",
+		area_checklists"{area:'Main room', check_ids:[1,2,3,4,5]}",
+		deficiency_ids:"[1,2,3,4,5]", 
+		room_sketches:"['06-096','06-097','06-198', '06-199']",
 		reviewer:$user,
 		xdata:"none"
 	},
-	filter:" svrnum = $svrnum ",
-	params:{"$svrnum":$svrnum},
+	filter:" sdnum = $dnum ",
+	params:{"$dnum":$dnum},
 	refresh:function(result, diff){	
-		console.log("RTV.refresh result.rows.length...", result.rows.length);
-		console.log("RTV.refresh diff...", diff);
+		//console.log("RTV.refresh result.rows.length...", result.rows.length);
+		//console.log("RTV.refresh diff...", diff);
 		if (result.rows.length>0){
 			//update params...
 			//$.extend({
@@ -104,12 +92,20 @@ var RTV=new TableView({
 		}
 	}});
 
-// table view for comments
-var CM$;
-var CTemp=function(r){console.log("OLD render...");};
-var CTV=new TableView({
-	table:"comments",
-	defrow:{pnum:"BLDG-001", comment:"New comment", refs:"none", date:Date(), by:$user},
+// table view for checklists
+var chM$;
+var chTemp=function(r){console.log("OLD render...");};
+var chTV=new TableView({
+	table:"deficiency_checklist",
+	defrow:{
+		pnum:"BLDG-001",
+		check_item:"door frame - side - top - edge - paint - caulking",
+		check_for:"damaged - scratched - rough - thin - missing - uneven - poor",
+		keyplan:"none", 
+		by:$user,
+		date:Date(),
+		xdata:"none"		
+	},
 	filter:" rowid IN ( $cids )",
 	params:{"$pnum":$pnum, "$cids":"[0]"},
 	refresh:function(result, delta){
@@ -120,14 +116,19 @@ var CTV=new TableView({
 		renderFX("#comments-placeholder", CTemp, result, delta);
 	}});
 
-// table view for issues-closed
-var IM$;
-var icTemp;
-var ioTemp;
-//var ITV=issuesTableView(...);
-var ITV=new TableView({
-	table:"issues",
-	defrow:{pnum:"BLDG-001", desc:"New closed issue", open:Date(), shut:"date", refs:"1 2 3", by:$user},
+// table view for deficiencies
+var dM$;
+var dTemp;
+var dTV=new TableView({
+	table:"deficiencies",
+	defrow:{
+		pnum:"BLDG-001", 
+		deficiency:"Door missing paint", 
+		open_date:Date(), 
+		done_date:"date", 
+		by:$user,
+		xdata:"1 2 3"
+	},
 	filter:" pnum = $pnum ",
 	params:{ "$pnum":$pnum },
 	refresh:function(result, delta){
@@ -141,7 +142,7 @@ var ITV=new TableView({
 // text editor
 var ed=new Editor();
 // highligher
-var hi=new Highlighter(".highlite");
+var hi=new Highlighter("skyblue");
 
 ///// READY
 $(function() { 
@@ -182,7 +183,7 @@ $(function() {
 <template id='comments-template' type="text/x-handlebars-template">
 
 	{{#each rows}}
-	<div class="row marz highliteable"
+	<div class="row marz"
 		id="comment{{rowid}}"
 		rowid="{{rowid}}"
 		onmouseenter="hi.light(this)"
@@ -245,10 +246,8 @@ $(function() {
 <p onclick="CTV.insert()">Insert</p>
 <p onclick="removeFromReport(RTV, hi.rowid())">Remove from report</p>
 <p onclick="CTV.remove(hi.rowid())">Remove from database</p>
-<!--p onclick="moveup(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment'+hi.rowid());">Move up</p>
-<p onclick="movedn(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment'+hi.rowid());">Move down</p-->
-<p onclick="moveup(hi.rowid(), params.$cids);CTV.refresh();">Move up</p>
-<p onclick="movedn(hi.rowid(), params.$cids);CTV.refresh();">Move down</p>
+<p onclick="moveup(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment'+hi.rowid());">Move up</p>
+<p onclick="movedn(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment'+hi.rowid());">Move down</p>
 <p onclick="CM$.hide()">Exit</p>
 <p onclick="RTV.refresh();CM$.hide()">RTV.refresh</p>
 
@@ -375,4 +374,6 @@ $(function() {
 
 <br><br><br><br>
 </div>
+</body>
+</html>
 
