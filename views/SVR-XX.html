@@ -113,6 +113,13 @@ var CTV=new TableView({
 	filter:" rowid IN ( $cids )",
 	params:{"$pnum":$pnum, "$cids":"[0]"},
 	refresh:function(result, delta){
+		if (delta.count==1){
+			//row added so find place for it...
+			//var after=hi.rowid();
+			//var newid=result.rows[0].rowid;
+			//arrayInsertAfter(params.$cids, newid, after);
+			
+		}
 		order_by_index(result.rows, params.$cids); 
 		//console.log("CTV render...", JSON.stringify(result));
 		//console.log("CTV SQLselect...", CTV.SQLselect());
