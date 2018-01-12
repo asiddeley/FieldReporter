@@ -28,10 +28,40 @@ function arrayDiff(a, b) {
 };
 
 function array_insert_after(arr,i,a){
-	console.log("array_insert_after arr, i, a:", arr, i,a);
-	
+	console.log("array_insert_after arr, i, a:", arr, i,a);	
 	
 };
+
+
+function array_rowids_order(rows, rowids){
+	//modifies rows
+	//rows=[{rowid:1, ...}, {rowid:2, ...}, ...]
+	//rowids=[2,1,3,4,5...]
+
+	//copy rows array before modifying it
+	var orig=[]; for (var i in rows){orig[i]=rows[i];}
+	
+	var getrowbyid=function(rowid){
+		for(var i in orig){
+			//console.log("GET rowid, orig[i]", rowid, orig[i].rowid);
+			if (orig[i].rowid==rowid) {	return orig[i];	}
+		} 
+		//default 
+		return null;
+	};
+	
+	var r=null, j=0;
+	for (var i in rowids){
+		//console.log("FOR rows[i], getrowbyid", rows[i], getrowbyid( rowids[i] ) )
+		r=getrowbyid( rowids[i] );
+		if (r != null) {rows[j]=r; j++;}
+	};
+	
+	//delete any remaining 
+	while (j<rows.length){rows.splice(j,1); j++;}
+	
+};
+
 
 const autoForm=function(div$, params){
 	//params={SQL:"SELECT...", table:"projects", rows:[{pnum:"abc", pname:"abc",...},{},{}], ccsclass:[]}
@@ -124,160 +154,6 @@ function database(sql, callback){
 		},
 		error:function(err){console.log("database function, ajax error:",err);}
 	});	
-};
-
-
-
-
-
-////////////////////////////////
-// Highlighter
-// 
-
-function Highlighter(colour){
-	var that=this;
-	this.colour=colour;
-	this.selector="";
-	this.__rowid="-1";
-	
-	this.light=function(element){
-		//element can be this of a DOM element or a jquery id selector
-		//console.log("highlite...", element);
-		
-		if (typeof element=="string"){
-			that.selector=element; element=$(element);
-		} else if (typeof element=="undefined"){
-			element=$(that.selector);			
-		};
-
-		//TO DO restore elements previous background, not whitewash
-		//$(".highlite").css("background-color","white");
-		$(".highliteable").removeClass("highlite");
-		
-		
-		//console.log("HIGHLITE...", $("[highlite=1]").length);
-		//$("[highlite=1]").attr("highlite",0);
-
-		//$(element).css("background-color",that.colour);
-		$(element).addClass("highliteable");
-		$(element).addClass("highlite");
-		//$(element).attr("highlite",1);
-	}
-
-	this.rowid=function(){
-		//var rowid=$("[highlite=1]").attr("rowid"); 
-		var rowid=$(".highlite").attr("rowid"); 
-		//remember rowid of last lighted element 
-		if (typeof rowid!="undefined") {that.__rowid=rowid;}		
-		return that.__rowid;
-	}	
-};
-
-///////////////////////////////////////
-function movedn(rowid, rowids){
-	for (var i=0; i<rowids.length-1; i++){
-		if (rowids[i]==rowid){
-			var temp=rowids[i+1];rowids[i+1]=rowid;rowids[i]=temp;return;
-		}
-	};	
-};
-
-function moveup(rowid, rowids){
-	for (var i=1; i<rowids.length; i++){
-		if (rowids[i]==rowid){
-			var temp=rowids[i-1];rowids[i-1]=rowid;rowids[i]=temp;return;
-		}
-	};
-};
-
-function order_by_index(rows, rowids){
-	//rows=[{rowid:1, ...}, {rowid:2, ...}, ...]
-	//rowids=[2,1,3,4,5...]
-
-	//copy rows array before modifying it
-	var orig=[]; for (var i in rows){orig[i]=rows[i];}
-	
-	var getrowbyid=function(rowid){
-		for(var i in orig){
-			//console.log("GET rowid, orig[i]", rowid, orig[i].rowid);
-			if (orig[i].rowid==rowid) {	return orig[i];	}
-		} 
-		//default 
-		return null;
-	};
-	
-	var r=null, j=0;
-	for (var i in rowids){
-		//console.log("FOR rows[i], getrowbyid", rows[i], getrowbyid( rowids[i] ) )
-		r=getrowbyid( rowids[i] );
-		if (r != null) {rows[j]=r; j++;}
-	};
-};
-
-function showMenu(cm$, ev){
-	//first call texteditor with no arguments to turn it off just in case its on
-	ed.hide();
-	cm$.show().position({my:'left top',	at:'left bottom', of:ev});
-	//remember caller, that is the <div> or <p> element that launched the contextMenu
-	cm$.menu('option', 'caller', ev.target);
-	return false;
-};
-
-
-var spliceIE=function(list, index, remove, ins){
-	//similar to splice, which seems to be wonky in iexplorer
-	if (Array.isArray(list)) {
-		if (typeof ins=='undefined') ins=[];
-		if (!Array.isArray(ins)) ins=[ins];
-		if (typeof index != 'number') return list;
-		if (typeof remove != 'number') return list;
-		if (index <= 0){
-			return(ins.concat(list.slice(remove)));
-		} else if(index < list.length){			
-			return (list.slice(0,index).concat(ins).concat(list.slice(index+remove)));		
-		} else {
-			return (list.concat(ins));		
-		}
-	}
-};
-
-
-///////////////////////////
-function substitute(sql, params){
-	/**************
-	Returns a string from sql with key:value substitutions from params {} 
-	Note that placeholders for substitution must have '$' prefix
-	sql = "WHERE rowid in ( $rowidlist )"
-	params = {$rowidlist:"1,2,3,4"}
-	*************/
-	//exit early
-	if (typeof params=="undefined || params==null"){return sql;}
-
-	//console.log("sql_params...")
-	//ensure these aren't touching terms
-	sql=sql.replace(/\(/g, " ( "); 
-	sql=sql.replace(/\)/g, " ) ");
-	sql=sql.replace(/=/g, " = ");
-	sql=sql.replace(/,/g , " , ");
-	//console.log("sql after grooming...", sql)
-	var terms=sql.split(" ");
-	for (var i in terms){
-		//term starts with '$' so a parameter, substitute it with it's corresponding vlaue
-		if ( terms[i].indexOf("$")==0 ) {
-			//console.log("term before...", terms[i].substring(1))
-			var p=params[terms[i]];
-			//add quotes if p is literal
-			if (typeof p =="string") {p="'"+p+"'";}
-			//evaluate if a function - hopfully the result is a string
-			else if (typeof p=="function") {p=p();}
-			//convert to string if an array
-			else if (p instanceof Array) {p=p.join(",");}
-			//////////////
-			terms[i]=p;
-			//console.log("term after...", terms[i])
-		}		
-	}
-	return terms.join(" ");
 };
 
 
@@ -374,6 +250,137 @@ function Editor(){
 	
 };
 
+
+
+
+////////////////////////////////
+// Highlighter
+// 
+
+function Highlighter(colour){
+	var that=this;
+	this.colour=colour;
+	this.selector="";
+	this.__rowid="-1";
+	
+	this.light=function(element){
+		//element can be this of a DOM element or a jquery id selector
+		//console.log("highlite...", element);
+		
+		if (typeof element=="string"){
+			that.selector=element; element=$(element);
+		} else if (typeof element=="undefined"){
+			element=$(that.selector);			
+		};
+
+		//TO DO restore elements previous background, not whitewash
+		//$(".highlite").css("background-color","white");
+		$(".highliteable").removeClass("highlite");
+		
+		
+		//console.log("HIGHLITE...", $("[highlite=1]").length);
+		//$("[highlite=1]").attr("highlite",0);
+
+		//$(element).css("background-color",that.colour);
+		$(element).addClass("highliteable");
+		$(element).addClass("highlite");
+		//$(element).attr("highlite",1);
+	}
+
+	this.rowid=function(){
+		//var rowid=$("[highlite=1]").attr("rowid"); 
+		var rowid=$(".highlite").attr("rowid"); 
+		//remember rowid of last lighted element 
+		if (typeof rowid!="undefined") {that.__rowid=rowid;}		
+		return that.__rowid;
+	}	
+};
+
+///////////////////////////////////////
+function movedn(rowid, rowids){
+	for (var i=0; i<rowids.length-1; i++){
+		if (rowids[i]==rowid){
+			var temp=rowids[i+1];rowids[i+1]=rowid;rowids[i]=temp;return;
+		}
+	};	
+};
+
+function moveup(rowid, rowids){
+	for (var i=1; i<rowids.length; i++){
+		if (rowids[i]==rowid){
+			var temp=rowids[i-1];rowids[i-1]=rowid;rowids[i]=temp;return;
+		}
+	};
+};
+
+
+function showMenu(cm$, ev){
+	//first call texteditor with no arguments to turn it off just in case its on
+	ed.hide();
+	cm$.show().position({my:'left top',	at:'left bottom', of:ev});
+	//remember caller, that is the <div> or <p> element that launched the contextMenu
+	cm$.menu('option', 'caller', ev.target);
+	return false;
+};
+
+
+var spliceIE=function(list, index, remove, ins){
+	//similar to splice, which seems to be wonky in iexplorer
+	if (Array.isArray(list)) {
+		if (typeof ins=='undefined') ins=[];
+		if (!Array.isArray(ins)) ins=[ins];
+		if (typeof index != 'number') return list;
+		if (typeof remove != 'number') return list;
+		if (index <= 0){
+			return(ins.concat(list.slice(remove)));
+		} else if(index < list.length){			
+			return (list.slice(0,index).concat(ins).concat(list.slice(index+remove)));		
+		} else {
+			return (list.concat(ins));		
+		}
+	}
+};
+
+
+///////////////////////////
+function substitute(sql, params){
+	/**************
+	Returns a string from sql with key:value substitutions from params {} 
+	Note that placeholders for substitution must have '$' prefix
+	sql = "WHERE rowid in ( $rowidlist )"
+	params = {$rowidlist:"1,2,3,4"}
+	*************/
+	//exit early
+	if (typeof params=="undefined || params==null"){return sql;}
+
+	//console.log("sql_params...")
+	//ensure these aren't touching terms
+	sql=sql.replace(/\(/g, " ( "); 
+	sql=sql.replace(/\)/g, " ) ");
+	sql=sql.replace(/=/g, " = ");
+	sql=sql.replace(/,/g , " , ");
+	//console.log("sql after grooming...", sql)
+	var terms=sql.split(" ");
+	for (var i in terms){
+		//term starts with '$' so a parameter, substitute it with it's corresponding vlaue
+		if ( terms[i].indexOf("$")==0 ) {
+			//console.log("term before...", terms[i].substring(1))
+			var p=params[terms[i]];
+			//add quotes if p is literal
+			if (typeof p =="string") {p="'"+p+"'";}
+			//evaluate if a function - hopfully the result is a string
+			else if (typeof p=="function") {p=p();}
+			//convert to string if an array
+			else if (p instanceof Array) {p=p.join(",");}
+			//////////////
+			terms[i]=p;
+			//console.log("term after...", terms[i])
+		}		
+	}
+	return terms.join(" ");
+};
+
+
 ///////////////////////////
 // Table
 
@@ -425,7 +432,7 @@ TableView.prototype.__init=function(){
 
 TableView.prototype.insert=function(callrefresh){
 	//callrefresh - if present, table renderer will be called after database operation
-	
+	console.log("insert...");
 	var that=this;
 	var re=function(result){
 		if (typeof callrefresh!="undefined"){that.__refresh(result);}
@@ -457,6 +464,7 @@ TableView.prototype.remove=function(rowid, callrefresh){
 	});
 };
 
+/********** DEPRECATED just refer to global var params instead options.params=params
 //called by dependencies Ie. controling tableViews
 TableView.prototype.params=function(params, callrefresh){
 	//params - hash of parameters to for substitution in SQL
@@ -481,11 +489,15 @@ TableView.prototype.params=function(params, callrefresh){
 	//args present means update params and refresh
 	$.extend(tableView.options.params, params);
 	var re=function(result){
-		if (typeof callrefresh!="undefined"){ tableView.__refresh(result);}
+		if (typeof callrefresh!="undefined" && (callrefresh==1 || callrefresh==true)){ 
+			tableView.__refresh(result);
+		}
 	};
 	
 	database(tableView.SQLselect(), re);
 };
+
+*****/
 
 TableView.prototype.refresh=function(){
 	//console.log("Refresh...");
@@ -507,7 +519,7 @@ TableView.prototype.__refresh=function(result){
 		rowids:arrayDiff(rowids, previds)
 	};
 	this.previous=result;
-	//console.log("__refresh SQL, res...", this.SQLselect(), result);
+	console.log("__refresh change:", JSON.stringify(change));
 
 	//call refresh
 	try { this.options.refresh(result, change);} 

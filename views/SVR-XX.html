@@ -12,7 +12,14 @@ select {width: 200px; }
 .row_{border-bottom:1px solid #aaa;}
 .row__{border-top:2px solid #000; border-bottom:1px solid #aaa;} 
 
-p, h2, h3, strong {font-family:'segoe';}
+h1 {font-size:16pt; font-family:'segoe UI'; padding-top:10px; font-weight:bold; }
+h2 {font-size:14pt; font-family:'segoe UI'; padding-top:10px; font-weight:bold; }
+h3 {font-size:12pt; font-family:'segoe UI'; padding-top:10px; font-weight:bold; }
+p {font-size:11pt; font-family:'segoe UI';}
+
+
+
+
 
 textarea {
 font-family:'segoe';
@@ -62,7 +69,7 @@ if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-A01", "30");};
 var params={$user:$user, $pnum:$pnum, $svrnum:$svrnum}
 //for development only
 $.extend(params, {
-	$cids:[1,2,3,4,5,6,7,8,9,11,12,13, 14, 15, 16],
+	$cids:[1,2,3,4,5,6,7,8,9,11,12,13,14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
 	$iids:[1,2,3,4,5,6,7,8,9,11,12,13],
 	$user:$user
 });
@@ -115,19 +122,25 @@ var CM$;
 var CTemp=function(r){console.log("OLD render...");};
 var CTV=new TableView({
 	table:"comments",
-	defrow:{pnum:"BLDG-001", comment:"New comment", refs:"none", date:Date(), by:$user},
+	defrow:{
+		pnum:"BLDG-001", 
+		comment:"New comment", 
+		refs:"none", 
+		date:Date(), 
+		by:$user},
 	filter:" rowid IN ( $cids )",
-	params:{"$pnum":params.$pnum, "$cids":params.$cids},
+	//params:{"$pnum":params.$pnum, "$cids":params.$cids},
+	params:params,
 	refresh:function(result, delta){
 		if (delta.count==1){
 			//row added so find place for it...
 			var after=hi.rowid();
-			var newid=result.rows[0].rowid;
+			var newid=delta.rowids[0];
 			array_insert_after(params.$cids, newid, after);
-			console.log("//RTV.update({...}, rowid_of_report):", params.rowid_of_report);
-			//RTV.update({comment_ids:params.$cids}, params.rowid_of_report);
+			console.log("//RTV.update({...}, rowid_of_report):", params.$rowid_of_report);
+			//RTV.update({comment_ids:params.$cids}, params.$rowid_of_report);
 		}
-		order_by_index(result.rows, params.$cids); 
+		array_rowids_order(result.rows, params.$cids); 
 		//console.log("CTV render...", JSON.stringify(result));
 		//console.log("CTV SQLselect...", CTV.SQLselect());
 		//console.log("CTV diff...", delta);
@@ -256,9 +269,9 @@ $(function() {
 
 <!-- MENUS -->
 <div id="comments-menu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
-<p onclick="CTV.insert(true)">Insert</p>
+<p onclick="CTV.insert();">Insert</p>
 <p onclick="removeFromReport(RTV, hi.rowid())">Remove from report</p>
-<p onclick="CTV.remove(hi.rowid())">Remove from database</p>
+<p onclick="CTV.remove(hi.rowid(),true)">Remove from database</p>
 <!--p onclick="moveup(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment'+hi.rowid());">Move up</p>
 <p onclick="movedn(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment'+hi.rowid());">Move down</p-->
 <p onclick="moveup(hi.rowid(), params.$cids);CTV.refresh();">Move up</p>
