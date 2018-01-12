@@ -27,6 +27,12 @@ function arrayDiff(a, b) {
 	return diff;
 };
 
+function array_insert_after(arr,i,a){
+	console.log("array_insert_after arr, i, a:", arr, i,a);
+	
+	
+};
+
 const autoForm=function(div$, params){
 	//params={SQL:"SELECT...", table:"projects", rows:[{pnum:"abc", pname:"abc",...},{},{}], ccsclass:[]}
 
@@ -417,10 +423,13 @@ TableView.prototype.__init=function(){
 	});
 };
 
-TableView.prototype.insert=function(){
-
+TableView.prototype.insert=function(callrefresh){
+	//callrefresh - if present, table renderer will be called after database operation
+	
 	var that=this;
-	var re=function(result){that.__refresh(result);};
+	var re=function(result){
+		if (typeof callrefresh!="undefined"){that.__refresh(result);}
+	};
 	//database(SQLstring, callback);
 	database(this.SQLinsert(this.options.defrow), function(){
 		database(that.SQLselect(), re);
@@ -434,18 +443,24 @@ TableView.prototype.option=function(optionRev){
 	$.extend(this.options, optionRev);	
 };
 
-TableView.prototype.remove=function(rowid){
+TableView.prototype.remove=function(rowid, callrefresh){
+	//rowid - id or row to remove from table
+	//callrefresh - if present, table renderer will be called after database operation
 	//database(SQLstring, callback);
-	//console.log("REMOVE rowid...", rowid);
+	console.log("REMOVE rowid...", rowid);
 	var that=this;
-	var re=function(result){that.__refresh(result);}	
+	var re=function(result){
+		if (typeof callrefresh!="undefined"){that.__refresh(result);}
+	}	
 	database(this.SQLdelete(rowid), function(){
 		database(that.SQLselect(), re);
 	});
 };
 
 //called by dependencies Ie. controling tableViews
-TableView.prototype.params=function(params){
+TableView.prototype.params=function(params, callrefresh){
+	//params - hash of parameters to for substitution in SQL
+	//callrefresh - if present, table renderer will be called after database operation
 	var tableView=this;
 	//saftey
 	if (!(tableView instanceof TableView)){
@@ -465,7 +480,9 @@ TableView.prototype.params=function(params){
 		
 	//args present means update params and refresh
 	$.extend(tableView.options.params, params);
-	var re=function(result){tableView.__refresh(result);}	
+	var re=function(result){
+		if (typeof callrefresh!="undefined"){ tableView.__refresh(result);}
+	};
 	
 	database(tableView.SQLselect(), re);
 };
@@ -499,10 +516,13 @@ TableView.prototype.__refresh=function(result){
 	}
 };
 
-TableView.prototype.update=function(row, rowid){
-	console.log("UPDATE row, rowid:", JSON.stringify(row), rowid);
+TableView.prototype.update=function(row, rowid, callrefresh){
+	console.log("UPDATE rowid, row...", rowid, JSON.stringify(row));
 	var that=this;
-	var re=function(result){that.__refresh(result);}	
+	var re=function(result){
+		if (typeof callrefresh!="undefined"){that.__refresh(result);}
+	};
+	
 	database(this.SQLupdate(row, rowid), function(){
 		database(that.SQLselect(), re);
 	});

@@ -62,18 +62,19 @@ if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-A01", "30");};
 var params={$user:$user, $pnum:$pnum, $svrnum:$svrnum}
 //for development only
 $.extend(params, {
-	$cids:[1,2,3,4,5,6,7,8,9,11,12,13],
-	$iids:[1,2,3,4,5,6,7,8,9,11,12,13]
+	$cids:[1,2,3,4,5,6,7,8,9,11,12,13, 14, 15, 16],
+	$iids:[1,2,3,4,5,6,7,8,9,11,12,13],
+	$user:$user
 });
 
 
 ///// TableViews
 
 // Site visit report
-var $cids="1,2,3";
 var RTV=new TableView({
+	//table name in database
 	table:"svrs",
-	//svrnum, pnum, title, dateofvisit, timeofvisit, dateofreport, reviewer, xdata
+	//defalut values for new row
 	defrow:{
 		svrnum:"SVR-A01",
 		pnum:"BLDG-001",
@@ -83,24 +84,29 @@ var RTV=new TableView({
 		comment_ids:"[1,2,3,4,5]", 
 		issue_ids:"[1,2,3,4,5]",
 		picture_ids:"[1,2,3,4,5]",
-		reviewer:$user,
+		reviewer:params.$user,
 		xdata:"none"
 	},
 	filter:" svrnum = $svrnum ",
-	params:{"$svrnum":$svrnum},
+	//params:{"$svrnum":params.$svrnum}, //instead of copy, just...
+	//reference to global params object
+	params:params,
 	refresh:function(result, diff){	
 		console.log("RTV.refresh result.rows.length...", result.rows.length);
 		console.log("RTV.refresh diff...", diff);
 		if (result.rows.length>0){
 			//update params...
-			//$.extend({
-			//	$cids:JSON.parse(result.rows[0].comment_ids),
-			//	$iids:JSON.parse(result.rows[0].issue_ids)
-			//};
+			$.extend(params,{
+				$rowid_of_report:result.rows[0].rowid,
+				$cids:JSON.parse(result.rows[0].comment_ids), //convert from string to array
+				$iids:JSON.parse(result.rows[0].issue_ids) //ditto
+			});
 
-			//dependent table parameter update/refresh
-			CTV.params(params);
-			ITV.params(params);
+			//dependent table parameter update/refresh...
+			//CTV.params(params,1); //no need for params update function since option.params refs it
+			//ITV.params(params,1); //ditto
+			CTV.refresh();
+			ITV.refresh();
 		}
 	}});
 
@@ -111,14 +117,15 @@ var CTV=new TableView({
 	table:"comments",
 	defrow:{pnum:"BLDG-001", comment:"New comment", refs:"none", date:Date(), by:$user},
 	filter:" rowid IN ( $cids )",
-	params:{"$pnum":$pnum, "$cids":"[0]"},
+	params:{"$pnum":params.$pnum, "$cids":params.$cids},
 	refresh:function(result, delta){
 		if (delta.count==1){
 			//row added so find place for it...
-			//var after=hi.rowid();
-			//var newid=result.rows[0].rowid;
-			//arrayInsertAfter(params.$cids, newid, after);
-			
+			var after=hi.rowid();
+			var newid=result.rows[0].rowid;
+			array_insert_after(params.$cids, newid, after);
+			console.log("//RTV.update({...}, rowid_of_report):", params.rowid_of_report);
+			//RTV.update({comment_ids:params.$cids}, params.rowid_of_report);
 		}
 		order_by_index(result.rows, params.$cids); 
 		//console.log("CTV render...", JSON.stringify(result));
@@ -160,7 +167,7 @@ $(function() {
 	// initialize context menu...
 	CM$=$("#comments-menu").menu().css("position","absolute", "width", "200px").hide();
 	CTemp=Handlebars.compile($("#comments-template").html());
-	
+
 	///// Issues
 	IM$=$("#issues-menu").menu().css("position","absolute", "width", "200px").hide();
 	icTemp=Handlebars.compile($("#issues-closed-template").html());
@@ -199,7 +206,7 @@ $(function() {
 		style="height:100%;">2.{{plusOne @index}}</p>
 	<p 	field="comment"
 		rowid="{{rowid}}"
-		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid()); ed.hide();})"
+		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid(), 1); ed.hide();})"
 		class="col-xs-10 border-left marz">{{comment}}</p>	
 	<p 	rowid="{{rowid}}"
 		class="col-xs-1 marz">{{rowid}}</p>	
@@ -220,7 +227,7 @@ $(function() {
 	<p 	field="desc"
 		rowid="{{rowid}}"
 		index="{{@index}}"
-		onclick="ed.text(this, function(){ITV.update(ed.row(), ed.rowid()); ed.hide();})"
+		onclick="ed.text(this, function(){ITV.update(ed.row(), ed.rowid(), 1); ed.hide();})"
 		class="col-xs-10 border-left marz">{{desc}}</p>	
 	<p 	rowid="{{rowid}}"
 		index="{{@index}}"
@@ -239,7 +246,7 @@ $(function() {
 		class="col-xs-1 marz">4.{{plusOne @index}}</p>
 	<p 	field="desc"
 		rowid={{rowid}}
-		onclick="ed.text(this, function(){ITV.update(ed.row(), ed.rowid()); ed.hide();})"
+		onclick="ed.text(this, function(){ITV.update(ed.row(),ed.rowid(),1); ed.hide();})"
 		class="col-xs-10 border-left marz">{{desc}}</p>	
 	<p 	rowid={{rowid}}
 		class="col-xs-1 marz">{{rowid}}</p>	
@@ -249,7 +256,7 @@ $(function() {
 
 <!-- MENUS -->
 <div id="comments-menu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
-<p onclick="CTV.insert()">Insert</p>
+<p onclick="CTV.insert(true)">Insert</p>
 <p onclick="removeFromReport(RTV, hi.rowid())">Remove from report</p>
 <p onclick="CTV.remove(hi.rowid())">Remove from database</p>
 <!--p onclick="moveup(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment'+hi.rowid());">Move up</p>
@@ -262,7 +269,7 @@ $(function() {
 </div>
 
 <div id="issues-menu" onmouseleave="IM$.hide()" style="display:none; z-index:10000">
-	<p onclick="ITV.insert()">Insert</p>
+	<p onclick="ITV.insert(true)">Insert</p>
 	<p onclick="ITV.remove(hi.rowid())">Delete</p>
 	<p onclick="IM$.hide()">Exit</p>
 </div>
