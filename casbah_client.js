@@ -27,7 +27,7 @@ function array_diff(a, b) {
 	return diff;
 };
 
-function array_insert_at(list, item, neighbour){
+function array_insert_after(list, item, neighbour){
 	//copy rows array before modifying it
 	//var orig=[]; for (var i in list){orig[i]=list[i];}
 
@@ -40,7 +40,7 @@ function array_insert_at(list, item, neighbour){
 	return list;
 };
 //shortform
-function arins(list, item, neighbour){ this.array_insert_at(list,item,neighbour);};
+function aria(list, item, neighbour){ this.array_insert_at(list,item,neighbour);};
 
 
 function array_movedown(rowids, rowid){
@@ -56,7 +56,7 @@ function array_movedown(rowids, rowid){
 	};	
 };
 
-function armdn(list, item){
+function ardn(list, item){
 	/**
 	shortform for array_movedown
 	**/
@@ -81,7 +81,7 @@ function array_moveup(rowids, rowid){
 	return rowids
 };
 
-function armup(list, item){
+function arup(list, item){
 	/**
 	shortform for array_movedown
 	**/
@@ -96,14 +96,6 @@ function array_remove(list, item){
 	var pos=list.indexOf(item);
 	if (pos > -1){list.splice(pos, 1);}
 	return list;
-};
-
-
-function arrem(list, item){ 
-	/**
-	shortform for array_movedown
-	**/
-	return this.array_remove(list,item);
 };
 
 
@@ -353,6 +345,21 @@ function Highlighter(colour){
 		that.__rowid=$(element).attr("rowid");
 	}
 	this.rowid=function(){	return Number(that.__rowid);}	
+	
+	this.row=function(){
+		//return all {name:vals}
+		var f;
+		//collect all elements within the highlighted div that have fields
+		var ff=$(".highlite").find("[field]");
+		console.log("field count", ff.length);
+		var r={};
+		//r[ff.attr("field")]=ff.text();
+		//for (var i in ff){
+		//	f=ff[i];
+		//	r[$(f).attr("field")]=f.text();
+		//}
+		return r;
+	}
 };
 
 ///////////////
@@ -464,6 +471,8 @@ function TableView(options){
 	this.__init();
 };
 
+TableView.prototype.add=function(callback){this.insert(callback);};
+
 TableView.prototype.__init=function(){
 	var SQL1=this.SQLselectFirst();
 	var SQL2=this.SQLinsert(this.options.defrow);
@@ -475,16 +484,13 @@ TableView.prototype.__init=function(){
 	});
 };
 
-TableView.prototype.add=function(callback){this.insert(callback);};
-
 
 TableView.prototype.insert=function(callback){
 	/**
-	inserts a new row into the table. The new row is as defined in tableView.options.defrow.
-	callback can be a function or boolean...
-	callback (function) is called following table insert operation with a results hash passed as an argument. 
+	Inserts a new row into the table. The new row is as defined in tableView.options.defrow
+	@arg callback (as function) Called following table insert operation with a results hash passed as an argument. 
 	Accessing the new row is done like so... function(results){var newrowid=results.rows[0].rowid;}
-	callback (boolean true) means run the standard refresh function defined for this tableview.options.refresh
+	@arg callback (as boolean true) Means run the standard refresh function defined for this tableview.options.refresh
 	if no arg is provided then the insert operation happens without any callback.
 	**/
 	//console.log("insert...");
@@ -493,7 +499,7 @@ TableView.prototype.insert=function(callback){
 	
 	if (typeof callback=="function"){
 		//callback to get new rowid then pass it to callback provided in arg
-		//wrapper just adds to result a shortcut to property rowid (Ie. the id or new row}
+		//wrapper just adds to result a shortcut to property rowid (Ie. the id of the newly added row}
 		var wrapper=function(r){$.extend(r,{rowid:r.rows[0].rowid});callback(r);}
 		then=function(){database(that.SQLselectLast(), wrapper);};
 	} 
@@ -575,7 +581,7 @@ TableView.prototype.update=function(row, rowid, callrefresh){
 	//console.log("Update SQL:", this.SQLupdate(row, rowid));
 	//console.log("Update rowid, row...", rowid, JSON.stringify(row));
 	var that=this;
-	var re=(result)=>{if (typeof callrefresh!="undefined"){that.__refresh(result);}};
+	var re=function(result){if (typeof callrefresh!="undefined"){that.__refresh(result);}};
 
 	database(this.SQLupdate(row, rowid), function(){
 		database(that.SQLselect(), re);

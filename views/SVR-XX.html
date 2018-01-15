@@ -12,10 +12,6 @@ function selectFolder(e) {
     alert(folder[0]);
 };
 
-function removeFromReport(rowid, RTV){
-
-
-};
 
 // Parameters from Cookies 
 var $user=cookie("$user");
@@ -73,13 +69,15 @@ var RTV=new TableView({
 
 ///// Menu & actions for comments
 var CM$;
+/***
 var CMinsert=function(){
 	CTV.add((r)=>{
-		arins($PP.$cids, r.rows[0].rowid, hi.rowid());
-		RTV.update({comment_ids:$PP.$cids}, $PP.$svrid);
+		ari($PP.$cids, r.rows[0].rowid, hi.rowid());
+		RTV.save({comment_ids:$PP.$cids}, $PP.$svrid);
 		CTV.re();
 	});
 };
+***/
 
 var CMremove=function(){
 	//CTV.remove(hi.rowid()); //keep comment in database
@@ -172,7 +170,6 @@ $(function() {
 
 <!-- TEMPLATES               -->
 <template id='comments-template' type="text/x-handlebars-template">
-
 	{{#each rows}}
 	<div class="row marz highliteable"
 		id="comment{{rowid}}"
@@ -185,7 +182,11 @@ $(function() {
 	<p 	field="comment"
 		rowid="{{rowid}}"
 		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid(), 1); ed.hide();})"
-		class="col-xs-10 border-left marz">{{comment}}</p>	
+		class="col-xs-5 border-left marz">{{comment}}</p>	
+	<p 	field="comment"
+		rowid="{{rowid}}"
+		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid(), 1); ed.hide();})"
+		class="col-xs-5 border-left marz">{{comment}}</p>	
 	<p 	rowid="{{rowid}}"
 		class="col-xs-1 marz">{{rowid}}</p>	
 	</div>
@@ -235,8 +236,15 @@ $(function() {
 <!-- MENUS -->
 <div id="comments-menu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
 <p onclick="CMremove()">Delete</p>
-<p onclick="CTV.add((r)=>{arins($PP.$cids, r.rowid, hi.rowid());
-RTV.save({comment_ids:$PP.$cids}, $PP.$svrid);CTV.re();});">Insert</p>
+
+<p onclick=
+"CTV.add( function(r){
+array_insert_after($PP.$cids, r.rowid, hi.rowid());
+RTV.save({comment_ids:$PP.$cids}, $PP.$svrid);
+console.log('CTV.update row, rowid', JSON.stringify(hi.row()), r.rowid);
+CTV.refresh();});"
+>Insert</p>
+
 <p onclick="array_moveup($PP.$cids, hi.rowid());CTV.refresh();">Move up</p>
 <p onclick="array_movedown($PP.$cids, hi.rowid());CTV.refresh();">Move down</p>
 <p onclick="CM$.hide()">Exit</p>
