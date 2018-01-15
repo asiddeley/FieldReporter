@@ -12,7 +12,7 @@ Andrew Siddeley
 13-Dec-2017
 ********************************/
 
-function arrayDiff(a, b) {
+function array_diff(a, b) {
 	//Thanks to https://radu.cotescu.com/javascript-diff-function/
 	//saftey first
 	if (typeof a=="undefined"){a=[];}
@@ -27,16 +27,92 @@ function arrayDiff(a, b) {
 	return diff;
 };
 
-function array_insert_after(arr,i,a){
-	console.log("array_insert_after arr, i, a:", arr, i,a);	
+function array_insert_at(list, item, neighbour){
+	//copy rows array before modifying it
+	//var orig=[]; for (var i in list){orig[i]=list[i];}
+
+	var pos=list.indexOf(neighbour);
+	if (pos == -1){	list.push(item);}
+	else {list.splice(pos+1, 0, item);}
 	
+	//console.log("array_add_at list, item, neighbour, position:", JSON.stringify(list), item, neighbour, pos);	
+	
+	return list;
+};
+//shortform
+function arins(list, item, neighbour){ this.array_insert_at(list,item,neighbour);};
+
+
+function array_movedown(rowids, rowid){
+	/**
+	Moves rowid down one spot in the array
+	@param array of rowids or items
+	@param rowid to move down array
+	**/
+	for (var i=0; i<rowids.length-1; i++){
+		if (rowids[i]==rowid){
+			var temp=rowids[i+1];rowids[i+1]=rowid;rowids[i]=temp;return;
+		}
+	};	
+};
+
+function armdn(list, item){
+	/**
+	shortform for array_movedown
+	**/
+	this.array_movedown(list, item);
 };
 
 
-function array_rowids_order(rows, rowids){
-	//modifies rows
-	//rows=[{rowid:1, ...}, {rowid:2, ...}, ...]
-	//rowids=[2,1,3,4,5...]
+function array_moveup(rowids, rowid){
+	/**
+	Moves rowid down one spot in the array
+	@param array of rowids or items
+	@param rowid to move up array
+	**/
+	for (var i=1; i<rowids.length; i++){
+		if (rowids[i]==rowid){
+			var temp=rowids[i-1];
+			rowids[i-1]=rowid;
+			rowids[i]=temp;
+			return rowids;
+		}
+	};
+	return rowids
+};
+
+function armup(list, item){
+	/**
+	shortform for array_movedown
+	**/
+	return this.array_moveup(list, item);
+};
+
+
+function array_remove(list, item){
+	/**
+	copy rows array before modifying it
+	**/
+	var pos=list.indexOf(item);
+	if (pos > -1){list.splice(pos, 1);}
+	return list;
+};
+
+
+function arrem(list, item){ 
+	/**
+	shortform for array_movedown
+	**/
+	return this.array_remove(list,item);
+};
+
+
+function array_rowidorder(rows, rowids){
+	/***
+	Modifies rows, reordering its items by rowid key as listed in rowids 
+	@param rows Eg. [{rowid:1, ...}, {rowid:2, ...}, ...]
+	@param rowids Eg. [2,1,3,4,5...]
+	***/
 
 	//copy rows array before modifying it
 	var orig=[]; for (var i in rows){orig[i]=rows[i];}
@@ -62,6 +138,14 @@ function array_rowids_order(rows, rowids){
 	
 };
 
+function arorder(list, item){
+	/**
+	shortform for array_movedown
+	**/
+	this.array_rowidorder(list, item);
+};
+
+////////////////////////////////////////////////////////////////
 
 const autoForm=function(div$, params){
 	//params={SQL:"SELECT...", table:"projects", rows:[{pnum:"abc", pname:"abc",...},{},{}], ccsclass:[]}
@@ -250,9 +334,6 @@ function Editor(){
 	
 };
 
-
-
-
 ////////////////////////////////
 // Highlighter
 // 
@@ -265,54 +346,37 @@ function Highlighter(colour){
 	
 	this.light=function(element){
 		//element can be this of a DOM element or a jquery id selector
-		//console.log("highlite...", element);
-		
-		if (typeof element=="string"){
-			that.selector=element; element=$(element);
-		} else if (typeof element=="undefined"){
-			element=$(that.selector);			
-		};
-
-		//TO DO restore elements previous background, not whitewash
-		//$(".highlite").css("background-color","white");
-		$(".highliteable").removeClass("highlite");
-		
-		
-		//console.log("HIGHLITE...", $("[highlite=1]").length);
-		//$("[highlite=1]").attr("highlite",0);
-
-		//$(element).css("background-color",that.colour);
-		$(element).addClass("highliteable");
+		if (typeof element=="string"){that.selector=element; element=$(element);}
+		else if (typeof element=="undefined"){element=$(that.selector);};
+		$(".highlite").removeClass("highlite");
 		$(element).addClass("highlite");
-		//$(element).attr("highlite",1);
+		that.__rowid=$(element).attr("rowid");
 	}
-
-	this.rowid=function(){
-		//var rowid=$("[highlite=1]").attr("rowid"); 
-		var rowid=$(".highlite").attr("rowid"); 
-		//remember rowid of last lighted element 
-		if (typeof rowid!="undefined") {that.__rowid=rowid;}		
-		return that.__rowid;
-	}	
+	this.rowid=function(){	return Number(that.__rowid);}	
 };
 
-///////////////////////////////////////
-function movedn(rowid, rowids){
-	for (var i=0; i<rowids.length-1; i++){
-		if (rowids[i]==rowid){
-			var temp=rowids[i+1];rowids[i+1]=rowid;rowids[i]=temp;return;
-		}
-	};	
-};
+///////////////
+function renderFX(placeholderID, templateFN, result, delta){
 
-function moveup(rowid, rowids){
-	for (var i=1; i<rowids.length; i++){
-		if (rowids[i]==rowid){
-			var temp=rowids[i-1];rowids[i-1]=rowid;rowids[i]=temp;return;
-		}
-	};
-};
-
+	if (placeholderID.indexOf("#")!=0){placeholderID="#"+placeholderID;}
+	switch(delta.count){
+		case(1):
+			////Grand Reveal for added row then run callback function to render result
+			$(placeholderID).html(templateFN(result));
+			//var cr$=$('#comments-row'+delta.rowids[0]);
+			var cr$=$(placeholderID+" > div").find($("[rowid="+delta.rowids[0]+"]"));
+			cr$.css('background','gold').hide().show(500, function(){cr$.css('background','white');});
+		break;
+		case(-1):
+			var cr$=$(placeholderID+" > div").find($("[rowid="+delta.rowids[0]+"]"));
+			////Grand send-off for deleted row then run callback function to render result
+			cr$.css('background','gold').hide(500, function(){
+				$(placeholderID).html(templateFN(result));
+			});
+		break;
+		default: $(placeholderID).html(templateFN(result));
+	};		
+}
 
 function showMenu(cm$, ev){
 	//first call texteditor with no arguments to turn it off just in case its on
@@ -322,25 +386,6 @@ function showMenu(cm$, ev){
 	cm$.menu('option', 'caller', ev.target);
 	return false;
 };
-
-
-var spliceIE=function(list, index, remove, ins){
-	//similar to splice, which seems to be wonky in iexplorer
-	if (Array.isArray(list)) {
-		if (typeof ins=='undefined') ins=[];
-		if (!Array.isArray(ins)) ins=[ins];
-		if (typeof index != 'number') return list;
-		if (typeof remove != 'number') return list;
-		if (index <= 0){
-			return(ins.concat(list.slice(remove)));
-		} else if(index < list.length){			
-			return (list.slice(0,index).concat(ins).concat(list.slice(index+remove)));		
-		} else {
-			return (list.concat(ins));		
-		}
-	}
-};
-
 
 ///////////////////////////
 function substitute(sql, params){
@@ -420,7 +465,7 @@ function TableView(options){
 };
 
 TableView.prototype.__init=function(){
-	var SQL1=this.SQLselect1st();
+	var SQL1=this.SQLselectFirst();
 	var SQL2=this.SQLinsert(this.options.defrow);
 	//create table (if not exists) then add default row (if none exists)
 	database(this.SQLcreate(), function(){
@@ -430,17 +475,39 @@ TableView.prototype.__init=function(){
 	});
 };
 
-TableView.prototype.insert=function(callrefresh){
-	//callrefresh - if present, table renderer will be called after database operation
-	console.log("insert...");
+TableView.prototype.add=function(callback){this.insert(callback);};
+
+
+TableView.prototype.insert=function(callback){
+	/**
+	inserts a new row into the table. The new row is as defined in tableView.options.defrow.
+	callback can be a function or boolean...
+	callback (function) is called following table insert operation with a results hash passed as an argument. 
+	Accessing the new row is done like so... function(results){var newrowid=results.rows[0].rowid;}
+	callback (boolean true) means run the standard refresh function defined for this tableview.options.refresh
+	if no arg is provided then the insert operation happens without any callback.
+	**/
+	//console.log("insert...");
 	var that=this;
-	var re=function(result){
-		if (typeof callrefresh!="undefined"){that.__refresh(result);}
-	};
+	var then;
+	
+	if (typeof callback=="function"){
+		//callback to get new rowid then pass it to callback provided in arg
+		//wrapper just adds to result a shortcut to property rowid (Ie. the id or new row}
+		var wrapper=function(r){$.extend(r,{rowid:r.rows[0].rowid});callback(r);}
+		then=function(){database(that.SQLselectLast(), wrapper);};
+	} 
+	else if (typeof callback=="boolean" && callback==true){
+		//callback to run standard table select then refresh
+		then=function(){database(that.SQLselect(), that.__refresh);}
+	}
+	else {
+		//empty callback
+		then=function(){};
+	}
+	
 	//database(SQLstring, callback);
-	database(this.SQLinsert(this.options.defrow), function(){
-		database(that.SQLselect(), re);
-	});
+	database(this.SQLinsert(this.options.defrow), then);
 
 };
 
@@ -451,10 +518,13 @@ TableView.prototype.option=function(optionRev){
 };
 
 TableView.prototype.remove=function(rowid, callrefresh){
-	//rowid - id or row to remove from table
-	//callrefresh - if present, table renderer will be called after database operation
-	//database(SQLstring, callback);
-	console.log("REMOVE rowid...", rowid);
+	/**
+	Removes row number rowid from the table. The rowid number is not reused. Although the SQL operation is delete, the function is named remove since delete is reserved
+
+	@param rowid - id or row to remove from table
+	@param callrefresh - if present, table renderer will be called after database operation
+	**/
+	//console.log("REMOVE rowid...", rowid);
 	var that=this;
 	var re=function(result){
 		if (typeof callrefresh!="undefined"){that.__refresh(result);}
@@ -464,46 +534,14 @@ TableView.prototype.remove=function(rowid, callrefresh){
 	});
 };
 
-/********** DEPRECATED just refer to global var params instead options.params=params
-//called by dependencies Ie. controling tableViews
-TableView.prototype.params=function(params, callrefresh){
-	//params - hash of parameters to for substitution in SQL
-	//callrefresh - if present, table renderer will be called after database operation
-	var tableView=this;
-	//saftey
-	if (!(tableView instanceof TableView)){
-		console.log("tableView.params - This is not a tableView");
-		return;
-	}
-
-	//args missing means return params
-	if (typeof params=="undefined"){
-		return this.options.params;
-	}
-
-	if (typeof params != "object"){
-		console.log("tableView.params - params not an object");
-		return;
-	}
-		
-	//args present means update params and refresh
-	$.extend(tableView.options.params, params);
-	var re=function(result){
-		if (typeof callrefresh!="undefined" && (callrefresh==1 || callrefresh==true)){ 
-			tableView.__refresh(result);
-		}
-	};
-	
-	database(tableView.SQLselect(), re);
-};
-
-*****/
 
 TableView.prototype.refresh=function(){
 	//console.log("Refresh...");
 	var that=this;
 	database(that.SQLselect(), function(result){that.__refresh(result);});
 };
+//shortform
+TableView.prototype.re=function(){ this.refresh();};
 
 //internal use only
 TableView.prototype.__refresh=function(result){
@@ -516,10 +554,10 @@ TableView.prototype.__refresh=function(result){
 	//console.log("INSERT rowidsPre, rowids", JSON.stringify(rowidsPre), JSON.stringify(rowids));
 	var change={
 		count:( result.rows.length - this.previous.rows.length ), 
-		rowids:arrayDiff(rowids, previds)
+		rowids:array_diff(rowids, previds)
 	};
 	this.previous=result;
-	console.log("__refresh change:", JSON.stringify(change));
+	//console.log("__refresh change:", JSON.stringify(change));
 
 	//call refresh
 	try { this.options.refresh(result, change);} 
@@ -528,13 +566,17 @@ TableView.prototype.__refresh=function(result){
 	}
 };
 
+TableView.prototype.save=function(row, rowid, callrefresh){
+	/** Shortcut for TV.update **/
+	this.update(row, rowid, callrefresh);	
+};
+
 TableView.prototype.update=function(row, rowid, callrefresh){
-	console.log("UPDATE rowid, row...", rowid, JSON.stringify(row));
+	//console.log("Update SQL:", this.SQLupdate(row, rowid));
+	//console.log("Update rowid, row...", rowid, JSON.stringify(row));
 	var that=this;
-	var re=function(result){
-		if (typeof callrefresh!="undefined"){that.__refresh(result);}
-	};
-	
+	var re=(result)=>{if (typeof callrefresh!="undefined"){that.__refresh(result);}};
+
 	database(this.SQLupdate(row, rowid), function(){
 		database(that.SQLselect(), re);
 	});
@@ -573,45 +615,33 @@ TableView.prototype.SQLselect=function(){
 	return sql;
 };
 
-TableView.prototype.SQLselect1st=function(){
+TableView.prototype.SQLselectFirst=function(){
 	return ("SELECT rowid, * FROM " + this.options.table + " LIMIT 1");
 };
 
+TableView.prototype.SQLselectLast=function(){
+	return ("SELECT rowid, * FROM " + this.options.table + " ORDER BY rowid DESC LIMIT 1");
+};
+
 TableView.prototype.SQLupdate=function (row, rowid){
-	//row = {} //object of any fields to be updated
-	//rowid = 21 //SQLITE automatic row id 
+	/***
+	Returns the SQL for updating the table as defined in options.table
+	@param row - object {} of name:values to be updated
+	@param rowid of row in SQLITE database to update 
+	***/
 	//console.log("UPDATE row, rowid...",JSON.stringify(row), rowid);
+
 	if (typeof row == "undefined" || typeof rowid == "undefined"){return;}
 	var keys=Object.keys(row); //array of keys
 	//array of assignments ["pnum='BLDG-001'", "field='val'"]
-	var pairs=keys.map( function(k){return (k + "='"+row[k]+"'");} ); //array of quoted values
+	var pairs=keys.map( function(k){
+		//convert [1,2] to "[1,2]" else it's saved as "1,2" which trips JSON.parse() after select
+		if (typeof row[k]!="string") {return (k + "='"+JSON.stringify(row[k])+"'");}
+		else {return (k + "='"+row[k]+"'");}
+	}); 
 	var sql="UPDATE "+this.options.table+" SET " + pairs.join(", ") +
 	" WHERE rowid="+rowid;
 	//console.log("Table SQL:", sql);
 	return sql;
 };
-
-
-///////////////
-function renderFX(placeholderID, templateFN, result, delta){
-
-	if (placeholderID.indexOf("#")!=0){placeholderID="#"+placeholderID;}
-	switch(delta.count){
-		case(1):
-			////Grand Reveal for added row then run callback function to render result
-			$(placeholderID).html(templateFN(result));
-			//var cr$=$('#comments-row'+delta.rowids[0]);
-			var cr$=$(placeholderID+" > div").find($("[rowid="+delta.rowids[0]+"]"));
-			cr$.css('background','gold').hide().show(500, function(){cr$.css('background','white');});
-		break;
-		case(-1):
-			var cr$=$(placeholderID+" > div").find($("[rowid="+delta.rowids[0]+"]"));
-			////Grand send-off for deleted row then run callback function to render result
-			cr$.css('background','gold').hide(500, function(){
-				$(placeholderID).html(templateFN(result));
-			});
-		break;
-		default: $(placeholderID).html(templateFN(result));
-	};		
-}
 

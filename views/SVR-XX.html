@@ -1,48 +1,8 @@
 <!doctype html>
 
-<style>
-.highlite { background-color:skyblue;}
-fieldset {border: 0;}
-.savable {width:200px;}
-label {display: block;  margin: 30px 0 0 0; }
-select {width: 200px; }
-.overflow {height:200px;}
-.border-left {border-left:2px solid #000;}
-.marz{margin-top:0px; margin-bottom:0px;}
-.row_{border-bottom:1px solid #aaa;}
-.row__{border-top:2px solid #000; border-bottom:1px solid #aaa;} 
-
-h1 {font-size:16pt; font-family:'segoe UI'; padding-top:10px; font-weight:bold; }
-h2 {font-size:14pt; font-family:'segoe UI'; padding-top:10px; font-weight:bold; }
-h3 {font-size:12pt; font-family:'segoe UI'; padding-top:10px; font-weight:bold; }
-p {font-size:11pt; font-family:'segoe UI';}
-
-
-
-
-
-textarea {
-font-family:'segoe';
-background-color:silver;
-}
-
-
-.pocket {
-	margin:5px;
-	padding:5px;
-	height:250px;
-	display:block;
-	border:1px solid gray;
-}
-.pocket-caption{height:20px;}
-.pocket-row{height:300px;}
-</style>
-
-
 <script type='text/javascript'>
 //console.log("SCRIPT...");
 ///// Global defs
-
 
 
 function selectFolder(e) {
@@ -66,9 +26,9 @@ if ($pnum==null){$pnum=cookie("$pnum", "BLDG-001", "30");};
 var $svrnum="SVR-A01";
 if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-A01", "30");};
 
-var params={$user:$user, $pnum:$pnum, $svrnum:$svrnum}
+var $PP={$user:$user, $pnum:$pnum, $svrnum:$svrnum}
 //for development only
-$.extend(params, {
+$.extend($PP, {
 	$cids:[1,2,3,4,5,6,7,8,9,11,12,13,14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
 	$iids:[1,2,3,4,5,6,7,8,9,11,12,13],
 	$user:$user
@@ -81,7 +41,7 @@ $.extend(params, {
 var RTV=new TableView({
 	//table name in database
 	table:"svrs",
-	//defalut values for new row
+	//default values for new row
 	defrow:{
 		svrnum:"SVR-A01",
 		pnum:"BLDG-001",
@@ -91,34 +51,44 @@ var RTV=new TableView({
 		comment_ids:"[1,2,3,4,5]", 
 		issue_ids:"[1,2,3,4,5]",
 		picture_ids:"[1,2,3,4,5]",
-		reviewer:params.$user,
+		reviewer:$PP.$user,
 		xdata:"none"
 	},
 	filter:" svrnum = $svrnum ",
-	//params:{"$svrnum":params.$svrnum}, //instead of copy, just...
-	//reference to global params object
-	params:params,
+	//reference to global parameter object 
+	params:$PP,
 	refresh:function(result, diff){	
-		console.log("RTV.refresh result.rows.length...", result.rows.length);
-		console.log("RTV.refresh diff...", diff);
 		if (result.rows.length>0){
 			//update params...
-			$.extend(params,{
-				$rowid_of_report:result.rows[0].rowid,
+			$.extend($PP,{
+				$svrid:result.rows[0].rowid,
 				$cids:JSON.parse(result.rows[0].comment_ids), //convert from string to array
 				$iids:JSON.parse(result.rows[0].issue_ids) //ditto
 			});
-
 			//dependent table parameter update/refresh...
-			//CTV.params(params,1); //no need for params update function since option.params refs it
-			//ITV.params(params,1); //ditto
 			CTV.refresh();
 			ITV.refresh();
 		}
 	}});
 
-// table view for comments
+///// Menu & actions for comments
 var CM$;
+var CMinsert=function(){
+	CTV.add((r)=>{
+		arins($PP.$cids, r.rows[0].rowid, hi.rowid());
+		RTV.update({comment_ids:$PP.$cids}, $PP.$svrid);
+		CTV.re();
+	});
+};
+
+var CMremove=function(){
+	//CTV.remove(hi.rowid()); //keep comment in database
+	array_remove($PP.$cids, hi.rowid());
+	RTV.update({comment_ids:$PP.$cids}, $PP.$svrid);
+	CTV.refresh();
+};
+
+///// table view for comments
 var CTemp=function(r){console.log("OLD render...");};
 var CTV=new TableView({
 	table:"comments",
@@ -130,20 +100,9 @@ var CTV=new TableView({
 		by:$user},
 	filter:" rowid IN ( $cids )",
 	//params:{"$pnum":params.$pnum, "$cids":params.$cids},
-	params:params,
+	params:$PP,
 	refresh:function(result, delta){
-		if (delta.count==1){
-			//row added so find place for it...
-			var after=hi.rowid();
-			var newid=delta.rowids[0];
-			array_insert_after(params.$cids, newid, after);
-			console.log("//RTV.update({...}, rowid_of_report):", params.$rowid_of_report);
-			//RTV.update({comment_ids:params.$cids}, params.$rowid_of_report);
-		}
-		array_rowids_order(result.rows, params.$cids); 
-		//console.log("CTV render...", JSON.stringify(result));
-		//console.log("CTV SQLselect...", CTV.SQLselect());
-		//console.log("CTV diff...", delta);
+		array_rowidorder(result.rows, $PP.$cids); 
 		renderFX("#comments-placeholder", CTemp, result, delta);
 	}});
 
@@ -154,9 +113,15 @@ var ioTemp;
 //var ITV=issuesTableView(...);
 var ITV=new TableView({
 	table:"issues",
-	defrow:{pnum:"BLDG-001", desc:"New closed issue", open:Date(), shut:"date", refs:"1 2 3", by:$user},
+	defrow:{
+		pnum:"BLDG-001", 
+		desc:"New closed issue", 
+		open:Date(), 
+		shut:"date", 
+		refs:"1 2 3", 
+		by:$user},
 	filter:" pnum = $pnum ",
-	params:{ "$pnum":$pnum },
+	params:$PP,
 	refresh:function(result, delta){
 		//TODO: filter result based on applicable dates...
 		renderFX("#issues-closed-placeholder", icTemp, result, delta);
@@ -269,16 +234,13 @@ $(function() {
 
 <!-- MENUS -->
 <div id="comments-menu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
-<p onclick="CTV.insert();">Insert</p>
-<p onclick="removeFromReport(RTV, hi.rowid())">Remove from report</p>
-<p onclick="CTV.remove(hi.rowid(),true)">Remove from database</p>
-<!--p onclick="moveup(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment'+hi.rowid());">Move up</p>
-<p onclick="movedn(hi.rowid(), params.$cids);CTV.refresh();hi.light('#comment'+hi.rowid());">Move down</p-->
-<p onclick="moveup(hi.rowid(), params.$cids);CTV.refresh();">Move up</p>
-<p onclick="movedn(hi.rowid(), params.$cids);CTV.refresh();">Move down</p>
+<p onclick="CMremove()">Delete</p>
+<p onclick="CTV.add((r)=>{arins($PP.$cids, r.rowid, hi.rowid());
+RTV.save({comment_ids:$PP.$cids}, $PP.$svrid);CTV.re();});">Insert</p>
+<p onclick="array_moveup($PP.$cids, hi.rowid());CTV.refresh();">Move up</p>
+<p onclick="array_movedown($PP.$cids, hi.rowid());CTV.refresh();">Move down</p>
 <p onclick="CM$.hide()">Exit</p>
 <p onclick="RTV.refresh();CM$.hide()">RTV.refresh</p>
-
 </div>
 
 <div id="issues-menu" onmouseleave="IM$.hide()" style="display:none; z-index:10000">
