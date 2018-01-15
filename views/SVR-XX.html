@@ -181,14 +181,9 @@ $(function() {
 		style="height:100%;">2.{{plusOne @index}}</p>
 	<p 	field="comment"
 		rowid="{{rowid}}"
-		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid(), 1); ed.hide();})"
-		class="col-xs-5 border-left marz">{{comment}}</p>	
-	<p 	field="comment"
-		rowid="{{rowid}}"
-		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid(), 1); ed.hide();})"
-		class="col-xs-5 border-left marz">{{comment}}</p>	
-	<p 	rowid="{{rowid}}"
-		class="col-xs-1 marz">{{rowid}}</p>	
+		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid(), 1); ed.hide();});"
+		class="col-xs-10 border-left marz">{{comment}}</p>	
+	<p 	rowid="{{rowid}}" class="col-xs-1 marz">{{rowid}}</p>	
 	</div>
 	{{/each}}	
 </template>
@@ -237,13 +232,10 @@ $(function() {
 <div id="comments-menu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
 <p onclick="CMremove()">Delete</p>
 
-<p onclick=
-"CTV.add( function(r){
-array_insert_after($PP.$cids, r.rowid, hi.rowid());
+<p onclick="
+CTV.add( function(r){array_insert_after($PP.$cids, r.rowid, hi.rowid());
 RTV.save({comment_ids:$PP.$cids}, $PP.$svrid);
-console.log('CTV.update row, rowid', JSON.stringify(hi.row()), r.rowid);
-CTV.refresh();});"
->Insert</p>
+CTV.update(hi.row(), r.rowid, true);});">Insert</p>
 
 <p onclick="array_moveup($PP.$cids, hi.rowid());CTV.refresh();">Move up</p>
 <p onclick="array_movedown($PP.$cids, hi.rowid());CTV.refresh();">Move down</p>

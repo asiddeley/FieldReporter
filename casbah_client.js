@@ -130,7 +130,7 @@ function array_rowidorder(rows, rowids){
 	
 };
 
-function arorder(list, item){
+function aro(list, item){
 	/**
 	shortform for array_movedown
 	**/
@@ -344,23 +344,56 @@ function Highlighter(colour){
 		$(element).addClass("highlite");
 		that.__rowid=$(element).attr("rowid");
 	}
-	this.rowid=function(){	return Number(that.__rowid);}	
+	this.rowid=function(){	return Number(that.__rowid);};	
 	
 	this.row=function(){
 		//return all {name:vals}
-		var f;
-		//collect all elements within the highlighted div that have fields
-		var ff=$(".highlite").find("[field]");
-		console.log("field count", ff.length);
+		var f$, name;
 		var r={};
+		//collect all elements within the highlighted div that have fields
+		var ff$=$(".highlite").find("[field]");
+		//console.log("field count", ff$.length);
+
 		//r[ff.attr("field")]=ff.text();
-		//for (var i in ff){
-		//	f=ff[i];
-		//	r[$(f).attr("field")]=f.text();
-		//}
+		for (var i=0; i<ff$.length; i++){
+			f$=$(ff$[i]);
+			name=f$.attr("field");
+			r[name]=f$.text();
+		}
 		return r;
-	}
+	};
 };
+///////////////////////////
+
+function params($pp, overrides){
+	
+	if (typeof pp=="object") {
+		
+		if (typeof overides=="object"){
+			//merge cookie with pp with overrides 
+		}
+		//save pp
+		//return pp 
+	}
+	else if (typeof pp=="undefined"){
+		//get from cookie and return
+		// Parameters from Cookies 
+		var $user=cookie("$user");
+		if ($user==null){$user=cookie("$user", "admin", "30");};
+		
+		var $pnum=cookie("$pnum");
+		if ($pnum==null){$pnum=cookie("$pnum", "BLDG-001", "30");};
+		//var $svrnum=cookie("$svrnum");
+		var $svrnum="SVR-A01";
+		if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-A01", "30");};
+		
+		$PP={$user:$user, $pnum:$pnum, $svrnum:$svrnum};
+		return $pp;
+	};
+		
+	
+}
+
 
 ///////////////
 function renderFX(placeholderID, templateFN, result, delta){
@@ -573,7 +606,7 @@ TableView.prototype.__refresh=function(result){
 };
 
 TableView.prototype.save=function(row, rowid, callrefresh){
-	/** Shortcut for TV.update **/
+	/** TV.update alias **/
 	this.update(row, rowid, callrefresh);	
 };
 
@@ -581,7 +614,9 @@ TableView.prototype.update=function(row, rowid, callrefresh){
 	//console.log("Update SQL:", this.SQLupdate(row, rowid));
 	//console.log("Update rowid, row...", rowid, JSON.stringify(row));
 	var that=this;
-	var re=function(result){if (typeof callrefresh!="undefined"){that.__refresh(result);}};
+	var re=function(result){
+		if (typeof callrefresh!="undefined" && callrefresh==true){that.__refresh(result);}
+	};
 
 	database(this.SQLupdate(row, rowid), function(){
 		database(that.SQLselect(), re);
