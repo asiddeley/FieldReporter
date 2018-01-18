@@ -392,7 +392,7 @@ function params($pp, overrides){
 	};
 		
 	
-}
+};
 
 
 ///////////////
