@@ -330,12 +330,14 @@ function Editor(){
 // Highlighter
 // 
 
-function Highlighter(colour){
+function Highlighter(hiclass){
 	var that=this;
-	this.colour=colour;
+	this.hiclass=hiclass;
 	this.selector="";
 	this.__rowid="-1";
 	
+	this.dark=function(element){$(element).removeClass("highlite"); }
+
 	this.light=function(element){
 		//element can be this of a DOM element or a jquery id selector
 		if (typeof element=="string"){that.selector=element; element=$(element);}
@@ -397,7 +399,7 @@ function params($pp, overrides){
 
 ///////////////
 function renderFX(placeholderID, templateFN, result, delta){
-
+	if (typeof delta == "undefined"){delta={count:0};};
 	if (placeholderID.indexOf("#")!=0){placeholderID="#"+placeholderID;}
 	switch(delta.count){
 		case(1):

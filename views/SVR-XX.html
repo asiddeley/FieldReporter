@@ -22,12 +22,14 @@ if ($pnum==null){$pnum=cookie("$pnum", "BLDG-001", "30");};
 var $svrnum="SVR-A01";
 if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-A01", "30");};
 
-var $PP={$user:$user, $pnum:$pnum, $svrnum:$svrnum}
+//var $PP={$user:$user, $pnum:$pnum, $svrnum:$svrnum}
 //for development only
 $.extend($PP, {
 	$cids:[1,2,3,4,5,6,7,8,9,11,12,13,14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
 	$iids:[1,2,3,4,5,6,7,8,9,11,12,13],
-	$user:$user
+	$user:$user,
+	$pnum:$pnum,
+	$svrnum:$svrnum
 });
 
 
@@ -136,8 +138,8 @@ var hi=new Highlighter(".highlite");
 ///// READY
 $(function() { 
 
-	// Setup Handlebars
-	Handlebars.registerHelper("plusOne", function(val,options){return parseInt(val)+1;});
+	// Setup Handlebars - moved to casbah.html
+	//Handlebars.registerHelper("plusOne", function(val,options){return parseInt(val)+1;});
 	
 	///// Comments
 	// initialize context menu...

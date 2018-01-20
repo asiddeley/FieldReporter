@@ -28,6 +28,8 @@
 
 <script type="text/javascript">
 
+var $PP={};
+
 //prevent accidental image drop
 $(window).on({
 	"drop": function(e){ e=e||event; e.preventDefault(); false;},
@@ -39,6 +41,10 @@ $(document).on("contextmenu", false);
 
 //READY
 $(function() { 
+
+	// Setup Handlebars
+	Handlebars.registerHelper("plusOne", function(val,options){return parseInt(val)+1;});
+
 
 	//bumper shoves the top of the dock-area down to prevent the static navbar from covering it
 	$("#BUMPER").height($("#zbar").innerHeight());
@@ -77,6 +83,10 @@ $(function() {
 	
 	$("#svr-btn").on("click", function(){
 		$("#reportdock").show().load("views/SVR-XX.html");
+	});
+	
+	$("#svrlog-btn").on("click", function(){
+		$("#reportdock").show().load("views/SVR-Log.html");
 	});
 	
 	$("#test-btn").on("click", function(){
@@ -231,7 +241,8 @@ $(function() {
 				
 				<div role="tabpanel" class="tab-pane" id="REPORTS">
 				<div class="btn-group" role="group" aria-label="...">
-					<button id="svr-btn" type="button" class="btn btn-info">Site Visit Reports</button>
+					<button id="svrlog-btn" type="button" class="btn btn-info">Site Visit Report Log</button>
+					<button id="svr-btn" type="button" class="btn btn-info">Site Visit Report (current)</button>
 					<button id="dtl-btn" type="button" class="btn btn-info">Deficiency Templates</button>
 					</div>
 				</div>

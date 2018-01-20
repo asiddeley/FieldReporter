@@ -5,33 +5,42 @@
 ///// Global defs
 
 
-function selectFolder(e) {
-    var theFiles = e.target.files;
-    var relativePath = theFiles[0].webkitRelativePath;
-    var folder = relativePath.split("/");
-    alert(folder[0]);
-};
-
-
 // Parameters from Cookies 
-var $user=cookie("$user");
-if ($user==null){$user=cookie("$user", "admin", "30");};
-var $pnum=cookie("$pnum");
-if ($pnum==null){$pnum=cookie("$pnum", "BLDG-001", "30");};
+//var $user=cookie("$user");
+//if ($user==null){$user=cookie("$user", "admin", "30");};
+//var $pnum=cookie("$pnum");
+//if ($pnum==null){$pnum=cookie("$pnum", "BLDG-001", "30");};
 //var $svrnum=cookie("$svrnum");
-var $svrnum="SVR-A01";
-if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-A01", "30");};
+//var $svrnum="SVR-A01";
+//if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-A01", "30");};
 
-var $PP={$user:$user, $pnum:$pnum, $svrnum:$svrnum}
+//var $PP={$user:$user, $pnum:$pnum, $svrnum:$svrnum}
+
+$.extend($PP,{
+	dtype:"Site Visit Report Log",
+	dnum:"SVR-Log",
+	ddate:Date(),
+	dby:$PP.$user,
+	pname:"Some Street Building Redevelopment",
+	plocation:"123 Some Street, City, Prov, M5B 1W8",
+	permit:"16 xxxxxx BLD 00 BA",
+	pcontractor:"CasbahCon"
+})
+
 
 ///// TableViews
 
 // Site visit report
-var RTV=new TableView({
+
+var svrClick=function(el){
+	ed.text(el, function(){svrTV.update(ed.row(), ed.rowid(), 1); ed.hide();});
+};
+var svrTV=new TableView({
 	//table name in database
 	table:"svrs",
 	//default values for new row
 	defrow:{
+		//dnum:"SVR-A01",
 		svrnum:"SVR-A01",
 		pnum:"BLDG-001",
 		title:"New comment",
@@ -47,20 +56,13 @@ var RTV=new TableView({
 	filter:" rowid=rowid ",
 	//reference to global parameter object 
 	params:$PP,
-	refresh:function(result, diff){	
-		if (result.rows.length>0){
-			//update params...
-			$.extend($PP,{
-				$svrid:result.rows[0].rowid,
-				$cids:JSON.parse(result.rows[0].comment_ids), //convert from string to array
-				$iids:JSON.parse(result.rows[0].issue_ids) //ditto
-			});
-			//dependent table parameter update/refresh...
-		}
-	}});
+	refresh:function(result, delta){	
+		renderFX("document-content", document_content, result, delta);
+	}
+});
 
 ///// Menu & actions for comments
-var CM$;
+//var CM$;
 /***
 var CMinsert=function(){
 	CTV.add((r)=>{
@@ -73,30 +75,38 @@ var CMinsert=function(){
 
 // text editor
 var ed=new Editor();
+
 // highligher
 var hi=new Highlighter(".highlite");
+
+// function templates
+var document_header;
+var document_titleblock;
+var document_content;
+
 
 ///// READY
 $(function() { 
 
-	// Setup Handlebars
-	Handlebars.registerHelper("plusOne", function(val,options){return parseInt(val)+1;});
-	
 	///// Comments
 	// initialize context menu...
-	CM$=$("#comments-menu").menu().css("position","absolute", "width", "200px").hide();
-	CTemp=Handlebars.compile($("#comments-template").html());
+	//CM$=$("#comments-menu").menu().css("position","absolute", "width", "200px").hide();
 
-	///// Issues
-	IM$=$("#issues-menu").menu().css("position","absolute", "width", "200px").hide();
-	icTemp=Handlebars.compile($("#issues-closed-template").html());
-	ioTemp=Handlebars.compile($("#issues-open-template").html());
+	//load templates and render
+	$("#document-header-template").load("views/document_header.html", function(htm){
+		//console.log('tbh loaded:', htm);
+		document_header=Handlebars.compile(htm);
+		renderFX("document-header", document_header, $PP);
+	});
 
-	///// Pictures
-	//To do
+	$("#document-titleblock-template").load("views/document_titleblock.html", function(htm){
+		//console.log('tbt loaded:', htm);
+		document_titleblock=Handlebars.compile(htm);
+		renderFX("document-titleblock", document_titleblock, $PP);
+	});
 	
-	//render report table which renders dependent comments and issues table-views also
-	RTV.refresh();
+	document_content=Handlebars.compile($("#document-content-template").html());
+	svrTV.refresh();
 	
 }); //READY
 
@@ -109,38 +119,113 @@ $(function() {
 
 
 <body>
-		svrnum:"SVR-A01",
-		pnum:"BLDG-001",
-		title:"New comment",
-		review_date:Date(), 
-		publish_date:"not-issued", 
-		comment_ids:"[1,2,3,4,5]", 
-		issue_ids:"[1,2,3,4,5]",
-		picture_ids:"[1,2,3,4,5]",
-		reviewer:$PP.$user,
 
 <!-- TEMPLATES               -->
-<template id='comments-template' type="text/x-handlebars-template">
+<template class="hide"	id="document-titleblock-template" 	type="text/x-handlebars-template">
+Note this template is loaded from file onready
+</template>
+
+<template id="document-header-template" type="text/x-handlebars-template">
+Note this template is loaded from file onready
+</template>
+
+<template id='document-content-template' type="text/x-handlebars-template">
+	<div class="row marz row_" onmouseenter="hi.light(this);">
+	<p class="col-xs-1 row-head marz">row</p>		
+	<p class="col-xs-3 border-left row-head marz">title / comment ids</p>
+	<p class="col-xs-3 row-head marz">review date / issue ids</p>
+	<p class="col-xs-3 row-head marz">publish date / photo ids</p>
+	<p class="col-xs-2 row-head marz">by</p>
+	</div>
+
 	{{#each rows}}
-	<div class="row marz highliteable"
-		id="comment{{rowid}}"
+	<div class="row marz"
+		id="svr{{rowid}}"
 		rowid="{{rowid}}"
-		onmouseenter="hi.light(this)"
+		onmouseenter="hi.light(this);"
+		onmouseleave="hi.dark(this);"
 		oncontextmenu="showMenu(CM$, event)">
+
 	<p 	rowid="{{rowid}}"
-		class="col-xs-1 marz"
-		style="height:100%;">2.{{plusOne @index}}</p>
-	<p 	field="comment"
+		class="col-xs-1 marz">{{plusOne @index}}</p>		
+		
+	<p 	class="col-xs-3 border-left marz"
+		field="title"
 		rowid="{{rowid}}"
-		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid(), 1); ed.hide();});"
-		class="col-xs-10 border-left marz">{{comment}}</p>	
-	<p 	rowid="{{rowid}}" class="col-xs-1 marz">{{rowid}}</p>	
+		onclick="svrClick(this);">
+		{{title}}</p>
+		
+	<p 	field="review_date"
+		class="col-xs-3 marz"
+		rowid="{{rowid}}"
+		onclick="svrClick(this);">
+		{{review_date}}</p>
+		
+	<p 	field="publish_date"
+		class="col-xs-3 marz"
+		rowid="{{rowid}}"
+		onclick="svrClick(this);">
+		{{publish_date}}</p>
+		
+	<p 	field="reviewer"
+		class="col-xs-2 marz"
+		rowid="{{rowid}}"
+		onclick="svrClick(this);">
+		{{reviewer}}</p>
+		
+	<p class="col-xs-2 marz"></p>
+	</div>
+
+	<div class="row marz"
+		id="svr{{rowid}}"
+		rowid="{{rowid}}"
+		onmouseenter="hi.light(this);"
+		onmouseleave="hi.dark(this);"
+		oncontextmenu="showMenu(CM$, event)">
+
+	<p class="col-xs-1 marz"></p>
+
+	<p 	field="comment_ids"
+		rowid="{{rowid}}"
+		class="col-xs-3 border-left marz"
+		style="height:100%;"
+		onclick="svrClick(this);">
+		{{comment_ids}}</p>	
+			
+	<p 	field="issue_ids"
+		class="col-xs-3 marz"
+		rowid="{{rowid}}"
+		onclick="svrClick(this);">
+		{{issue_ids}}</p>
+		
+	<p 	field="picture_ids"
+		class="col-xs-3 marz"
+		rowid="{{rowid}}"
+		onclick="svrClick(this);">
+		{{picture_ids}}</p>
+		
+	<p class="col-xs-2 marz"></p>
+		
 	</div>
 	{{/each}}	
 </template>
 
+
+<!-- PAGE STARTS HERE -->
+
+<div class="container">
+
+	<div id="document-header" ></div>
+	<div id="document-titleblock" ></div>
+	<br><br>
+	<div id="document-content"></div>
+	<br><br><br><br>
+</div>
+
+
+
 <!-- MENUS -->
-<div id="comments-menu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
+<!--div id="comments-menu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
 <p onclick="CMremove()">Delete</p>
 
 <p onclick="
@@ -158,57 +243,4 @@ CTV.update(hi.row(), r.rowid, true);});">Insert</p>
 	<p onclick="ITV.insert(true)">Insert</p>
 	<p onclick="ITV.remove(hi.rowid())">Delete</p>
 	<p onclick="IM$.hide()">Exit</p>
-</div>
-
-
-
-<!-- PAGE STARTS HERE -->
-
-<div class='container'>
-	<img src='./images/private/logo.png' style='width:100px; float:left;'>
-	<h2  style='float:right;' >Log</h2><div style='clear:both'></div>
-	<br><br>
-
-	<div class='row row__'>
-		<strong class='col-xs-2'>Doc No:</strong>
-		<p id='docName' class='col-xs-4'>SVR-A01 to A99</p>
-		<strong class='col-xs-2'>Permit No:</strong>
-		<p id='permitNo' class='col-xs-4 soup-cell'>16 xxxxxx BLD 00 BA</p>
-	</div>
-
-	<div class='row row_'>
-		<strong class='col-xs-2'>Project:</strong>
-		<p class='col-xs-4'>Some Street Building Redevelopment</p>
-		<strong class='col-xs-2'>Date of Visit:</strong>
-		<p id='visitDate' class='col-xs-4 soup-cell'>June 15 &amp; 17, 2016</p>
-	</div>
-	
-	<div class='row row_'>
-		<strong class='col-xs-2'>Project No.:</strong>
-		<p class='col-xs-4'>BLDG-0001</p>
-		<strong class='col-xs-2'>Time of Visit:</strong>
-		<p id='visitTime' class='col-xs-4 soup-cell'>NA</p>
-	</div>
-				
-	<div class='row row_'>
-		<strong class='col-xs-2'>Project Location:</strong>
-		<p class='col-xs-4'>123 Some Street, City, Prov, M5B 1W8</p>
-		<strong class='col-xs-2'>Reviewer:</strong>
-		<p id='reviewerName' class='col-xs-4 soup-cell'>Andrew Siddeley</p>
-	</div>
-
-	<div class='row row_'>
-		<strong class='col-xs-2'>Contractor:</strong>
-		<p class='col-xs-4'>GC</p>
-		<strong class='col-xs-2'>Date of Report:</strong>
-		<p id='reportDate' class='col-xs-4'>Jun 17, 2016</p>
-	</div>
-	
-	<br><br>
-
-	<!-- Placeholder -->
-	<div id='svrs-placeholder' class='marz'></div>
-
-<br><br><br><br>
-</div>
-
+</div -->
