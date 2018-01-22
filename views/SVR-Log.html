@@ -21,6 +21,7 @@ $.extend($PP,{
 	dnum:"SVR-Log",
 	ddate:Date(),
 	dby:$PP.$user,
+	pnum:"BLDG-001",
 	pname:"Some Street Building Redevelopment",
 	plocation:"123 Some Street, City, Prov, M5B 1W8",
 	permit:"16 xxxxxx BLD 00 BA",
@@ -33,6 +34,7 @@ $.extend($PP,{
 // Site visit report
 
 var svrClick=function(el){
+	//svrTV.refresh();
 	ed.text(el, function(){svrTV.update(ed.row(), ed.rowid(), 1); ed.hide();});
 };
 var svrTV=new TableView({
@@ -62,22 +64,25 @@ var svrTV=new TableView({
 });
 
 ///// Menu & actions for comments
-//var CM$;
-/***
-var CMinsert=function(){
-	CTV.add((r)=>{
-		ari($PP.$cids, r.rows[0].rowid, hi.rowid());
-		RTV.save({comment_ids:$PP.$cids}, $PP.$svrid);
-		CTV.re();
+var svrMenu;
+var svrOpen=function(){
+	//update parameter svrnum from the selected row
+	var n=$("[rowid="+hi.rowid()+"]").find("[field=svrnum]").text();
+	$.extend($PP,{
+		$pnum:"BLDG-001",
+		$svrnum:n,
+		$dnum:n
 	});
+	//load the SVR-XX page
+	$("#reportdock").load("views/SVR-XX.html");
 };
-***/
+
 
 // text editor
 var ed=new Editor();
 
 // highligher
-var hi=new Highlighter(".highlite");
+var hi=new Highlighter("highlite");
 
 // function templates
 var document_header;
@@ -90,16 +95,18 @@ $(function() {
 
 	///// Comments
 	// initialize context menu...
-	//CM$=$("#comments-menu").menu().css("position","absolute", "width", "200px").hide();
+	svrMenu=$("#comments-menu").menu().css("position","absolute", "width", "200px").hide();
 
 	//load templates and render
-	$("#document-header-template").load("views/document_header.html", function(htm){
+	//$("#document-header-template").load("views/document_header.html", function(htm){
+	$("<div>template</div>").load("views/document_header.html", function(htm){
 		//console.log('tbh loaded:', htm);
 		document_header=Handlebars.compile(htm);
 		renderFX("document-header", document_header, $PP);
 	});
 
-	$("#document-titleblock-template").load("views/document_titleblock.html", function(htm){
+	//$("#document-titleblock-template").load("views/document_titleblock.html", function(htm){
+	$("<div>template</div>").load("views/document_titleblock.html", function(htm){
 		//console.log('tbt loaded:', htm);
 		document_titleblock=Handlebars.compile(htm);
 		renderFX("document-titleblock", document_titleblock, $PP);
@@ -110,32 +117,38 @@ $(function() {
 	
 }); //READY
 
-
-
 </script>
-
 </head>
-
-
-
 <body>
 
-<!-- TEMPLATES               -->
+<!-- PAGE -->
+
+<div class="container">
+
+	<div id="document-header">placeholder</div>
+	<div id="document-titleblock">placeholder</div>
+	<br><br>
+	<div id="document-content">placeholder</div>
+	<br><br><br><br>
+</div>
+
+
+<!-- TEMPLATES  -->
 <template class="hide"	id="document-titleblock-template" 	type="text/x-handlebars-template">
-Note this template is loaded from file onready
+Note this template is loaded from file on ready
 </template>
 
 <template id="document-header-template" type="text/x-handlebars-template">
-Note this template is loaded from file onready
+Note this template is loaded from file on ready
 </template>
 
 <template id='document-content-template' type="text/x-handlebars-template">
 	<div class="row marz row_" onmouseenter="hi.light(this);">
-	<p class="col-xs-1 row-head marz">row</p>		
-	<p class="col-xs-3 border-left row-head marz">title / comment ids</p>
+	<p class="col-xs-1 row-head marz">row</p>	
+	<p class="col-xs-2 border-left row-head marz">SVR No. / by</p>
+	<p class="col-xs-3 row-head marz">title / comment ids</p>
 	<p class="col-xs-3 row-head marz">review date / issue ids</p>
 	<p class="col-xs-3 row-head marz">publish date / photo ids</p>
-	<p class="col-xs-2 row-head marz">by</p>
 	</div>
 
 	{{#each rows}}
@@ -144,103 +157,74 @@ Note this template is loaded from file onready
 		rowid="{{rowid}}"
 		onmouseenter="hi.light(this);"
 		onmouseleave="hi.dark(this);"
-		oncontextmenu="showMenu(CM$, event)">
+		oncontextmenu="showMenu(svrMenu, event)">
 
 	<p 	rowid="{{rowid}}"
 		class="col-xs-1 marz">{{plusOne @index}}</p>		
+
+	<p 	class="col-xs-2 marz border-left"
+		field="svrnum"
+		rowid="{{rowid}}"
+		onclick="svrClick(this);">{{svrnum}}</p>
 		
-	<p 	class="col-xs-3 border-left marz"
+	<p 	class="col-xs-3 marz"
 		field="title"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">
-		{{title}}</p>
+		onclick="svrClick(this);">{{title}}</p>
 		
 	<p 	field="review_date"
 		class="col-xs-3 marz"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">
-		{{review_date}}</p>
+		onclick="svrClick(this);">{{review_date}}</p>
 		
 	<p 	field="publish_date"
 		class="col-xs-3 marz"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">
-		{{publish_date}}</p>
+		onclick="svrClick(this);">{{publish_date}}</p>
 		
-	<p 	field="reviewer"
-		class="col-xs-2 marz"
-		rowid="{{rowid}}"
-		onclick="svrClick(this);">
-		{{reviewer}}</p>
-		
-	<p class="col-xs-2 marz"></p>
 	</div>
 
-	<div class="row marz"
+	<div class="row marz zebra-stripe"
 		id="svr{{rowid}}"
 		rowid="{{rowid}}"
 		onmouseenter="hi.light(this);"
 		onmouseleave="hi.dark(this);"
-		oncontextmenu="showMenu(CM$, event)">
+		oncontextmenu="showMenu(svrMenu, event)">
 
 	<p class="col-xs-1 marz"></p>
-
-	<p 	field="comment_ids"
+	
+	<p 	field="reviewer"
 		rowid="{{rowid}}"
-		class="col-xs-3 border-left marz"
+		class="col-xs-2 border-left marz"
 		style="height:100%;"
-		onclick="svrClick(this);">
-		{{comment_ids}}</p>	
+		onclick="svrClick(this);">{{reviewer}}</p>	
 			
+	<p 	field="comment_ids"
+		class="col-xs-3 marz"
+		rowid="{{rowid}}"
+		onclick="svrClick(this);">{{comment_ids}}</p>
+		
 	<p 	field="issue_ids"
 		class="col-xs-3 marz"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">
-		{{issue_ids}}</p>
+		onclick="svrClick(this);">{{issue_ids}}</p>
 		
 	<p 	field="picture_ids"
 		class="col-xs-3 marz"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">
-		{{picture_ids}}</p>
-		
-	<p class="col-xs-2 marz"></p>
+		onclick="svrClick(this);">{{picture_ids}}</p>	
 		
 	</div>
 	{{/each}}	
 </template>
 
 
-<!-- PAGE STARTS HERE -->
-
-<div class="container">
-
-	<div id="document-header" ></div>
-	<div id="document-titleblock" ></div>
-	<br><br>
-	<div id="document-content"></div>
-	<br><br><br><br>
-</div>
-
-
-
 <!-- MENUS -->
-<!--div id="comments-menu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
-<p onclick="CMremove()">Delete</p>
+<ul id="comments-menu" onmouseleave="svrMenu.hide()" style="display:none; z-index:10000">
+<li onclick="svrTV.add(1);">Add</li>
+<li onclick="svrOpen();">Open</li>
+<li onclick="svrMenu.hide();svrTV.refresh();">Refresh</li>
+<li onclick="svrMenu.hide()">Exit</li>
+</ul>
 
-<p onclick="
-CTV.add( function(r){array_insert_after($PP.$cids, r.rowid, hi.rowid());
-RTV.save({comment_ids:$PP.$cids}, $PP.$svrid);
-CTV.update(hi.row(), r.rowid, true);});">Insert</p>
 
-<p onclick="array_moveup($PP.$cids, hi.rowid());CTV.refresh();">Move up</p>
-<p onclick="array_movedown($PP.$cids, hi.rowid());CTV.refresh();">Move down</p>
-<p onclick="CM$.hide()">Exit</p>
-<p onclick="RTV.refresh();CM$.hide()">RTV.refresh</p>
-</div>
-
-<div id="issues-menu" onmouseleave="IM$.hide()" style="display:none; z-index:10000">
-	<p onclick="ITV.insert(true)">Insert</p>
-	<p onclick="ITV.remove(hi.rowid())">Delete</p>
-	<p onclick="IM$.hide()">Exit</p>
-</div -->
