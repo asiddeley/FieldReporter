@@ -13,11 +13,16 @@ Andrew Siddeley
 21-Jan-2018
 ********************************/
 
+if (typeof casbah=="undefined") {casbah={};}
 
-///////////////////////////
-// Table
 
-function TableView(options){
+
+function TableView(options, options1){
+	
+	this.options=options;
+	if (typeof options1=="object") {$.extend(this.options, options1);}
+	
+	/***
 	this.options=$.extend({
 		//name of table
 		table:"issues",
@@ -46,6 +51,7 @@ function TableView(options){
 			autoform(this.options.place$, $.extend({table:this.table}, result));
 		}
 	}, options);
+	**/
 	
 	this.div$ = null;
 	this.previous={rows:[]};
@@ -233,4 +239,42 @@ TableView.prototype.SQLupdate=function (row, rowid){
 	//console.log("Table SQL:", sql);
 	return sql;
 };
+
+///////////////////////
+// Casbah tables
+
+//SQL to retrieve a database table column names or fields: pragma table_info(svrs)
+
+casbah.siteVisitReports=function(params){
+	
+	if (typeof params=="undefined") {
+		//params should be a reference a to global parameter object 
+		params={$dnum:"SVR-A01", $pnum:"BLDG-001", $user:"none"};
+	}
+	
+	return {
+		//table name in database
+		table:"svrs",
+		//default values for new row
+		defrow:{
+			svrnum:params.$dnum,
+			//dnum:params.$dnum,
+			pnum:params.$pnum,
+			title:"New comment",
+			review_date:Date(),
+			//date:Date(), 
+			publish_date:"not-issued", 
+			comment_ids:"[1,2,3]", 
+			issue_ids:"[1,2,3]",
+			picture_ids:"[1,2,3]",
+			reviewer:params.$user,
+			//by:params.$user,
+			xdata:"none"
+		},
+		filter:" svrnum = $svrnum ",
+		params:$PP,
+		refresh:function(){}
+	};
+}
+
 
