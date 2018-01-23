@@ -34,34 +34,12 @@ $.extend($PP,{
 // Site visit report
 
 var svrClick=function(el){
-	//svrTV.refresh();
 	ed.text(el, function(){svrTV.update(ed.row(), ed.rowid(), 1); ed.hide();});
 };
-var svrTV=new TableView({
-	//table name in database
-	table:"svrs",
-	//default values for new row
-	defrow:{
-		//dnum:"SVR-A01",
-		svrnum:"SVR-A01",
-		pnum:"BLDG-001",
-		title:"New comment",
-		review_date:Date(), 
-		publish_date:"not-issued", 
-		comment_ids:"[1,2,3,4,5]", 
-		issue_ids:"[1,2,3,4,5]",
-		picture_ids:"[1,2,3,4,5]",
-		reviewer:$PP.$user,
-		xdata:"none"
-	},
-	//get all
-	filter:" rowid=rowid ",
-	//reference to global parameter object 
-	params:$PP,
-	refresh:function(result, delta){	
-		renderFX("document-content", document_content, result, delta);
-	}
-});
+
+var svrTV=new TableView(casbah.siteVisitReports, $PP),{refresh:function(result, delta){	
+	renderFX("document-content", document_content, result, delta);
+}});
 
 ///// Menu & actions for comments
 var svrMenu;
@@ -99,14 +77,14 @@ $(function() {
 
 	//load templates and render
 	//$("#document-header-template").load("views/document_header.html", function(htm){
-	$("<div>template</div>").load("views/document_header.html", function(htm){
+	$("<div>dummy template</div>").load("views/document_header.html", function(htm){
 		//console.log('tbh loaded:', htm);
 		document_header=Handlebars.compile(htm);
 		renderFX("document-header", document_header, $PP);
 	});
 
 	//$("#document-titleblock-template").load("views/document_titleblock.html", function(htm){
-	$("<div>template</div>").load("views/document_titleblock.html", function(htm){
+	$("<div>dummy template</div>").load("views/document_titleblock.html", function(htm){
 		//console.log('tbt loaded:', htm);
 		document_titleblock=Handlebars.compile(htm);
 		renderFX("document-titleblock", document_titleblock, $PP);
@@ -220,7 +198,7 @@ Note this template is loaded from file on ready
 
 
 <!-- MENUS -->
-<ul id="comments-menu" onmouseleave="svrMenu.hide()" style="display:none; z-index:10000">
+<ul id="comments-menu" onmouseleave="svrMenu.hide()" class="hide9999">
 <li onclick="svrTV.add(1);">Add</li>
 <li onclick="svrOpen();">Open</li>
 <li onclick="svrMenu.hide();svrTV.refresh();">Refresh</li>

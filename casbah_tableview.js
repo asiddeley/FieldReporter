@@ -257,21 +257,21 @@ casbah.siteVisitReports=function(params){
 		table:"svrs",
 		//default values for new row
 		defrow:{
-			svrnum:params.$dnum,
-			//dnum:params.$dnum,
+			//svrnum:params.$dnum,
+			dnum:params.$dnum,
 			pnum:params.$pnum,
 			title:"New comment",
 			review_date:Date(),
-			//date:Date(), 
-			publish_date:"not-issued", 
+			date:Date(), 
+			//publish_date:"not-issued", 
 			comment_ids:"[1,2,3]", 
 			issue_ids:"[1,2,3]",
-			picture_ids:"[1,2,3]",
-			reviewer:params.$user,
-			//by:params.$user,
+			photo_ids:"[1,2,3]",
+			//reviewer:params.$user,
+			by:params.$user,
 			xdata:"none"
 		},
-		filter:" svrnum = $svrnum ",
+		filter:" dnum = $dnum ",
 		params:$PP,
 		refresh:function(){}
 	};

@@ -41,9 +41,9 @@ var RTV=new TableView(casbah.siteVisitReports($PP),{
 		if (result.rows.length>0){
 			//update params...
 			$.extend($PP,{
-				$svrid:result.rows[0].rowid,
-				$cids:JSON.parse(result.rows[0].comment_ids), //convert from string to array
-				$iids:JSON.parse(result.rows[0].issue_ids) //ditto
+				$did:result.rows[0].rowid,
+				$comment_ids:JSON.parse(result.rows[0].comment_ids), //convert from string to array
+				$issue_ids:JSON.parse(result.rows[0].issue_ids) //ditto
 			});
 			//dependent table parameter update/refresh...
 			CTV.refresh();
@@ -66,8 +66,8 @@ var CMinsert=function(){
 
 var CMremove=function(){
 	//CTV.remove(hi.rowid()); //keep comment in database
-	array_remove($PP.$cids, hi.rowid());
-	RTV.update({comment_ids:$PP.$cids}, $PP.$svrid);
+	array_remove($PP.$comment_ids, hi.rowid());
+	RTV.update({comment_ids:$PP.$comment_ids}, $PP.$svrid);
 	CTV.refresh();
 };
 
@@ -81,11 +81,11 @@ var CTV=new TableView({
 		refs:"none", 
 		date:Date(), 
 		by:$PP.$user},
-	filter:" rowid IN ( $cids )",
+	filter:" rowid IN ( $comment_ids )",
 	//params:{"$pnum":params.$pnum, "$cids":params.$cids},
 	params:$PP,
 	refresh:function(result, delta){
-		array_rowidorder(result.rows, $PP.$cids); 
+		array_rowidorder(result.rows, $PP.$comment_ids); 
 		renderFX("#comments-placeholder", CTemp, result, delta);
 	}});
 
@@ -212,9 +212,7 @@ var document_titleblock;
 		rowid="{{rowid}}"
 		onmouseenter="hi.light(this)"
 		oncontextmenu="showMenu(CM$, event)">
-	<p 	rowid="{{rowid}}"
-		class="col-xs-1 marz"
-		style="height:100%;">2.{{plusOne @index}}</p>
+	<p 	rowid="{{rowid}}" class="col-xs-1 marz">2.{{plusOne @index}}</p>
 	<p 	field="comment"
 		rowid="{{rowid}}"
 		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid(), 1); ed.hide();});"
@@ -274,16 +272,16 @@ var document_titleblock;
 </template>
 
 <!-- MENUS -->
-<div id="comments-menu" onmouseleave="CM$.hide()" style="display:none; z-index:10000">
+<div id="comments-menu" onmouseleave="CM$.hide()" class="hide9999">
 	<p onclick="CMremove()">Delete</p>
 
 	<p onclick="
-	CTV.add( function(r){array_insert_after($PP.$cids, r.rowid, hi.rowid());
-	RTV.save({comment_ids:$PP.$cids}, $PP.$svrid);
+	CTV.add( function(r){array_insert_after($PP.$comment_ids, r.rowid, hi.rowid());
+	RTV.save({comment_ids:$PP.$comment_ids}, $PP.$did);
 	CTV.update(hi.row(), r.rowid, true);});">Insert</p>
 
-	<p onclick="array_moveup($PP.$cids, hi.rowid());CTV.refresh();">Move up</p>
-	<p onclick="array_movedown($PP.$cids, hi.rowid());CTV.refresh();">Move down</p>
+	<p onclick="array_moveup($PP.$comment_ids, hi.rowid());CTV.refresh();">Move up</p>
+	<p onclick="array_movedown($PP.$comment_ids, hi.rowid());CTV.refresh();">Move down</p>
 	<p onclick="CM$.hide()">Exit</p>
 	<p onclick="RTV.refresh();CM$.hide()">RTV.refresh</p>
 </div>
