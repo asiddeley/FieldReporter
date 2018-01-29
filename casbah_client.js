@@ -401,6 +401,8 @@ function params($pp, overrides){
 
 ///////////////
 function renderFX(placeholderID, templateFN, result, delta){
+	//as returned from sqlite query...
+	//result {rows:[{field:value, field:value...},{...},...]}
 	if (typeof delta == "undefined"){delta={count:0};};
 	if (placeholderID.indexOf("#")!=0){placeholderID="#"+placeholderID;}
 	switch(delta.count){
@@ -424,7 +426,7 @@ function renderFX(placeholderID, templateFN, result, delta){
 
 function showMenu(cm$, ev){
 	//first call texteditor with no arguments to turn it off just in case its on
-	ed.hide();
+	//ed.hide();
 	cm$.show().position({my:'left top',	at:'left bottom', of:ev});
 	//remember caller, that is the <div> or <p> element that launched the contextMenu
 	cm$.menu('option', 'caller', ev.target);

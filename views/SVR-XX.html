@@ -36,8 +36,8 @@ $.extend($PP, {
 ///// TableViews
 
 // Site visit report
-var RTV=new TableView(casbah.siteVisitReports($PP),{
-	refresh:function(result, diff){	
+var RTV=new TableView(casbah.siteVisitReports($PP),
+	{refresh:function(result, diff){	
 		if (result.rows.length>0){
 			//update params...
 			$.extend($PP,{
@@ -72,45 +72,26 @@ var CMremove=function(){
 };
 
 ///// table view for comments
-var CTemp=function(r){console.log("OLD render...");};
-var CTV=new TableView({
-	table:"comments",
-	defrow:{
-		pnum:"BLDG-001", 
-		comment:"New comment", 
-		refs:"none", 
-		date:Date(), 
-		by:$PP.$user},
-	filter:" rowid IN ( $comment_ids )",
-	//params:{"$pnum":params.$pnum, "$cids":params.$cids},
-	params:$PP,
-	refresh:function(result, delta){
+var CTemp=function(r){console.log("default renderer...");};
+var CTV=new TableView(casbah.comments($PP),
+	{refresh:function(result, delta){
 		array_rowidorder(result.rows, $PP.$comment_ids); 
 		renderFX("#comments-placeholder", CTemp, result, delta);
-	}});
+	}}
+);
 
 // table view for issues-closed
 var IM$;
 var icTemp;
 var ioTemp;
 //var ITV=issuesTableView(...);
-var ITV=new TableView({
-	table:"issues",
-	defrow:{
-		pnum:"BLDG-001", 
-		desc:"New closed issue", 
-		open:Date(), 
-		shut:"date", 
-		refs:"1 2 3", 
-		by:$PP.$user},
-	filter:" pnum = $pnum ",
-	params:$PP,
-	refresh:function(result, delta){
+var ITV=new TableView(casbah.issues($PP),
+	{refresh:function(result, delta){
 		//TODO: filter result based on applicable dates...
 		renderFX("#issues-closed-placeholder", icTemp, result, delta);
 		renderFX("#issues-open-placeholder", ioTemp, result, delta);
-	}
-});
+	}}
+);
 
 
 // text editor
@@ -173,7 +154,7 @@ var document_titleblock;
 	<div id="comments-placeholder" class="marz"></div>
 	<div id="issues-closed-placeholder" class="marz"></div>
 	<div id="issues-open-placeholder" class="marz"></div>
-	<div id="pictures-placeholder" class='marz'></div>
+	<div id="pictures-placeholder" class="marz"></div>
 
 	<br><br>
 </div>

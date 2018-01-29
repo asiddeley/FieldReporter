@@ -4,7 +4,6 @@
 //console.log("SCRIPT...");
 ///// Global defs
 
-
 // Parameters from Cookies 
 //var $user=cookie("$user");
 //if ($user==null){$user=cookie("$user", "admin", "30");};
@@ -16,17 +15,14 @@
 
 //var $PP={$user:$user, $pnum:$pnum, $svrnum:$svrnum}
 
+
+//development only
 $.extend($PP,{
-	dtype:"Site Visit Report Log",
-	dnum:"SVR-Log",
-	ddate:Date(),
-	dby:$PP.$user,
-	pnum:"BLDG-001",
-	pname:"Some Street Building Redevelopment",
-	plocation:"123 Some Street, City, Prov, M5B 1W8",
-	permit:"16 xxxxxx BLD 00 BA",
-	pcontractor:"CasbahCon"
-})
+	$dnum:"SVR-A01",
+	$pnum:"BLDG-001"
+});
+//$PP.set("$dnum", "SVR-A01"); //args param_name, param_value
+//$PP.get("$dnum", "SVR-A01"); //args param_name, param_default_value
 
 
 ///// TableViews
@@ -34,38 +30,47 @@ $.extend($PP,{
 // Site visit report
 
 var svrClick=function(el){
-	ed.text(el, function(){svrTV.update(ed.row(), ed.rowid(), 1); ed.hide();});
+	svr_ed.text(el, function(){svrTV.update(svr_ed.row(), svr_ed.rowid(), 1); svr_ed.hide();});
 };
 
-var svrTV=new TableView(casbah.siteVisitReports, $PP),{refresh:function(result, delta){	
-	renderFX("document-content", document_content, result, delta);
-}});
+var svrTV=new TableView(
+	casbah.siteVisitReports($PP),
+	{refresh:function(result, delta){renderFX("svr-content", svr_content, result, delta);}}
+);
+
+var svrTitleblockTV=new TableView(
+	casbah.projects($PP),
+	{
+		//render the header with project information
+		refresh:function(result, delta){renderFX("svr-titleblock", svr_titleblock, result, delta);},
+		//current project only
+		filter:"pnum=$pnum"
+	}
+);
 
 ///// Menu & actions for comments
 var svrMenu;
 var svrOpen=function(){
-	//update parameter svrnum from the selected row
-	var n=$("[rowid="+hi.rowid()+"]").find("[field=svrnum]").text();
+	//update parameter project number pnum from the selected row
+	var n=$("[rowid="+svr_hi.rowid()+"]").find("[field=dnum]").text();
 	$.extend($PP,{
 		$pnum:"BLDG-001",
-		$svrnum:n,
 		$dnum:n
 	});
 	//load the SVR-XX page
 	$("#reportdock").load("views/SVR-XX.html");
 };
 
-
 // text editor
-var ed=new Editor();
+var svr_ed=new Editor();
 
 // highligher
-var hi=new Highlighter("highlite");
+var svr_hi=new Highlighter("highlite");
 
 // function templates
-var document_header;
-var document_titleblock;
-var document_content;
+var svr_header;
+var svr_titleblock;
+var svr_content;
 
 
 ///// READY
@@ -79,18 +84,20 @@ $(function() {
 	//$("#document-header-template").load("views/document_header.html", function(htm){
 	$("<div>dummy template</div>").load("views/document_header.html", function(htm){
 		//console.log('tbh loaded:', htm);
-		document_header=Handlebars.compile(htm);
-		renderFX("document-header", document_header, $PP);
+		svr_header=Handlebars.compile(htm);
+		//svrHeaderTV.refresh();
+		renderFX("svr-header", svr_header);
 	});
 
 	//$("#document-titleblock-template").load("views/document_titleblock.html", function(htm){
-	$("<div>dummy template</div>").load("views/document_titleblock.html", function(htm){
+	$("<div>dummy template</div>").load("views/log_titleblock.html", function(htm){
 		//console.log('tbt loaded:', htm);
-		document_titleblock=Handlebars.compile(htm);
-		renderFX("document-titleblock", document_titleblock, $PP);
+		svr_titleblock=Handlebars.compile(htm);
+		//renderFX("svr-titleblock", svr_titleblock, $PP);
+		svrTitleblockTV.refresh();
 	});
 	
-	document_content=Handlebars.compile($("#document-content-template").html());
+	svr_content=Handlebars.compile($("#svr-content-template").html());
 	svrTV.refresh();
 	
 }); //READY
@@ -103,25 +110,16 @@ $(function() {
 
 <div class="container">
 
-	<div id="document-header">placeholder</div>
-	<div id="document-titleblock">placeholder</div>
+	<div id="svr-header">placeholder</div>
+	<div id="svr-titleblock">placeholder</div>
 	<br><br>
-	<div id="document-content">placeholder</div>
+	<div id="svr-content">placeholder</div>
 	<br><br><br><br>
 </div>
 
 
-<!-- TEMPLATES  -->
-<template class="hide"	id="document-titleblock-template" 	type="text/x-handlebars-template">
-Note this template is loaded from file on ready
-</template>
-
-<template id="document-header-template" type="text/x-handlebars-template">
-Note this template is loaded from file on ready
-</template>
-
-<template id='document-content-template' type="text/x-handlebars-template">
-	<div class="row marz row_" onmouseenter="hi.light(this);">
+<template id="svr-content-template" type="text/x-handlebars-template">
+	<div class="row marz row_" onmouseenter="svr_hi.light(this);">
 	<p class="col-xs-1 row-head marz">row</p>	
 	<p class="col-xs-2 border-left row-head marz">SVR No. / by</p>
 	<p class="col-xs-3 row-head marz">title / comment ids</p>
@@ -133,40 +131,40 @@ Note this template is loaded from file on ready
 	<div class="row marz"
 		id="svr{{rowid}}"
 		rowid="{{rowid}}"
-		onmouseenter="hi.light(this);"
-		onmouseleave="hi.dark(this);"
+		onmouseenter="svr_hi.light(this);"
+		onmouseleave="svr_hi.dark(this);"
 		oncontextmenu="showMenu(svrMenu, event)">
 
 	<p 	rowid="{{rowid}}"
 		class="col-xs-1 marz">{{plusOne @index}}</p>		
 
 	<p 	class="col-xs-2 marz border-left"
-		field="svrnum"
+		field="dnum"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">{{svrnum}}</p>
+		onclick="svrClick(this);">{{dnum}}</p>
 		
 	<p 	class="col-xs-3 marz"
-		field="title"
+		field="dtitle"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">{{title}}</p>
+		onclick="svrClick(this);">{{dtitle}}</p>
 		
-	<p 	field="review_date"
+	<p 	field="date"
 		class="col-xs-3 marz"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">{{review_date}}</p>
+		onclick="svrClick(this);">{{date}}</p>
 		
-	<p 	field="publish_date"
+	<p 	field="date_issued"
 		class="col-xs-3 marz"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">{{publish_date}}</p>
+		onclick="svrClick(this);">{{date_issued}}</p>
 		
 	</div>
 
 	<div class="row marz zebra-stripe"
 		id="svr{{rowid}}"
 		rowid="{{rowid}}"
-		onmouseenter="hi.light(this);"
-		onmouseleave="hi.dark(this);"
+		onmouseenter="svr_hi.light(this);"
+		onmouseleave="svr_hi.dark(this);"
 		oncontextmenu="showMenu(svrMenu, event)">
 
 	<p class="col-xs-1 marz"></p>
@@ -175,7 +173,7 @@ Note this template is loaded from file on ready
 		rowid="{{rowid}}"
 		class="col-xs-2 border-left marz"
 		style="height:100%;"
-		onclick="svrClick(this);">{{reviewer}}</p>	
+		onclick="svrClick(this);">{{by}}</p>	
 			
 	<p 	field="comment_ids"
 		class="col-xs-3 marz"

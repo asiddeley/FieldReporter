@@ -1,30 +1,38 @@
 <!doctype html>
 
+<!-------------------
+A result like this {rows:[{pnum:'bldg', pname:'something'...}], ...} 
+is passed to this template.
+Need to use #each keyword to access data.  There should only be one row
+Keyword #with row[0] doesn't work
+--------------------->
+
+{{#each rows}}
 <div class="row row__">
-	<strong class="col-xs-2">Project No.:</strong>
+	<strong class="col-xs-2">Project no.:</strong>
 	<p class="col-xs-4">{{pnum}}</p>
-	<strong id="docTitle" class="col-xs-2">Doc title:</strong>
-	<p class="col-xs-4">{{dtitle}}</p>
+	<!--strong id="docTitle" class="col-xs-2">Doc No.</strong>
+	<p class="col-xs-4">{{dnum}}</p-->
 </div>
 
 <div class="row row_">
 	<strong class="col-xs-2">Project Name:</strong>
 	<p class="col-xs-4">{{pname}}</p>
-	<strong id="docTitle" class="col-xs-2">Doc title:</strong>
-	<p class="col-xs-4">{{dtitle}}</p>
+	<!--strong id="docTitle" class="col-xs-2">Doc title:</strong>
+	<p class="col-xs-4">{{dtitle}}</p-->
 </div>
 
 <div class="row row_">
 	<strong class="col-xs-2">Project Location:</strong>
-	<p class="col-xs-4">{{plocation}}</p>
-	<strong id="publish_date" class="col-xs-2">Issue date:</strong>
-	<p class="col-xs-4">{{publish_date}}</p>
+	<p class="col-xs-4">{{address}}</p>
+	<!--strong id="publish_date" class="col-xs-2">Issue date:</strong>
+	<p class="col-xs-4">{{date_issued}}</p-->
 </div>
 
 <div class="row row_">
 	<strong class="col-xs-2">Contractor:</strong>
-	<p class="col-xs-4">{{pcontractor}}</p>
-	<strong id="docBy" class="col-xs-2">By:</strong>
-	<p class="col-xs-4">{{by}}</p>
+	<p class="col-xs-4">{{contractor}}</p>
+	<!--strong id="docBy" class="col-xs-2">By:</strong>
+	<p class="col-xs-4">{{by}}</p-->
 </div>
-
+{{/each}}

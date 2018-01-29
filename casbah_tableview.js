@@ -245,36 +245,102 @@ TableView.prototype.SQLupdate=function (row, rowid){
 
 //SQL to retrieve a database table column names or fields: pragma table_info(svrs)
 
+
+casbah.comments=function(params){
+	
+	//params should be a reference a to global parameter object 
+	if (typeof params=="undefined") {params={};}
+
+	return {
+		//table name in database
+		table:"comments",
+		//row definition
+		defrow:{
+			pnum:(params.$pnum || "BLDG-001"), 
+			comment:"New comment", 
+			refs:"[ ]", 
+			date:Date(), 
+			by:(params.$user || "none")
+		},			
+		filter:" rowid IN ( $comment_ids )",
+		params:params,
+		refresh:function(result, delta){}
+	};
+};
+
+
+casbah.issues=function(params){
+	
+	//params should be a reference a to global parameter object 
+	if (typeof params=="undefined") {params={};}
+
+	return {
+		table:"issues",
+		defrow:{
+			pnum:(params.$pnum || "BLDG-001"), 
+			desc:"New issue", 
+			open:Date(), 
+			shut:"none", 
+			refs:"[ ]", 
+			by:(params.$user || "unknown")
+		},
+		filter:" pnum = $pnum ",
+		params:params,
+		refresh:function(){console.log("Render function not yet defined.");}
+	};
+};
+
+casbah.projects=function(params){
+	
+	//params should be a reference a to global parameter object 
+	if (typeof params=="undefined") {params={};}
+
+	return {
+		//table name in database
+		table:"projects",
+		//row definition
+		defrow:{
+			pnum:(params.$pnum || "BLDG-001"),			
+			pname:"The Casbah Building",
+			address:"101 Boogie Street, Toronto, Ontario, Canada, Postal-code",
+			client:"Client", 
+			contractor:"CasbahCon",
+			permit:"16 xxxxxx BLD 00 BA",
+			date:Date(),
+			date_closed:"none",
+			status:"status",
+			xdata:"none"
+		},
+		//default filter selects current projects
+		filter:" pnum = $pnum ",
+		params:params,
+		refresh:function(){console.log("Render function not yet defined.");}
+	};
+};
+
 casbah.siteVisitReports=function(params){
 	
-	if (typeof params=="undefined") {
-		//params should be a reference a to global parameter object 
-		params={$dnum:"SVR-A01", $pnum:"BLDG-001", $user:"none"};
-	}
+	//params should be a reference a to global parameter object 
+	if (typeof params=="undefined") {params={};}
 	
 	return {
 		//table name in database
 		table:"svrs",
-		//default values for new row
+		//row definition
 		defrow:{
-			//svrnum:params.$dnum,
-			dnum:params.$dnum,
-			pnum:params.$pnum,
-			title:"New comment",
-			review_date:Date(),
-			date:Date(), 
-			//publish_date:"not-issued", 
+			pnum:(params.$pnum || "BLDG-001"),			
+			dnum:(params.$dnum || "SVR-A01"),
+			dtitle:"document title",
+			date:Date(),
+			date_issued:"none", 
+			by:(params.$user || "admin"),			
 			comment_ids:"[1,2,3]", 
 			issue_ids:"[1,2,3]",
 			photo_ids:"[1,2,3]",
-			//reviewer:params.$user,
-			by:params.$user,
 			xdata:"none"
 		},
 		filter:" dnum = $dnum ",
-		params:$PP,
-		refresh:function(){}
+		params:params,
+		refresh:function(){console.log("Render function not yet defined.");}
 	};
 }
-
-
