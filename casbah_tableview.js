@@ -63,10 +63,13 @@ TableView.prototype.add=function(callback){this.insert(callback);};
 TableView.prototype.__init=function(){
 	var SQL1=this.SQLselectFirst();
 	var SQL2=this.SQLinsert(this.options.defrow);
-	//create table (if not exists) then add default row (if none exists)
+	var that=this;
+	//create table (if not exists) 
 	database(this.SQLcreate(), function(){
+		//then add default row (if none exists)
 		database(SQL1, function(result){if (result.rows.length==0) {
-			database(SQL2);
+			//then refresh
+			database(SQL2, function(){that.refresh();} );
 		}});
 	});
 };

@@ -35,7 +35,10 @@ $.extend($PP, {
 
 ///// TableViews
 
+var svr={};
+
 // Site visit report
+//svr.tv=new TableView(casbah.siteVisitReports($PP),
 var RTV=new TableView(casbah.siteVisitReports($PP),
 	{refresh:function(result, diff){	
 		if (result.rows.length>0){

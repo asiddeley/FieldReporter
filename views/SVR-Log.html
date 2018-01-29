@@ -27,32 +27,30 @@ $.extend($PP,{
 
 ///// TableViews
 
-// Site visit report
-
-var svrClick=function(el){
-	svr_ed.text(el, function(){svrTV.update(svr_ed.row(), svr_ed.rowid(), 1); svr_ed.hide();});
+var svrlog_click=function(el){
+	svrlog_ed.text(el, function(){svrlog_tv.update(svrlog_ed.row(), svrlog_ed.rowid(), true); svrlog_ed.hide();});
 };
 
-var svrTV=new TableView(
+var svrlog_tv=new TableView(
 	casbah.siteVisitReports($PP),
-	{refresh:function(result, delta){renderFX("svr-content", svr_content, result, delta);}}
+	{refresh:function(result, delta){renderFX("svrlog-content", svrlog_content, result, delta);}}
 );
 
-var svrTitleblockTV=new TableView(
+var svrlog_tvTitleblock=new TableView(
 	casbah.projects($PP),
 	{
 		//render the header with project information
-		refresh:function(result, delta){renderFX("svr-titleblock", svr_titleblock, result, delta);},
+		refresh:function(result, delta){renderFX("svrlog-titleblock", svrlog_titleblock, result, delta);},
 		//current project only
 		filter:"pnum=$pnum"
 	}
 );
 
 ///// Menu & actions for comments
-var svrMenu;
-var svrOpen=function(){
+var svrlog_menu;
+var svrlog_open=function(){
 	//update parameter project number pnum from the selected row
-	var n=$("[rowid="+svr_hi.rowid()+"]").find("[field=dnum]").text();
+	var n=$("[rowid="+svrlog_hi.rowid()+"]").find("[field=dnum]").text();
 	$.extend($PP,{
 		$pnum:"BLDG-001",
 		$dnum:n
@@ -62,15 +60,15 @@ var svrOpen=function(){
 };
 
 // text editor
-var svr_ed=new Editor();
+var svrlog_ed=new Editor();
 
 // highligher
-var svr_hi=new Highlighter("highlite");
+var svrlog_hi=new Highlighter("highlite");
 
 // function templates
-var svr_header;
-var svr_titleblock;
-var svr_content;
+var svrlog_header;
+var svrlog_titleblock;
+var svrlog_content;
 
 
 ///// READY
@@ -78,27 +76,25 @@ $(function() {
 
 	///// Comments
 	// initialize context menu...
-	svrMenu=$("#comments-menu").menu().css("position","absolute", "width", "200px").hide();
+	svrlog_menu=$("#comments-menu").menu().css("position","absolute", "width", "200px").hide();
 
 	//load templates and render
 	//$("#document-header-template").load("views/document_header.html", function(htm){
 	$("<div>dummy template</div>").load("views/document_header.html", function(htm){
 		//console.log('tbh loaded:', htm);
-		svr_header=Handlebars.compile(htm);
-		//svrHeaderTV.refresh();
-		renderFX("svr-header", svr_header);
+		svrlog_header=Handlebars.compile(htm);
+		renderFX("svrlog-header", svrlog_header);
 	});
 
 	//$("#document-titleblock-template").load("views/document_titleblock.html", function(htm){
 	$("<div>dummy template</div>").load("views/log_titleblock.html", function(htm){
 		//console.log('tbt loaded:', htm);
-		svr_titleblock=Handlebars.compile(htm);
-		//renderFX("svr-titleblock", svr_titleblock, $PP);
-		svrTitleblockTV.refresh();
+		svrlog_titleblock=Handlebars.compile(htm);
+		svrlog_tvTitleblock.refresh();
 	});
 	
-	svr_content=Handlebars.compile($("#svr-content-template").html());
-	svrTV.refresh();
+	svrlog_content=Handlebars.compile($("#svrlog-content-template").html());
+	svrlog_tv.refresh();
 	
 }); //READY
 
@@ -110,16 +106,16 @@ $(function() {
 
 <div class="container">
 
-	<div id="svr-header">placeholder</div>
-	<div id="svr-titleblock">placeholder</div>
+	<div id="svrlog-header">placeholder</div>
+	<div id="svrlog-titleblock">placeholder</div>
 	<br><br>
-	<div id="svr-content">placeholder</div>
+	<div id="svrlog-content">placeholder</div>
 	<br><br><br><br>
 </div>
 
 
-<template id="svr-content-template" type="text/x-handlebars-template">
-	<div class="row marz row_" onmouseenter="svr_hi.light(this);">
+<template id="svrlog-content-template" type="text/x-handlebars-template">
+	<div class="row marz row_" onmouseenter="svrlog_hi.light(this);" onmouseleave="svrlog_hi.dark(this);">
 	<p class="col-xs-1 row-head marz">row</p>	
 	<p class="col-xs-2 border-left row-head marz">SVR No. / by</p>
 	<p class="col-xs-3 row-head marz">title / comment ids</p>
@@ -131,9 +127,9 @@ $(function() {
 	<div class="row marz"
 		id="svr{{rowid}}"
 		rowid="{{rowid}}"
-		onmouseenter="svr_hi.light(this);"
-		onmouseleave="svr_hi.dark(this);"
-		oncontextmenu="showMenu(svrMenu, event)">
+		onmouseenter="svrlog_hi.light(this);"
+		onmouseleave="svrlog_hi.dark(this);"
+		oncontextmenu="showMenu(svrlog_menu, event)">
 
 	<p 	rowid="{{rowid}}"
 		class="col-xs-1 marz">{{plusOne @index}}</p>		
@@ -141,31 +137,31 @@ $(function() {
 	<p 	class="col-xs-2 marz border-left"
 		field="dnum"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">{{dnum}}</p>
+		onclick="svrlog_click(this);">{{dnum}}</p>
 		
 	<p 	class="col-xs-3 marz"
 		field="dtitle"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">{{dtitle}}</p>
+		onclick="svrlog_click(this);">{{dtitle}}</p>
 		
 	<p 	field="date"
 		class="col-xs-3 marz"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">{{date}}</p>
+		onclick="svrlog_click(this);">{{date}}</p>
 		
 	<p 	field="date_issued"
 		class="col-xs-3 marz"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">{{date_issued}}</p>
+		onclick="svrlog_click(this);">{{date_issued}}</p>
 		
 	</div>
 
 	<div class="row marz zebra-stripe"
 		id="svr{{rowid}}"
 		rowid="{{rowid}}"
-		onmouseenter="svr_hi.light(this);"
-		onmouseleave="svr_hi.dark(this);"
-		oncontextmenu="showMenu(svrMenu, event)">
+		onmouseenter="svrlog_hi.light(this);"
+		onmouseleave="svrlog_hi.dark(this);"
+		oncontextmenu="showMenu(svrlog_menu, event)">
 
 	<p class="col-xs-1 marz"></p>
 	
@@ -173,22 +169,22 @@ $(function() {
 		rowid="{{rowid}}"
 		class="col-xs-2 border-left marz"
 		style="height:100%;"
-		onclick="svrClick(this);">{{by}}</p>	
+		onclick="svrlog_click(this);">{{by}}</p>	
 			
 	<p 	field="comment_ids"
 		class="col-xs-3 marz"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">{{comment_ids}}</p>
+		onclick="svrlog_click(this);">{{comment_ids}}</p>
 		
 	<p 	field="issue_ids"
 		class="col-xs-3 marz"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">{{issue_ids}}</p>
+		onclick="svrlog_click(this);">{{issue_ids}}</p>
 		
 	<p 	field="picture_ids"
 		class="col-xs-3 marz"
 		rowid="{{rowid}}"
-		onclick="svrClick(this);">{{picture_ids}}</p>	
+		onclick="svrlog_click(this);">{{picture_ids}}</p>	
 		
 	</div>
 	{{/each}}	
@@ -196,11 +192,11 @@ $(function() {
 
 
 <!-- MENUS -->
-<ul id="comments-menu" onmouseleave="svrMenu.hide()" class="hide9999">
-<li onclick="svrTV.add(1);">Add</li>
-<li onclick="svrOpen();">Open</li>
-<li onclick="svrMenu.hide();svrTV.refresh();">Refresh</li>
-<li onclick="svrMenu.hide()">Exit</li>
+<ul id="comments-menu" onmouseleave="svrlog_menu.hide()" class="hide9999">
+<li onclick="svrlog_tv.add(true);">Add</li>
+<li onclick="svrlog_open();">Open</li>
+<li onclick="svrlog_menu.hide();svrlog_tv.refresh();">Refresh</li>
+<li onclick="svrlog_menu.hide()">Exit</li>
 </ul>
 
 
