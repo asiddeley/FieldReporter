@@ -131,10 +131,10 @@ $(function() {
 		onmouseleave="svrlog_hi.dark(this);"
 		oncontextmenu="showMenu(svrlog_menu, event)">
 
-	<p 	rowid="{{rowid}}"
-		class="col-xs-1 marz">{{plusOne @index}}</p>		
-
-	<p 	class="col-xs-2 marz border-left"
+	<p 	rowid="{{rowid}}" class="col-xs-1 marz">{{plusOne @index}}</p>		
+	
+	<div class="border-left col-xs-11 marz" >
+	<p 	class="col-xs-2 marz"
 		field="dnum"
 		rowid="{{rowid}}"
 		onclick="svrlog_click(this);">{{dnum}}</p>
@@ -144,16 +144,16 @@ $(function() {
 		rowid="{{rowid}}"
 		onclick="svrlog_click(this);">{{dtitle}}</p>
 		
-	<p 	field="date"
-		class="col-xs-3 marz"
+	<p 	class="col-xs-3 marz"
+		field="date"
 		rowid="{{rowid}}"
 		onclick="svrlog_click(this);">{{date}}</p>
 		
-	<p 	field="date_issued"
-		class="col-xs-3 marz"
+	<p 	class="col-xs-3 marz"
+		field="date_issued"
 		rowid="{{rowid}}"
 		onclick="svrlog_click(this);">{{date_issued}}</p>
-		
+	</div>	
 	</div>
 
 	<div class="row marz zebra-stripe"
@@ -163,29 +163,29 @@ $(function() {
 		onmouseleave="svrlog_hi.dark(this);"
 		oncontextmenu="showMenu(svrlog_menu, event)">
 
-	<p class="col-xs-1 marz"></p>
-	
-	<p 	field="reviewer"
+	<p class="col-xs-1 marz "></p>
+	<div class="border-left marz col-xs-11">
+	<p 	class="col-xs-2 marz"
+		field="by"
 		rowid="{{rowid}}"
-		class="col-xs-2 border-left marz"
 		style="height:100%;"
 		onclick="svrlog_click(this);">{{by}}</p>	
 			
-	<p 	field="comment_ids"
-		class="col-xs-3 marz"
+	<p 	class="col-xs-3 marz"
+		field="comment_ids"
 		rowid="{{rowid}}"
 		onclick="svrlog_click(this);">{{comment_ids}}</p>
 		
-	<p 	field="issue_ids"
-		class="col-xs-3 marz"
+	<p 	class="col-xs-3 marz"
+		field="issue_ids"
 		rowid="{{rowid}}"
 		onclick="svrlog_click(this);">{{issue_ids}}</p>
 		
-	<p 	field="picture_ids"
-		class="col-xs-3 marz"
+	<p 	class="col-xs-3 marz"
+		field="picture_ids"
 		rowid="{{rowid}}"
 		onclick="svrlog_click(this);">{{picture_ids}}</p>	
-		
+	</div>		
 	</div>
 	{{/each}}	
 </template>

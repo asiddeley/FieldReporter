@@ -54,8 +54,9 @@ select {width: 200px; }
 .row_{border-bottom:1px solid #aaa;}
 .row__{border-top:2px solid #000; border-bottom:1px solid #aaa;} 
 .row-head {font-size:small; font-weight:bold;}
-.zebra-stripe {background-color:tan;}
-
+.zebra-stripetan {background-color:tan;}
+.zebra-stripegrey {background-color:#e0e0e0;}
+.zebra-stripe {background-color:#e8e8e8;}
 
 
 p {font-size:11pt; font-family:'segoe UI'; height:100% !important;}

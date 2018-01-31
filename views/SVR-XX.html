@@ -44,10 +44,12 @@ var RTV=new TableView(casbah.siteVisitReports($PP),
 		if (result.rows.length>0){
 			//update params...
 			$.extend($PP,{
-				$did:result.rows[0].rowid,
+				$rowid:result.rows[0].rowid,
 				$comment_ids:JSON.parse(result.rows[0].comment_ids), //convert from string to array
 				$issue_ids:JSON.parse(result.rows[0].issue_ids) //ditto
 			});
+			//$PP.set("$rowid", result.rows[0].rowid);
+			//$PP.set("$comment_ids", JSON.parse(result.rows[0].comment_ids)); 
 			//dependent table parameter update/refresh...
 			CTV.refresh();
 			ITV.refresh();
@@ -69,8 +71,10 @@ var CMinsert=function(){
 
 var CMremove=function(){
 	//CTV.remove(hi.rowid()); //keep comment in database
+	console.log("remove comment_ids, rowid:",$PP.$comment_ids, hi.rowid());
 	array_remove($PP.$comment_ids, hi.rowid());
-	RTV.update({comment_ids:$PP.$comment_ids}, $PP.$svrid);
+	console.log("remove ",$PP.$comment_ids);
+	RTV.update({comment_ids:$PP.$comment_ids}, $PP.$rowid);
 	CTV.refresh();
 };
 
