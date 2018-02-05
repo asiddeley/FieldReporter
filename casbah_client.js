@@ -101,7 +101,7 @@ function array_remove(list, item){
 
 function array_rowidorder(rows, rowids){
 	/***
-	Modifies rows, reordering its items by rowid key as listed in rowids 
+	Modifies rows, re-ordering its items by rowid key as listed in rowids 
 	@param rows Eg. [{rowid:1, ...}, {rowid:2, ...}, ...]
 	@param rowids Eg. [2,1,3,4,5...]
 	***/
@@ -132,7 +132,7 @@ function array_rowidorder(rows, rowids){
 
 function aro(list, item){
 	/**
-	shortform for array_movedown
+	shortform for array_rowidorde
 	**/
 	this.array_rowidorder(list, item);
 };
@@ -369,9 +369,9 @@ function Highlighter(hiclass){
 };
 ///////////////////////////
 
-function params($pp, overrides){
-	
-	if (typeof pp=="object") {
+function Params($pp, overrides){
+	/***********
+	if (typeof $pp=="object") {
 		
 		if (typeof overides=="object"){
 			//merge cookie with pp with overrides 
@@ -394,8 +394,25 @@ function params($pp, overrides){
 		$PP={$user:$user, $pnum:$pnum, $svrnum:$svrnum};
 		return $pp;
 	};
+	**************/
+	this.expiry_days=30;
+	this.get=function(name, default_value){
 		
-	
+		var $value=cookie(name);
+		if ($value==null){
+			if (typeof default_value=="undefined"){default_value="undefined";}
+			$value=cookie(name, default_value, this.expiry_days);
+		};
+		this[name]=$value;
+		console.log("get:",name,$value);
+		return $value;
+	};
+	this.set=function(name, $value){
+		if (typeof $value=="undefined"){$value="undefined";}
+		$vlaue=cookie(name, $value, this.expiry_days);
+		this[name]=$value;
+		return this;
+	};	
 };
 
 
@@ -453,7 +470,7 @@ function substitute(sql, params){
 	//console.log("sql after grooming...", sql)
 	var terms=sql.split(" ");
 	for (var i in terms){
-		//term starts with '$' so a parameter, substitute it with it's corresponding vlaue
+		//term starts with '$' meaning its a parameter so substitute it with it's corresponding vlaue
 		if ( terms[i].indexOf("$")==0 ) {
 			//console.log("term before...", terms[i].substring(1))
 			var p=params[terms[i]];
@@ -466,8 +483,10 @@ function substitute(sql, params){
 			//////////////
 			terms[i]=p;
 			//console.log("term after...", terms[i])
-		}		
+		}
 	}
 	return terms.join(" ");
 };
+
+
 

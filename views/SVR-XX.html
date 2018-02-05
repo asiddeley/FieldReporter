@@ -13,26 +13,6 @@ function selectFolder(e) {
 };
 
 
-// Parameters from Cookies 
-//var $user=cookie("$user");
-//if ($user==null){$user=cookie("$user", "admin", "30");};
-//var $pnum=cookie("$pnum");
-//if ($pnum==null){$pnum=cookie("$pnum", "BLDG-001", "30");};
-//var $svrnum=cookie("$svrnum");
-//var $svrnum="SVR-A01";
-//if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-A01", "30");};
-
-//var $PP={$user:$user, $pnum:$pnum, $svrnum:$svrnum}
-//for development only
-/*
-$.extend($PP, {
-	$pnum:cookie("$pnum", "BLDG-001", "30"),
-	$cids:[1,2,3,4,5,6,7,8,9,11,12,13,14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
-	$iids:[1,2,3,4,5,6,7,8,9,11,12,13],
-	$user:cookie("$user"),
-});
-*/
-
 ///// TableViews
 
 var svr={};
@@ -43,13 +23,13 @@ var RTV=new TableView(casbah.siteVisitReports($PP),
 	{refresh:function(result, diff){	
 		if (result.rows.length>0){
 			//update params...
-			$.extend($PP,{
-				$rowid:result.rows[0].rowid,
-				$comment_ids:JSON.parse(result.rows[0].comment_ids), //convert from string to array
-				$issue_ids:JSON.parse(result.rows[0].issue_ids) //ditto
-			});
-			//$PP.set("$rowid", result.rows[0].rowid);
-			//$PP.set("$comment_ids", JSON.parse(result.rows[0].comment_ids)); 
+			//$.extend($PP,{
+			//	$rowid:result.rows[0].rowid,
+			//	$comment_ids:JSON.parse(result.rows[0].comment_ids), //convert from string to array
+			//	$issue_ids:JSON.parse(result.rows[0].issue_ids) //ditto
+			//});
+			$PP.set("$rowid", result.rows[0].rowid);
+			$PP.set("$comment_ids", JSON.parse(result.rows[0].comment_ids)); 
 			//dependent table parameter update/refresh...
 			CTV.refresh();
 			ITV.refresh();
@@ -73,7 +53,7 @@ var CMremove=function(){
 	//CTV.remove(hi.rowid()); //keep comment in database
 	console.log("remove comment_ids, rowid:",$PP.$comment_ids, hi.rowid());
 	array_remove($PP.$comment_ids, hi.rowid());
-	console.log("remove ",$PP.$comment_ids);
+	console.log("remove ", $PP.$comment_ids);
 	RTV.update({comment_ids:$PP.$comment_ids}, $PP.$rowid);
 	CTV.refresh();
 };
@@ -82,6 +62,7 @@ var CMremove=function(){
 var CTemp=function(r){console.log("default renderer...");};
 var CTV=new TableView(casbah.comments($PP),
 	{refresh:function(result, delta){
+		console.log("CTV refresh result.rows[0].comment:", result.rows[1].comment);
 		array_rowidorder(result.rows, $PP.$comment_ids); 
 		renderFX("#comments-placeholder", CTemp, result, delta);
 	}}
@@ -203,7 +184,7 @@ var document_titleblock;
 	<p 	rowid="{{rowid}}" class="col-xs-1 marz">2.{{plusOne @index}}</p>
 	<p 	field="comment"
 		rowid="{{rowid}}"
-		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid(), 1); ed.hide();});"
+		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid(), true); ed.hide();});"
 		class="col-xs-10 border-left marz">{{comment}}</p>	
 	<p 	rowid="{{rowid}}" class="col-xs-1 marz">{{rowid}}</p>	
 	</div>
@@ -232,7 +213,7 @@ var document_titleblock;
 	<p 	field="desc"
 		rowid="{{rowid}}"
 		index="{{@index}}"
-		onclick="ed.text(this, function(){ITV.update(ed.row(), ed.rowid(), 1); ed.hide();})"
+		onclick="ed.text(this, function(){ITV.update(ed.row(), ed.rowid(), ture); ed.hide();})"
 		class="col-xs-10 border-left marz">{{desc}}</p>	
 	<p 	rowid="{{rowid}}"
 		index="{{@index}}"
@@ -251,7 +232,7 @@ var document_titleblock;
 		class="col-xs-1 marz">4.{{plusOne @index}}</p>
 	<p 	field="desc"
 		rowid={{rowid}}
-		onclick="ed.text(this, function(){ITV.update(ed.row(),ed.rowid(),1); ed.hide();})"
+		onclick="ed.text(this, function(){ITV.update(ed.row(),ed.rowid(), true); ed.hide();})"
 		class="col-xs-10 border-left marz">{{desc}}</p>	
 	<p 	rowid={{rowid}}
 		class="col-xs-1 marz">{{rowid}}</p>	

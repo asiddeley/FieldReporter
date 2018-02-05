@@ -172,6 +172,7 @@ TableView.prototype.update=function(row, rowid, callrefresh){
 	//console.log("Update rowid, row...", rowid, JSON.stringify(row));
 	var that=this;
 	var re=function(result){
+		console.log("update:", callrefresh);
 		if (typeof callrefresh!="undefined" && callrefresh==true){that.__refresh(result);}
 	};
 
@@ -221,7 +222,7 @@ TableView.prototype.SQLselectLast=function(){
 	return ("SELECT rowid, * FROM " + this.options.table + " ORDER BY rowid DESC LIMIT 1");
 };
 
-TableView.prototype.SQLupdate=function (row, rowid){
+TableView.prototype.SQLupdate=function (row, rowid ){
 	/***
 	Returns the SQL for updating the table as defined in options.table
 	@param row - object {} of name:values to be updated

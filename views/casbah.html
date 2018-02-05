@@ -29,7 +29,7 @@
 
 <script type="text/javascript">
 
-var $PP={};
+var $PP=new Params();
 
 //prevent accidental image drop
 $(window).on({
@@ -69,13 +69,13 @@ $(function() {
 		$("#shopdock").show();	
 	});
 
-	$("#welcometab").on("click",function(){
+	$("#welcometab").on("click", function(){
 		$(".dock").hide();
-		$("#welcomedock").show();		
+		$("#welcomedock").show().load("views/welcome.html");
 	});
 	
 	$("#about-btn").on("click", function(){
-		$("#welcomedock").load("views/welcome.html");
+		$("#welcomedock").load("views/projectForm.html");
 	});
 	
 	$("#projects-btn").on("click", function(){

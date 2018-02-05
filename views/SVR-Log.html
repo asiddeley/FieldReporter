@@ -1,34 +1,17 @@
 <!doctype html>
 
 <script type='text/javascript'>
-//console.log("SCRIPT...");
-///// Global defs
 
-// Parameters from Cookies 
-//var $user=cookie("$user");
-//if ($user==null){$user=cookie("$user", "admin", "30");};
-//var $pnum=cookie("$pnum");
-//if ($pnum==null){$pnum=cookie("$pnum", "BLDG-001", "30");};
-//var $svrnum=cookie("$svrnum");
-//var $svrnum="SVR-A01";
-//if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-A01", "30");};
-
-//var $PP={$user:$user, $pnum:$pnum, $svrnum:$svrnum}
-
-
-//development only
-$.extend($PP,{
-	$dnum:"SVR-A01",
-	$pnum:"BLDG-001"
-});
-//$PP.set("$dnum", "SVR-A01"); //args param_name, param_value
-//$PP.get("$dnum", "SVR-A01"); //args param_name, param_default_value
-
+$PP.get("$dnum", "SVR-A01"); //args param_name, param_default_value
+$PP.get("$pnum", "BLDG-001"); 
 
 ///// TableViews
 
 var svrlog_click=function(el){
-	svrlog_ed.text(el, function(){svrlog_tv.update(svrlog_ed.row(), svrlog_ed.rowid(), true); svrlog_ed.hide();});
+	svrlog_ed.text(el, function(){
+		svrlog_tv.update(svrlog_ed.row(), svrlog_ed.rowid(), true); 
+		svrlog_ed.hide();
+	});
 };
 
 var svrlog_tv=new TableView(
@@ -51,10 +34,8 @@ var svrlog_menu;
 var svrlog_open=function(){
 	//update parameter project number pnum from the selected row
 	var n=$("[rowid="+svrlog_hi.rowid()+"]").find("[field=dnum]").text();
-	$.extend($PP,{
-		$pnum:"BLDG-001",
-		$dnum:n
-	});
+	//$.extend($PP,{$pnum:"BLDG-001",$dnum:n});
+	$PP.set("$dnum",n);
 	//load the SVR-XX page
 	$("#reportdock").load("views/SVR-XX.html");
 };
