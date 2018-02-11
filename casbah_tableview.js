@@ -93,7 +93,7 @@ TableView.prototype.insert=function(callback){
 		var wrapper=function(r){$.extend(r,{rowid:r.rows[0].rowid});callback(r);}
 		then=function(){database(that.SQLselectLast(), wrapper);};
 	} 
-	else if (typeof callback=="boolean" && callback==true){
+	else if (typeof callback!="undefined"){
 		//callback to run standard table select then refresh
 		then=function(){database(that.SQLselect(), that.__refresh);}
 	}
@@ -136,6 +136,7 @@ TableView.prototype.refresh=function(){
 	var that=this;
 	database(that.SQLselect(), function(result){that.__refresh(result);});
 };
+
 //shortform
 TableView.prototype.re=function(){ this.refresh();};
 
@@ -164,6 +165,7 @@ TableView.prototype.__refresh=function(result){
 
 TableView.prototype.save=function(row, rowid, callrefresh){
 	/** TV.update alias **/
+	console.log("SAVE ", JSON.stringify(row), " where rowid=", rowid);
 	this.update(row, rowid, callrefresh);	
 };
 
@@ -172,8 +174,8 @@ TableView.prototype.update=function(row, rowid, callrefresh){
 	//console.log("Update rowid, row...", rowid, JSON.stringify(row));
 	var that=this;
 	var re=function(result){
-		console.log("update:", callrefresh);
-		if (typeof callrefresh!="undefined" && callrefresh==true){that.__refresh(result);}
+		//console.log("update:", callrefresh);
+		if (typeof callrefresh!="undefined"){that.__refresh(result);}
 	};
 
 	database(this.SQLupdate(row, rowid), function(){
@@ -330,7 +332,7 @@ casbah.siteVisitReports=function(params){
 	return {
 		//table name in database
 		table:"svrs",
-		//row definition
+		//row definition ///// should be a function to provide latest params
 		defrow:{
 			pnum:(params.$pnum || "BLDG-001"),			
 			dnum:(params.$dnum || "SVR-A01"),

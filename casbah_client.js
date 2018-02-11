@@ -39,8 +39,6 @@ function array_insert_after(list, item, neighbour){
 	
 	return list;
 };
-//shortform
-function aria(list, item, neighbour){ this.array_insert_at(list,item,neighbour);};
 
 
 function array_movedown(rowids, rowid){
@@ -49,24 +47,20 @@ function array_movedown(rowids, rowid){
 	@param array of rowids or items
 	@param rowid to move down array
 	**/
+	console.log("array_movedown rowids", rowids);
 	for (var i=0; i<rowids.length-1; i++){
 		if (rowids[i]==rowid){
-			var temp=rowids[i+1];rowids[i+1]=rowid;rowids[i]=temp;return;
+			var temp=rowids[i+1];rowids[i+1]=rowid;rowids[i]=temp;
+			//console.log("array_movedown(after) rowids", rowids);
+			return;
 		}
-	};	
-};
-
-function ardn(list, item){
-	/**
-	shortform for array_movedown
-	**/
-	this.array_movedown(list, item);
+	};
 };
 
 
 function array_moveup(rowids, rowid){
 	/**
-	Moves rowid down one spot in the array
+	Moves matching value rowid up one spot in the array
 	@param array of rowids or items
 	@param rowid to move up array
 	**/
@@ -81,13 +75,24 @@ function array_moveup(rowids, rowid){
 	return rowids
 };
 
-function arup(list, item){
+function array_nth_move(arr, n, offset){
 	/**
-	shortform for array_movedown
+	Moves nth item up one spot in the array
+	@param arr - array of items 
+	@param n - index of first item to swap
+	@param offset - index offset for other item to swap
 	**/
-	return this.array_moveup(list, item);
+	if (typeof offset=="undefined"){offset = -1;}
+	//n is likely to be a string so ensure it's a number
+	var d=Number(n)+offset;
+	//console.log("swap item ", n, " & ", d);
+	if (n>=0 && n<arr.length && d >= 0 && d<arr.length){
+		//console.log("swap occured");
+		var temp=arr[d];arr[d]=arr[n];arr[n]=temp;
+	};
+	return arr;
+	
 };
-
 
 function array_remove(list, item){
 	/**
@@ -130,12 +135,6 @@ function array_rowidorder(rows, rowids){
 	
 };
 
-function aro(list, item){
-	/**
-	shortform for array_rowidorde
-	**/
-	this.array_rowidorder(list, item);
-};
 
 ////////////////////////////////////////////////////////////////
 
@@ -337,9 +336,13 @@ function Highlighter(hiclass){
 	this.hiclass=hiclass;
 	this.selector="";
 	this.__rowid="-1";
-	
-	this.dark=function(element){$(element).removeClass(that.hiclass); }
 
+	this.attr=function(name){
+		return $("."+that.hiclass).attr(name);
+	};
+
+	this.dark=function(element){$(element).removeClass(that.hiclass); }
+	
 	this.light=function(element){
 		//element can be this of a DOM element or a jquery id selector
 		if (typeof element=="string"){that.selector=element; element=$(element);}
@@ -348,13 +351,14 @@ function Highlighter(hiclass){
 		$(element).addClass(that.hiclass);
 		that.__rowid=$(element).attr("rowid");
 	}
+	
 	this.rowid=function(){	return Number(that.__rowid);};	
 	
 	this.row=function(){
 		//return all {name:vals}
 		var f$, name;
 		var r={};
-		//collect all elements within the highlighted div that have fields
+		//collect all elements within the highlighted div that has an attr called field
 		var ff$=$("."+that.hiclass).find("[field]");
 		//console.log("field count", ff$.length);
 
@@ -367,52 +371,28 @@ function Highlighter(hiclass){
 		return r;
 	};
 };
-///////////////////////////
 
-function Params($pp, overrides){
-	/***********
-	if (typeof $pp=="object") {
-		
-		if (typeof overides=="object"){
-			//merge cookie with pp with overrides 
-		}
-		//save pp
-		//return pp 
-	}
-	else if (typeof pp=="undefined"){
-		//get from cookie and return
-		// Parameters from Cookies 
-		var $user=cookie("$user");
-		if ($user==null){$user=cookie("$user", "admin", "30");};
-		
-		var $pnum=cookie("$pnum");
-		if ($pnum==null){$pnum=cookie("$pnum", "BLDG-001", "30");};
-		//var $svrnum=cookie("$svrnum");
-		var $svrnum="SVR-A01";
-		if ($svrnum==null){$svrnum=cookie("$svrnum", "SVR-A01", "30");};
-		
-		$PP={$user:$user, $pnum:$pnum, $svrnum:$svrnum};
-		return $pp;
-	};
-	**************/
-	this.expiry_days=30;
-	this.get=function(name, default_value){
-		
+///////////////////////////
+parameters={
+	expiry_days:30,
+	get:function(name, default_value){
 		var $value=cookie(name);
 		if ($value==null){
 			if (typeof default_value=="undefined"){default_value="undefined";}
-			$value=cookie(name, default_value, this.expiry_days);
+			$value=default_value;
+			cookie(name, $value, this.expiry_days);
 		};
 		this[name]=$value;
-		console.log("get:",name,$value);
+		console.log("GET ",name, "=",this[name]);
 		return $value;
-	};
-	this.set=function(name, $value){
+	},
+	set:function(name, $value){
 		if (typeof $value=="undefined"){$value="undefined";}
-		$vlaue=cookie(name, $value, this.expiry_days);
+		$value=cookie(name, $value, this.expiry_days);
 		this[name]=$value;
+		console.log("SET ", name, "=",this[name]);
 		return this;
-	};	
+	}	
 };
 
 
@@ -437,7 +417,8 @@ function renderFX(placeholderID, templateFN, result, delta){
 				$(placeholderID).html(templateFN(result));
 			});
 		break;
-		default: $(placeholderID).html(templateFN(result));
+		default: 
+			$(placeholderID).html(templateFN(result));
 	};		
 }
 

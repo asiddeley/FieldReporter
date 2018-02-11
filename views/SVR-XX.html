@@ -4,6 +4,9 @@
 //console.log("SCRIPT...");
 ///// Global defs
 
+$PP.get("$pnum","BLDG-001");
+$PP.get("$dnum","SVR-A01");
+
 
 function selectFolder(e) {
     var theFiles = e.target.files;
@@ -12,143 +15,153 @@ function selectFolder(e) {
     alert(folder[0]);
 };
 
-
 ///// TableViews
-
+// Site visit report
 var svr={};
 
-// Site visit report
-//svr.tv=new TableView(casbah.siteVisitReports($PP),
-var RTV=new TableView(casbah.siteVisitReports($PP),
+svr.titleblock={};
+svr.titleblock.tv=new TableView(casbah.projects($PP), {
+	filter:"pnum=$pnum", 
+	refresh:function(result, delta){
+		renderFX("document-titleblock", svr.titleblock.template, result, delta);
+	}}
+);
+
+
+svr.tv=new TableView(casbah.siteVisitReports($PP),
 	{refresh:function(result, diff){	
 		if (result.rows.length>0){
-			//update params...
-			//$.extend($PP,{
-			//	$rowid:result.rows[0].rowid,
-			//	$comment_ids:JSON.parse(result.rows[0].comment_ids), //convert from string to array
-			//	$issue_ids:JSON.parse(result.rows[0].issue_ids) //ditto
-			//});
 			$PP.set("$rowid", result.rows[0].rowid);
 			$PP.set("$comment_ids", JSON.parse(result.rows[0].comment_ids)); 
 			//dependent table parameter update/refresh...
-			CTV.refresh();
-			ITV.refresh();
+			svr.comments.tv.refresh();
+			svr.issues.tv.refresh();
 		}
 	}}
 );
 
+
 ///// Menu & actions for comments
-var CM$;
-/***
-var CMinsert=function(){
-	CTV.add((r)=>{
-		ari($PP.$cids, r.rows[0].rowid, hi.rowid());
-		RTV.save({comment_ids:$PP.$cids}, $PP.$svrid);
-		CTV.re();
+
+///// Comment Menu Functions...
+svr.comments={};
+
+svr.comments.down=function(el){
+	//console.log("move dn...");
+	array_movedown($PP.$comment_ids, svr.hi.rowid());
+	svr.tv.save({comment_ids:$PP.$comment_ids}, $PP.$rowid);
+	svr.comments.tv.refresh();
+};
+
+svr.comments.edit=function(el){
+	svr.ed.text(el, function(){
+		svr.comments.tv.update(svr.ed.row(), svr.ed.rowid(), true); 
+		svr.ed.hide();
 	});
 };
-***/
 
-var CMremove=function(){
-	//CTV.remove(hi.rowid()); //keep comment in database
-	console.log("remove comment_ids, rowid:",$PP.$comment_ids, hi.rowid());
-	array_remove($PP.$comment_ids, hi.rowid());
-	console.log("remove ", $PP.$comment_ids);
-	RTV.update({comment_ids:$PP.$comment_ids}, $PP.$rowid);
-	CTV.refresh();
+svr.comments.insert=function(el){
+	svr.comments.tv.add( function(r){
+		//update comment_id list in parameters object
+		array_insert_after($PP.$comment_ids, r.rowid, svr.hi.rowid());
+		//update the report table (using parameters), then don't refresh
+		svr.tv.save({comment_ids:$PP.$comment_ids}, $PP.$rowid);
+		//update the comments table, then refresh (true) to show change
+		svr.comments.tv.save(svr.hi.row(), r.rowid, true);
+	});
+};
+
+svr.comments.remove=function(el){
+	//CTV.remove(hi.rowid()); 
+	//only removing comment rowid from comment list in report, comment remains in comment table
+	//console.log("remove comment_ids, rowid:",$PP.$comment_ids, svr.hi.rowid());
+	array_remove($PP.$comment_ids, svr.hi.rowid());
+	//console.log("remove ", $PP.$comment_ids);
+	svr.tv.update({comment_ids:$PP.$comment_ids}, $PP.$rowid);
+	svr.comments.tv.refresh();
+};
+
+svr.comments.up=function(el){
+	//console.log("move up...");
+	//array_moveup($PP.$comment_ids, hi.rowid());
+	var index=svr.hi.attr("index");
+	array_nth_move($PP.$comment_ids, index, -1);
+	svr.tv.save({comment_ids:$PP.$comment_ids}, $PP.$rowid);
+	svr.comments.tv.refresh();
 };
 
 ///// table view for comments
-var CTemp=function(r){console.log("default renderer...");};
-var CTV=new TableView(casbah.comments($PP),
-	{refresh:function(result, delta){
-		console.log("CTV refresh result.rows[0].comment:", result.rows[1].comment);
-		array_rowidorder(result.rows, $PP.$comment_ids); 
-		renderFX("#comments-placeholder", CTemp, result, delta);
-	}}
-);
+svr.comments.template=function(r){console.log("default template...");};
 
-// table view for issues-closed
-var IM$;
-var icTemp;
-var ioTemp;
-//var ITV=issuesTableView(...);
-var ITV=new TableView(casbah.issues($PP),
+svr.comments.tv=new TableView(casbah.comments($PP),
 	{refresh:function(result, delta){
-		//TODO: filter result based on applicable dates...
-		renderFX("#issues-closed-placeholder", icTemp, result, delta);
-		renderFX("#issues-open-placeholder", ioTemp, result, delta);
+		console.log("CTV refresh...");
+		//console.log("CTV refresh result.rows[0].comment:", JSON.stringify(result.rows));
+		array_rowidorder(result.rows, $PP.$comment_ids); 
+		//console.log("CTV refresh result.rows[0].comment ORDERED:", JSON.stringify(result.rows));
+		renderFX("#comments-placeholder", svr.comments.template, result, delta);
 	}}
 );
 
 
 // text editor
-var ed=new Editor();
+svr.ed=new Editor();
 // highligher
-var hi=new Highlighter("highlite");
+svr.hi=new Highlighter("highlite");
 
+
+
+// initialize context menu...
+svr.comments.menu=$("#comments-menu").menu().css("position","absolute", "width", "200px").hide();
+svr.comments.template=Handlebars.compile($("#comments-template").html());
+
+///// Issues
+// table view for issues-closed
+svr.issues={};
+svr.issues.tv=new TableView(casbah.issues($PP),
+	{refresh:function(result, delta){
+		//TODO: filter result based on applicable dates...
+		renderFX("#issues-closed-placeholder", svr.issues.template, result, delta);
+		renderFX("#issues-open-placeholder", svr.issuesOpen.template, result, delta);
+	}}
+);
+//console.log("svr.issues.tv:",svr.issues.tv);
+svr.issues.edit=function(el){
+	ed.text(el, function(){
+		svr.issues.tv.update(svr.ed.row(), svr.ed.rowid(), true); 
+		svr.ed.hide();
+	});
+};
+svr.issues.menu=$("#issues-menu").menu().css("position","absolute", "width", "200px").hide();
+svr.issues.template=Handlebars.compile($("#issues-closed-template").html());
+svr.issuesOpen={};
+svr.issuesOpen.template=Handlebars.compile($("#issues-open-template").html());
+
+// Start rendering the page 
 // function templates
-var document_header;
-var document_titleblock;
+$("<div>template</div>").load("views/document_header.html", function(htm){
+	//console.log('tbh loaded:', htm);
+	svr.document_header=Handlebars.compile(htm);
+	renderFX("document-header", svr.document_header, $PP);
+});
 
+//$("#document-titleblock-template").load("views/document_titleblock.html", function(htm){
+$("<div>template</div>").load("views/document_titleblock.html", function(htm){
+	//console.log('tbt loaded:', htm);
+	svr.titleblock.template=Handlebars.compile(htm);
+	//renderFX("document-titleblock", svr.titleblock.template, $PP);
+	svr.titleblock.tv.refresh();	
+});
 
-///// READY
-//$(function() { 
-
-	// Setup Handlebars - moved to casbah.html
-	//Handlebars.registerHelper("plusOne", function(val,options){return parseInt(val)+1;});
-
-	$("<div>template</div>").load("views/document_header.html", function(htm){
-		//console.log('tbh loaded:', htm);
-		document_header=Handlebars.compile(htm);
-		renderFX("document-header", document_header, $PP);
-	});
-
-	//$("#document-titleblock-template").load("views/document_titleblock.html", function(htm){
-	$("<div>template</div>").load("views/document_titleblock.html", function(htm){
-		//console.log('tbt loaded:', htm);
-		document_titleblock=Handlebars.compile(htm);
-		renderFX("document-titleblock", document_titleblock, $PP);
-	});
-
-	///// Comments
-	// initialize context menu...
-	CM$=$("#comments-menu").menu().css("position","absolute", "width", "200px").hide();
-	CTemp=Handlebars.compile($("#comments-template").html());
-
-	///// Issues
-	IM$=$("#issues-menu").menu().css("position","absolute", "width", "200px").hide();
-	icTemp=Handlebars.compile($("#issues-closed-template").html());
-	ioTemp=Handlebars.compile($("#issues-open-template").html());
-
-	///// Pictures
-	//To do
-	
-	//render report table which renders dependent comments and issues table-views also
-	RTV.refresh();
-	
-//}); //READY
+//render report table which renders dependent comments and issues table-views also
+//$("#reportdock").one("load",svr.tv.refresh);
+svr.tv.refresh();
 
 
 </script>
 
-<div class="container">
-	<div id="document-header">placeholder</div>
-	<div id="document-titleblock">placeholder</div>
-	<p class="row row_" >This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by this firm.  Refer also to Mechanical and Electrical field reports issued separately.  
-	</p>
-	<br><br>
-	<div id="general-placeholder" class="marz"></div>
-	<div id="comments-placeholder" class="marz"></div>
-	<div id="issues-closed-placeholder" class="marz"></div>
-	<div id="issues-open-placeholder" class="marz"></div>
-	<div id="pictures-placeholder" class="marz"></div>
 
-	<br><br>
-</div>
-
-
-<!-- TEMPLATES               -->
+<!-- TEMPLATES -->
 <template id='general-template' type="text/x-handlebars-template">
 	<div class="row marz">
 		<h3 class="col-xs-1 marz">1.0</h3>
@@ -160,31 +173,29 @@ var document_titleblock;
 		<p id="generalComment" class="col-xs-10 border-left marz" >general comment</p>
 		<p class="col-xs-1 marz">--</p>
 	</div>
-
 </template>
 
-
-<!-- TEMPLATES               -->
 <template id='comments-template' type="text/x-handlebars-template">
 
 	<div class="row marz" 
-		onmouseenter="hi.light(this)"
-		oncontextmenu="showMenu(CM$, event)" >
+		onmouseenter="svr.hi.light(this)"
+		oncontextmenu="showMenu(svr.comments.menu, event)" >
 		<h3 class="col-xs-1 marz" >2.0</h3>
 		<h3 class="col-xs-10 border-left marz">Comments and Observatons</h3>
 		<h3 class="col-xs-1 marz" >Pic.</h3>
 	</div>
 
 	{{#each rows}}
-	<div class="row marz highliteable"
+	<div class="row marz"
 		id="comment{{rowid}}"
 		rowid="{{rowid}}"
-		onmouseenter="hi.light(this)"
-		oncontextmenu="showMenu(CM$, event)">
+		index="{{@index}}"
+		onmouseenter="svr.hi.light(this)"
+		oncontextmenu="showMenu(svr.comments.menu, event)">
 	<p 	rowid="{{rowid}}" class="col-xs-1 marz">2.{{plusOne @index}}</p>
 	<p 	field="comment"
 		rowid="{{rowid}}"
-		onclick="ed.text(this, function(){CTV.update(ed.row(), ed.rowid(), true); ed.hide();});"
+		onclick="svr.comments.edit(this)"
 		class="col-xs-10 border-left marz">{{comment}}</p>	
 	<p 	rowid="{{rowid}}" class="col-xs-1 marz">{{rowid}}</p>	
 	</div>
@@ -194,8 +205,8 @@ var document_titleblock;
 <template id='issues-closed-template' type="text/x-handlebars-template">
 
 	<div class="row marz"
-		oncontextmenu="showMenu(icM$, event)"
-		onmouseenter="hi.light(this)">
+		oncontextmenu="showMenu(svr.issues.menu, event)"
+		onmouseenter="svr.hi.light(this)">
 		<h3 class="col-xs-1 marz">3.0</h3>
 		<h3 class="col-xs-10 border-left marz">Issues Resolved</h3>
 		<h3 class="col-xs-1 marz">Ref</h3>
@@ -205,15 +216,15 @@ var document_titleblock;
 	<div class="row marz"
 		rowid="{{rowid}}"
 		index="{{@index}}"
-		onmouseenter="hi.light(this)"
-		oncontextmenu="showMenu(IM$, event)">
+		onmouseenter="svr.hi.light(this)"
+		oncontextmenu="showMenu(svr.issues.menu, event)">
 	<p 	class="col-xs-1 marz"
 		rowid="{{rowid}}"
 		index="{{@index}}">3.{{plusOne @index}}</p>
 	<p 	field="desc"
 		rowid="{{rowid}}"
 		index="{{@index}}"
-		onclick="ed.text(this, function(){ITV.update(ed.row(), ed.rowid(), ture); ed.hide();})"
+		onclick="svr.issues.edit(this)"
 		class="col-xs-10 border-left marz">{{desc}}</p>	
 	<p 	rowid="{{rowid}}"
 		index="{{@index}}"
@@ -226,13 +237,13 @@ var document_titleblock;
 	{{#each rows}}
 	<div class="row marz"
 		rowid={{rowid}}
-		onmouseenter="hi.light(this)"
-		oncontextmenu="showMenu(IM$, event)">
+		onmouseenter="svr.hi.light(this)"
+		oncontextmenu="showMenu(svr.issues.menu, event)">
 	<p 	rowid={{rowid}}
 		class="col-xs-1 marz">4.{{plusOne @index}}</p>
 	<p 	field="desc"
 		rowid={{rowid}}
-		onclick="ed.text(this, function(){ITV.update(ed.row(),ed.rowid(), true); ed.hide();})"
+		onclick="svr.issues.edit()"
 		class="col-xs-10 border-left marz">{{desc}}</p>	
 	<p 	rowid={{rowid}}
 		class="col-xs-1 marz">{{rowid}}</p>	
@@ -241,24 +252,33 @@ var document_titleblock;
 </template>
 
 <!-- MENUS -->
-<div id="comments-menu" onmouseleave="CM$.hide()" class="hide9999">
-	<p onclick="CMremove()">Delete</p>
-
-	<p onclick="
-	CTV.add( function(r){array_insert_after($PP.$comment_ids, r.rowid, hi.rowid());
-	RTV.save({comment_ids:$PP.$comment_ids}, $PP.$did);
-	CTV.update(hi.row(), r.rowid, true);});">Insert</p>
-
-	<p onclick="array_moveup($PP.$comment_ids, hi.rowid());CTV.refresh();">Move up</p>
-	<p onclick="array_movedown($PP.$comment_ids, hi.rowid());CTV.refresh();">Move down</p>
-	<p onclick="CM$.hide()">Exit</p>
-	<p onclick="RTV.refresh();CM$.hide()">RTV.refresh</p>
+<div id="comments-menu" onmouseleave="svr.comments.menu.hide()" class="hide9999">
+	<p onclick="svr.comments.remove()">Delete</p>
+	<p onclick="svr.comments.insert()">Insert</p>
+	<p onclick="svr.comments.up()">Move up</p>
+	<p onclick="svr.comments.down()">Move down</p>
+	<p onclick="svr.comments.menu.hide()">Exit</p>
+	<p onclick="svr.tv.refresh();svr.comments.menu.hide()">Refresh</p>
 </div>
 
-<div id="issues-menu" onmouseleave="IM$.hide()" style="display:none; z-index:10000">
-	<p onclick="ITV.insert(true)">Insert</p>
-	<p onclick="ITV.remove(hi.rowid())">Delete</p>
-	<p onclick="IM$.hide()">Exit</p>
+<div id="issues-menu" onmouseleave="svr.issues.menu.hide()" style="display:none; z-index:10000">
+	<p onclick="svr.issues.tv.insert(true)">Insert</p>
+	<p onclick="svr.issues.tv.remove(svr.hi.rowid())">Delete</p>
+	<p onclick="svr.issues.menu.hide()">Exit</p>
 </div>
 
+<!-- PAGE STARTS HERE -->
 
+<div class="container">
+	<div id="document-header">placeholder</div>
+	<div id="document-titleblock">placeholder</div>
+	<p class="row row_" >This report is a general review of progress and construction activities on site.  Architectural Work was visually reviewed on a random basis for general conformity with Architectural Contract Documents prepared by this firm.  Refer also to Mechanical and Electrical field reports issued separately.  
+	</p>
+	<br><br>
+	<div id="general-placeholder" class="marz"></div>
+	<div id="comments-placeholder" class="marz"></div>
+	<div id="issues-closed-placeholder" class="marz"></div>
+	<div id="issues-open-placeholder" class="marz"></div>
+	<div id="pictures-placeholder" class="marz"></div>
+	<br><br>
+</div>

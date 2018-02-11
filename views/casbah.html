@@ -29,7 +29,7 @@
 
 <script type="text/javascript">
 
-var $PP=new Params();
+var $PP=parameters;
 
 //prevent accidental image drop
 $(window).on({
@@ -84,6 +84,7 @@ $(function() {
 	
 	$("#svr-btn").on("click", function(){
 		$("#reportdock").show().load("views/SVR-XX.html");
+		//$("#reportdock").one("load", svr.tv.refresh);
 	});
 	
 	$("#svrlog-btn").on("click", function(){
@@ -112,7 +113,7 @@ $(function() {
 </script>
 
 </head>
-<body>
+<body class="user-select-none">
 <nav id="zbar" class="navbar navbar-default navbar-fixed-top" >
 <!-- nav id="zbar" class="navbar navbar-default navbar-static-top " -->
 	<div class="container-fluid">
