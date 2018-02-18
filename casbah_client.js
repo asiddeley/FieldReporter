@@ -75,10 +75,10 @@ function array_moveup(rowids, rowid){
 	return rowids
 };
 
-function array_nth_move(arr, n, offset){
+function array_nth_swap(arr, n, offset){
 	/**
 	Moves nth item up one spot in the array
-	@param arr - array of items 
+	@param arr - array of items
 	@param n - index of first item to swap
 	@param offset - index offset for other item to swap
 	**/
@@ -91,8 +91,22 @@ function array_nth_move(arr, n, offset){
 		var temp=arr[d];arr[d]=arr[n];arr[n]=temp;
 	};
 	return arr;
-	
 };
+
+function array_nth_to_nth(arr, nf, nt){
+	nf=Number(nf); //from
+	nt=Number(nt); //to
+	if (nt<nf){
+		arr.splice(nt,0,arr[nf]);
+		arr.splice(nf+1,1);
+	} else if (nf<nt){
+		//console.log("from",nf,"to",nt, "arr", arr);
+		arr.splice(nt,0,arr[nf]);
+		//console.log("arr", arr);
+		arr.splice(nf,1);
+		//console.log("arr", arr);
+	}	
+}
 
 function array_remove(list, item){
 	/**

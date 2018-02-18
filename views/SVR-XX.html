@@ -46,18 +46,36 @@ svr.tv=new TableView(casbah.siteVisitReports($PP),
 ///// Comment Menu Functions...
 svr.comments={};
 
-svr.comments.down=function(el){
-	//console.log("move dn...");
-	array_movedown($PP.$comment_ids, svr.hi.rowid());
-	svr.tv.save({comment_ids:$PP.$comment_ids}, $PP.$rowid);
-	svr.comments.tv.refresh();
-};
-
-svr.comments.edit=function(el){
+svr.comments.onclick=function(el){
 	svr.ed.text(el, function(){
 		svr.comments.tv.update(svr.ed.row(), svr.ed.rowid(), true); 
 		svr.ed.hide();
 	});
+};
+
+svr.comments.ondragstart=function(el, ev){
+	//console.log("dragstart");
+	ev.dataTransfer.setData("text/plain", "comment_id:"+$(el).attr("index"));
+
+};
+
+svr.comments.ondrop=function(el, ev){
+	var txt=ev.dataTransfer.getData("text/plain");
+	//console.log("drop ", txt);
+	var a=txt.indexOf("comment_id:");
+	if ( a > -1){
+		//from index
+		var fi=txt.slice(a+"comment_id:".length).split(/\s+/)[0];
+		//to index
+		var ti=$(el).attr("index");
+		console.log("before drop:",$PP.$comment_ids, "from:", fi, "to:",ti);
+		array_nth_to_nth($PP.$comment_ids, fi, ti);
+		console.log("after drop:",$PP.$comment_ids);
+		if (fi!=ti){
+			svr.tv.save({comment_ids:$PP.$comment_ids}, $PP.$rowid);
+			svr.comments.tv.refresh();
+		}
+	}
 };
 
 svr.comments.insert=function(el){
@@ -78,15 +96,6 @@ svr.comments.remove=function(el){
 	array_remove($PP.$comment_ids, svr.hi.rowid());
 	//console.log("remove ", $PP.$comment_ids);
 	svr.tv.update({comment_ids:$PP.$comment_ids}, $PP.$rowid);
-	svr.comments.tv.refresh();
-};
-
-svr.comments.up=function(el){
-	//console.log("move up...");
-	//array_moveup($PP.$comment_ids, hi.rowid());
-	var index=svr.hi.attr("index");
-	array_nth_move($PP.$comment_ids, index, -1);
-	svr.tv.save({comment_ids:$PP.$comment_ids}, $PP.$rowid);
 	svr.comments.tv.refresh();
 };
 
@@ -126,7 +135,8 @@ svr.issues.tv=new TableView(casbah.issues($PP),
 	}}
 );
 //console.log("svr.issues.tv:",svr.issues.tv);
-svr.issues.edit=function(el){
+svr.issues.onclick=function(el){
+	//EDIT...
 	ed.text(el, function(){
 		svr.issues.tv.update(svr.ed.row(), svr.ed.rowid(), true); 
 		svr.ed.hide();
@@ -190,12 +200,16 @@ svr.tv.refresh();
 		id="comment{{rowid}}"
 		rowid="{{rowid}}"
 		index="{{@index}}"
+		draggable="true"
+		ondragstart="svr.comments.ondragstart(this, event)"
+		ondragover="event.preventDefault()"
+		ondrop="svr.comments.ondrop(this, event)"
 		onmouseenter="svr.hi.light(this)"
 		oncontextmenu="showMenu(svr.comments.menu, event)">
 	<p 	rowid="{{rowid}}" class="col-xs-1 marz">2.{{plusOne @index}}</p>
 	<p 	field="comment"
 		rowid="{{rowid}}"
-		onclick="svr.comments.edit(this)"
+		onclick="svr.comments.onclick(this)"
 		class="col-xs-10 border-left marz">{{comment}}</p>	
 	<p 	rowid="{{rowid}}" class="col-xs-1 marz">{{rowid}}</p>	
 	</div>
@@ -224,7 +238,7 @@ svr.tv.refresh();
 	<p 	field="desc"
 		rowid="{{rowid}}"
 		index="{{@index}}"
-		onclick="svr.issues.edit(this)"
+		onclick="svr.issues.onclick(this)"
 		class="col-xs-10 border-left marz">{{desc}}</p>	
 	<p 	rowid="{{rowid}}"
 		index="{{@index}}"
@@ -243,7 +257,7 @@ svr.tv.refresh();
 		class="col-xs-1 marz">4.{{plusOne @index}}</p>
 	<p 	field="desc"
 		rowid={{rowid}}
-		onclick="svr.issues.edit()"
+		onclick="svr.issues.onclick()"
 		class="col-xs-10 border-left marz">{{desc}}</p>	
 	<p 	rowid={{rowid}}
 		class="col-xs-1 marz">{{rowid}}</p>	
@@ -255,8 +269,6 @@ svr.tv.refresh();
 <div id="comments-menu" onmouseleave="svr.comments.menu.hide()" class="hide9999">
 	<p onclick="svr.comments.remove()">Delete</p>
 	<p onclick="svr.comments.insert()">Insert</p>
-	<p onclick="svr.comments.up()">Move up</p>
-	<p onclick="svr.comments.down()">Move down</p>
 	<p onclick="svr.comments.menu.hide()">Exit</p>
 	<p onclick="svr.tv.refresh();svr.comments.menu.hide()">Refresh</p>
 </div>

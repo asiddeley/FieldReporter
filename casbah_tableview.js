@@ -165,7 +165,7 @@ TableView.prototype.__refresh=function(result){
 
 TableView.prototype.save=function(row, rowid, callrefresh){
 	/** TV.update alias **/
-	console.log("SAVE ", JSON.stringify(row), " where rowid=", rowid);
+	//console.log("SAVE ", JSON.stringify(row), " where rowid=", rowid);
 	this.update(row, rowid, callrefresh);	
 };
 
