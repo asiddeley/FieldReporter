@@ -11,8 +11,14 @@ Andrew Siddeley
 
 13-Dec-2017
 ********************************/
+if (typeof casbah=="undefined") {casbah={};}
 
-function array_diff(a, b) {
+//$.get("casbah_tableview.js")
+//.done(function(){console.log("tableView OK");})
+//.fail(function(){console.log("tableView failed");})
+//.always(function(casbah){
+
+casbah.array_diff=function(a, b) {
 	//Thanks to https://radu.cotescu.com/javascript-diff-function/
 	//saftey first
 	if (typeof a=="undefined"){a=[];}
@@ -27,7 +33,7 @@ function array_diff(a, b) {
 	return diff;
 };
 
-function array_insert_after(list, item, neighbour){
+casbah.array_insert_after=function(list, item, neighbour){
 	//copy rows array before modifying it
 	//var orig=[]; for (var i in list){orig[i]=list[i];}
 
@@ -40,42 +46,7 @@ function array_insert_after(list, item, neighbour){
 	return list;
 };
 
-
-function array_movedown(rowids, rowid){
-	/**
-	Moves rowid down one spot in the array
-	@param array of rowids or items
-	@param rowid to move down array
-	**/
-	console.log("array_movedown rowids", rowids);
-	for (var i=0; i<rowids.length-1; i++){
-		if (rowids[i]==rowid){
-			var temp=rowids[i+1];rowids[i+1]=rowid;rowids[i]=temp;
-			//console.log("array_movedown(after) rowids", rowids);
-			return;
-		}
-	};
-};
-
-
-function array_moveup(rowids, rowid){
-	/**
-	Moves matching value rowid up one spot in the array
-	@param array of rowids or items
-	@param rowid to move up array
-	**/
-	for (var i=1; i<rowids.length; i++){
-		if (rowids[i]==rowid){
-			var temp=rowids[i-1];
-			rowids[i-1]=rowid;
-			rowids[i]=temp;
-			return rowids;
-		}
-	};
-	return rowids
-};
-
-function array_nth_swap(arr, n, offset){
+casbah.array_nth_swap=function(arr, n, offset){
 	/**
 	Moves nth item up one spot in the array
 	@param arr - array of items
@@ -93,7 +64,7 @@ function array_nth_swap(arr, n, offset){
 	return arr;
 };
 
-function array_nth_to_nth(arr, nf, nt){
+casbah.array_nth_to_nth=function(arr, nf, nt){
 	nf=Number(nf); //from
 	nt=Number(nt); //to
 	if (nt<nf){
@@ -101,14 +72,14 @@ function array_nth_to_nth(arr, nf, nt){
 		arr.splice(nf+1,1);
 	} else if (nf<nt){
 		//console.log("from",nf,"to",nt, "arr", arr);
-		arr.splice(nt,0,arr[nf]);
+		arr.splice(nt+1,0,arr[nf]);
 		//console.log("arr", arr);
 		arr.splice(nf,1);
 		//console.log("arr", arr);
 	}	
 }
 
-function array_remove(list, item){
+casbah.array_remove=function(list, item){
 	/**
 	copy rows array before modifying it
 	**/
@@ -118,7 +89,7 @@ function array_remove(list, item){
 };
 
 
-function array_rowidorder(rows, rowids){
+casbah.array_rowidorder=function(rows, rowids){
 	/***
 	Modifies rows, re-ordering its items by rowid key as listed in rowids 
 	@param rows Eg. [{rowid:1, ...}, {rowid:2, ...}, ...]
@@ -150,53 +121,7 @@ function array_rowidorder(rows, rowids){
 };
 
 
-////////////////////////////////////////////////////////////////
-
-const autoForm=function(div$, params){
-	//params={SQL:"SELECT...", table:"projects", rows:[{pnum:"abc", pname:"abc",...},{},{}], ccsclass:[]}
-
-	var con$=$("<div class='container-fluid'></div>");	
-	div$.empty();
-	div$.append(con$);
-
-	var labl$=$("<h3 class='label label-default'>"+params.table+"</h3>");
-	var form$=$("<form></form>");
-	form$.submit(function(ev){
-		ev.preventDefault();
-		//get values from fields including one with SQL or 
-		//submitHandler()
-	});
-	con$.append(labl$, form$);
-	
-	var row, ig$, name$, inpt$;
-	for (var i in params.rows){
-		row=params.rows[i];
-		ig$=$("<div class='input-group'></div>");
-		for (var j in row){
-			name$=("<span class='input-group-addon'>"+ j +"</span>");
-			inpt$=("<input name='"+ row[j] +"' class='form-control' type='text'  placeholder='...' 		aria-describedby='basic-addon1' value='"+row[j]+"'>");
-			ig$.append(name$, inpt$);
-		}
-		form$.append(ig$);		
-	}
-	
-	var bg1$=$("<div class='btn-group' role='group' aria-label='...'>");
-	var btn1=$("<button class='btn btn-default'>Add</button>");
-	var btn2=$("<button class='btn btn-default'>Current</button>");
-	var btn3=$("<button class='btn btn-default'>Delete</button>");
-	var btn4=$("<button class='btn btn-default'>Save</button>");
-	var btn5=$("<button class='btn btn-info'>First</button>");
-	var btn6=$("<button class='btn btn-info'>&lt;&lt;&nbsp;Back</button>");
-	var btn7=$("<button class='btn btn-info'>Next&nbsp;&gt;&gt;</button>");
-	var btn8=$("<button class='btn btn-info'>Last</button>");
-	bg1$.append(btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8);
-	form$.append(bg1$);
-	return con$;
-};
-
-
-
-function cookie(cname, cvalue, exdays) {
+casbah.cookie=function(cname, cvalue, exdays) {
 	
 	if (typeof cvalue=="undefined"){
 		//GET COOKIE
@@ -229,10 +154,9 @@ function cookie(cname, cvalue, exdays) {
 
 };
 
-function database(sql, callback){
+casbah.database=function(sql, callback){
 	
 	$.ajax({
-		//url: '/formHandler',
 		url: '/database',
 		type: 'POST',
 		data: jQuery.param({SQL:sql}),
@@ -253,7 +177,7 @@ function database(sql, callback){
 // example (icTV is a casbah TableView obj)
 // <div onclick="ed.text(this, function(){icTV.update(ed.row(), ed.rowid()); ed.hide();})" ...>
 
-function Editor(){
+casbah.Editor=function (){
 	
 	var that=this;
 	
@@ -345,7 +269,7 @@ function Editor(){
 // Highlighter
 // 
 
-function Highlighter(hiclass){
+casbah.Highlighter=function(hiclass){
 	var that=this;
 	this.hiclass=hiclass;
 	this.selector="";
@@ -387,31 +311,33 @@ function Highlighter(hiclass){
 };
 
 ///////////////////////////
-parameters={
+casbah.parameters={
 	expiry_days:30,
+	fetch:function(name, default_value){return this.get(name, default_value);},
 	get:function(name, default_value){
-		var $value=cookie(name);
-		if ($value==null){
+		var $value=casbah.cookie(name);
+		if (typeof $value=="undefined" || $value==null){
 			if (typeof default_value=="undefined"){default_value="undefined";}
 			$value=default_value;
-			cookie(name, $value, this.expiry_days);
+			casbah.cookie(name, $value, this.expiry_days);
 		};
 		this[name]=$value;
-		console.log("GET ",name, "=",this[name]);
+		//console.log("GET ",name, "=",this[name]);
 		return $value;
 	},
+	store:function(name,$value){return this.set(name, $value);},
 	set:function(name, $value){
 		if (typeof $value=="undefined"){$value="undefined";}
-		$value=cookie(name, $value, this.expiry_days);
+		$value=casbah.cookie(name, $value, this.expiry_days);
 		this[name]=$value;
-		console.log("SET ", name, "=",this[name]);
+		//console.log("SET ", name, "=",this[name]);
 		return this;
 	}	
 };
 
 
 ///////////////
-function renderFX(placeholderID, templateFN, result, delta){
+casbah.renderFX=function(placeholderID, templateFN, result, delta){
 	//as returned from sqlite query...
 	//result {rows:[{field:value, field:value...},{...},...]}
 	if (typeof delta == "undefined"){delta={count:0};};
@@ -436,13 +362,20 @@ function renderFX(placeholderID, templateFN, result, delta){
 	};		
 }
 
-function showMenu(cm$, ev){
+casbah.showMenu=function(cm$, ev){
 	//first call texteditor with no arguments to turn it off just in case its on
 	//ed.hide();
 	cm$.show().position({my:'left top',	at:'left bottom', of:ev});
 	//remember caller, that is the <div> or <p> element that launched the contextMenu
 	cm$.menu('option', 'caller', ev.target);
 	return false;
+};
+
+casbah.selectFolder=function (e) {
+    var theFiles = e.target.files;
+    var relativePath = theFiles[0].webkitRelativePath;
+    var folder = relativePath.split("/");
+    alert(folder[0]);
 };
 
 ///////////////////////////
@@ -485,3 +418,4 @@ function substitute(sql, params){
 
 
 
+//}); //load

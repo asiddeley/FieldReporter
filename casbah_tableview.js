@@ -16,43 +16,11 @@ Andrew Siddeley
 if (typeof casbah=="undefined") {casbah={};}
 
 
-
 function TableView(options, options1){
 	
 	this.options=options;
 	if (typeof options1=="object") {$.extend(this.options, options1);}
-	
-	/***
-	this.options=$.extend({
-		//name of table
-		table:"issues",
-		//default row
-		defrow:{
-			pnum:"test-001", 
-			description:"New issue", 
-			by:"--", 
-			dateopened:Date(), 
-			dateclosed:"NA", 
-			refs:"123"
-		},
-		//main selector - default below selects all 
-		filter:"rowid = rowid",
-		//parameters for main selection - default below
-		params:null,
-		//placeholder element (wrapped with jquery) where table results are displayed for default renderer
-		place$:null,
-		//fn to run to refresh placeholder, should encapsulate handlebar template etc
-		refresh:function(result, diff){
-			//default render function
-			if (this.options.place$==null){
-				this.options.place$=$("<div></div>");
-				$("body").append(this.options.place$);
-			}
-			autoform(this.options.place$, $.extend({table:this.table}, result));
-		}
-	}, options);
-	**/
-	
+
 	this.div$ = null;
 	this.previous={rows:[]};
 	this.__init();
@@ -65,11 +33,11 @@ TableView.prototype.__init=function(){
 	var SQL2=this.SQLinsert(this.options.defrow);
 	var that=this;
 	//create table (if not exists) 
-	database(this.SQLcreate(), function(){
+	casbah.database(this.SQLcreate(), function(){
 		//then add default row (if none exists)
-		database(SQL1, function(result){if (result.rows.length==0) {
+		casbah.database(SQL1, function(result){if (result.rows.length==0) {
 			//then refresh
-			database(SQL2, function(){that.refresh();} );
+			casbah.database(SQL2, function(){that.refresh();} );
 		}});
 	});
 };
@@ -77,7 +45,7 @@ TableView.prototype.__init=function(){
 
 TableView.prototype.insert=function(callback){
 	/**
-	Inserts a new row into the table. The new row is as defined in tableView.options.defrow
+	Inserts a new row into the table. The new row is as defined in tableView.options.defrow	
 	@arg callback (as function) Called following table insert operation with a results hash passed as an argument. 
 	Accessing the new row is done like so... function(results){var newrowid=results.rows[0].rowid;}
 	@arg callback (as boolean true) Means run the standard refresh function defined for this tableview.options.refresh
@@ -90,20 +58,26 @@ TableView.prototype.insert=function(callback){
 	if (typeof callback=="function"){
 		//callback to get new rowid then pass it to callback provided in arg
 		//wrapper just adds to result a shortcut to property rowid (Ie. the id of the newly added row}
-		var wrapper=function(r){$.extend(r,{rowid:r.rows[0].rowid});callback(r);}
-		then=function(){database(that.SQLselectLast(), wrapper);};
+		//Note that.__refresh won't work without it's tableview context so wrap it to make a closure
+		var wrapped=function(r){$.extend(r,{rowid:r.rows[0].rowid});callback(r);};
+		then=function(){casbah.database(that.SQLselectLast(), wrapped);};
 	} 
 	else if (typeof callback!="undefined"){
-		//callback to run standard table select then refresh
-		then=function(){database(that.SQLselect(), that.__refresh);}
+		//callback to run standard table select then refresh.  
+		//Note that.__refresh won't work without it's tableview context so wrap it to make a closure
+		var wrapped=function(r){that.__refresh(r);}
+		then=function(){casbah.database(that.SQLselect(), wrapped);}
 	}
 	else {
 		//empty callback
 		then=function(){};
 	}
 	
-	//database(SQLstring, callback);
-	database(this.SQLinsert(this.options.defrow), then);
+	//resolve row, it's either an object {field:value, ...} or a function that returns a fresh object
+	var row=this.options.defrow; if (typeof row=="function") {row=row();}
+	
+	//add new row to table, then execute callback that will receive the new row in its argument...
+	casbah.database(this.SQLinsert(row), then);
 
 };
 
@@ -125,8 +99,8 @@ TableView.prototype.remove=function(rowid, callrefresh){
 	var re=function(result){
 		if (typeof callrefresh!="undefined"){that.__refresh(result);}
 	}	
-	database(this.SQLdelete(rowid), function(){
-		database(that.SQLselect(), re);
+	casbah.database(this.SQLdelete(rowid), function(){
+		casbah.database(that.SQLselect(), re);
 	});
 };
 
@@ -134,7 +108,7 @@ TableView.prototype.remove=function(rowid, callrefresh){
 TableView.prototype.refresh=function(){
 	//console.log("Refresh...");
 	var that=this;
-	database(that.SQLselect(), function(result){that.__refresh(result);});
+	casbah.database(that.SQLselect(), function(result){that.__refresh(result);});
 };
 
 //shortform
@@ -151,7 +125,7 @@ TableView.prototype.__refresh=function(result){
 	//console.log("INSERT rowidsPre, rowids", JSON.stringify(rowidsPre), JSON.stringify(rowids));
 	var change={
 		count:( result.rows.length - this.previous.rows.length ), 
-		rowids:array_diff(rowids, previds)
+		rowids:casbah.array_diff(rowids, previds)
 	};
 	this.previous=result;
 	//console.log("__refresh change:", JSON.stringify(change));
@@ -178,8 +152,8 @@ TableView.prototype.update=function(row, rowid, callrefresh){
 		if (typeof callrefresh!="undefined"){that.__refresh(result);}
 	};
 
-	database(this.SQLupdate(row, rowid), function(){
-		database(that.SQLselect(), re);
+	casbah.database(this.SQLupdate(row, rowid), function(){
+		casbah.database(that.SQLselect(), re);
 	});
 };
 
@@ -345,7 +319,7 @@ casbah.siteVisitReports=function(params){
 			photo_ids:"[1,2,3]",
 			xdata:"none"
 		},
-		filter:" dnum = $dnum ",
+		filter:" dnum = $dnum AND pnum = $pnum",
 		params:params,
 		refresh:function(){console.log("Render function not yet defined.");}
 	};

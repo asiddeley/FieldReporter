@@ -1,0 +1,174 @@
+<!doctype html>
+
+<script type='text/javascript'>
+
+//ensure these parameters are available for this page
+$PP.fetch("$dnum", "SVR-A01"); //.get(param_name, param_default_value);
+$PP.fetch("$pnum", "BLDG-001"); 
+$PP.store("$dtype", "Site Visit Report Log");
+
+var svrlog={};
+
+svrlog.click=function(el){
+	svrlog.ed.text(el, function(){
+		svrlog.tv.update(svrlog.ed.row(), svrlog.ed.rowid(), true); 
+		svrlog.ed.hide();
+	});
+};
+
+///// TableViews
+svrlog.tv=new TableView(casbah.siteVisitReports($PP), {
+	refresh:function(result, delta){
+		console.log("SVRlog TV:", JSON.stringify(result.rows));
+		casbah.renderFX("svrlog-content", svrlog.content, result, delta);
+	}
+});
+
+svrlog.tvTitleblock=new TableView(casbah.projects($PP),{
+	//render the header with project information
+	refresh:function(result, delta){
+		casbah.renderFX("svrlog-titleblock", svrlog.titleblock, result, delta);
+	},
+	//current project only
+	filter:"pnum=$pnum"
+});
+
+///// Menu & actions for comments
+svrlog.menu;
+svrlog.open=function(){
+	//update parameter project number pnum from the selected row
+	var dnum=$("[rowid="+svrlog.hi.rowid()+"]").find("[field=dnum]").text();
+	$PP.store("$dnum",dnum);
+	$("#reportdock").load("views/site_visit_report.html");
+};
+
+// text editor
+svrlog.ed=new casbah.Editor();
+
+// highligher
+svrlog.hi=new casbah.Highlighter("highlite");
+
+///// Comments
+// initialize context menu...
+svrlog.menu=$("#comments-menu").menu().css("position","absolute", "width", "200px").hide();
+
+//load templates and render...
+$.get("views/document_header.html", function(htm){
+	//console.log('tbh loaded:', htm);
+	svrlog.header=Handlebars.compile(htm);
+	casbah.renderFX("svrlog-header", svrlog.header, {dtype:$PP.get("$dtype")});
+});
+
+$.get("views/log_titleblock.html", function(htm){
+	//console.log('tbt loaded:', htm);
+	svrlog.titleblock=Handlebars.compile(htm);
+	svrlog.tvTitleblock.refresh();
+});
+
+svrlog.content=Handlebars.compile($("#svrlog-content-template").html());
+svrlog.tv.refresh();
+	
+
+</script>
+</head>
+<body>
+
+<!-- PAGE -->
+
+<div class="container">
+	<div id="svrlog-header">header</div>
+	<div id="svrlog-titleblock">titleblock</div>
+	<br>
+	<div id="svrlog-content">content</div>
+</div>
+
+
+<template id="svrlog-content-template" type="text/x-handlebars-template">
+	<div class="row marz row_" 
+		onmouseenter="svrlog.hi.light(this);" 
+		onmouseleave="svrlog.hi.dark(this);"
+		oncontextmenu="casbah.showMenu(svrlog.menu, event)">
+	<p class="col-xs-1 row-head marz">row</p>	
+	<p class="col-xs-2 border-left row-head marz">SVR No. / by</p>
+	<p class="col-xs-3 row-head marz">title / comment ids</p>
+	<p class="col-xs-3 row-head marz">review date / issue ids</p>
+	<p class="col-xs-3 row-head marz">publish date / photo ids</p>
+	</div>
+
+	{{#each rows}}
+	<div class="row marz"
+		id="svr{{rowid}}"
+		rowid="{{rowid}}"
+		onmouseenter="svrlog.hi.light(this);"
+		onmouseleave="svrlog.hi.dark(this);"
+		oncontextmenu="casbah.showMenu(svrlog.menu, event)">
+
+	<p 	rowid="{{rowid}}" class="col-xs-1 marz">{{plusOne @index}}</p>		
+	
+	<div class="border-left col-xs-11 marz" >
+	<p 	class="col-xs-2 marz"
+		field="dnum"
+		rowid="{{rowid}}"
+		onclick="svrlog.click(this);">{{dnum}}</p>
+		
+	<p 	class="col-xs-3 marz"
+		field="dtitle"
+		rowid="{{rowid}}"
+		onclick="svrlog.click(this);">{{dtitle}}</p>
+		
+	<p 	class="col-xs-3 marz"
+		field="date"
+		rowid="{{rowid}}"
+		onclick="svrlog.click(this);">{{date}}</p>
+		
+	<p 	class="col-xs-3 marz"
+		field="date_issued"
+		rowid="{{rowid}}"
+		onclick="svrlog.click(this);">{{date_issued}}</p>
+	</div>	
+	</div>
+
+	<div class="row marz zebra-stripe"
+		id="svr{{rowid}}"
+		rowid="{{rowid}}"
+		onmouseenter="svrlog.hi.light(this);"
+		onmouseleave="svrlog.hi.dark(this);"
+		oncontextmenu="casbah.showMenu(svrlog.menu, event)">
+
+	<p class="col-xs-1 marz "></p>
+	<div class="border-left marz col-xs-11">
+	<p 	class="col-xs-2 marz"
+		field="by"
+		rowid="{{rowid}}"
+		style="height:100%;"
+		onclick="svrlog.click(this);">{{by}}</p>	
+			
+	<p 	class="col-xs-3 marz"
+		field="comment.ids"
+		rowid="{{rowid}}"
+		onclick="svrlog.click(this);">{{comment_ids}}</p>
+		
+	<p 	class="col-xs-3 marz"
+		field="issue.ids"
+		rowid="{{rowid}}"
+		onclick="svrlog.click(this);">{{issue_ids}}</p>
+		
+	<p 	class="col-xs-3 marz"
+		field="picture.ids"
+		rowid="{{rowid}}"
+		onclick="svrlog.click(this);">{{picture_ids}}</p>	
+	</div>		
+	</div>
+	{{/each}}	
+</template>
+
+
+<!-- MENUS -->
+<ul id="comments-menu" onmouseleave="svrlog.menu.hide()" class="hide9999">
+<li onclick="svrlog.tv.add(true);">Add</li>
+<li onclick="svrlog.open();">Open</li>
+<li onclick="svrlog.menu.hide();svrlog.tv.refresh();">Refresh</li>
+<li onclick="svrlog.menu.hide()">Exit</li>
+</ul>
+
+

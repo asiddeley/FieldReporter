@@ -1,0 +1,185 @@
+<!doctype html>
+
+<script type='text/javascript'>
+
+//ensure these parameters are available for this page
+//$PP.fetch("$dnum", "SVR-A01"); //.get(param_name, param_default_value);
+$PP.fetch("$pnum", "BLDG-001"); 
+$PP.store("$dtype", "Project Log");
+
+var project={};
+
+//action that starts text editor
+project.click=function(el){
+	project.ed.text(el, function(){
+		project.tv.update(project.ed.row(), project.ed.rowid(), true); 
+		project.ed.hide();
+	});
+};
+
+//Main TableView
+project.tv=new TableView(casbah.projects($PP),{
+	//select all projects
+	filter:" pnum = pnum", 
+	refresh:function(result, delta){
+		//console.log("project.tv:",JSON.stringify(result.rows));
+		casbah.renderFX("project-content", project.content, result, delta);
+	}
+});
+
+//Menu action
+project.open=function(){
+	//set pnum to selected project
+	var n=$("[rowid="+project.hi.rowid()+"]").find("[field=pnum]").text();
+	$PP.store("$pnum",n);
+};
+
+// text editor
+project.ed=new casbah.Editor();
+
+// highligher
+project.hi=new casbah.Highlighter("highlite");
+
+// initialize context menu...
+project.menu=$("#project-menu").menu().css("position","absolute", "width", "200px").hide();
+
+//load templates and render...
+$.get("views/document_header.html", function(htm){
+	//console.log('tbh loaded:', htm);
+	project.header=Handlebars.compile(htm);
+	casbah.renderFX("project-header", project.header, {dtype:$PP.get("$dtype")});
+});
+
+
+project.content=Handlebars.compile($("#project-content-template").html());
+project.tv.refresh();
+
+</script>
+</head>
+<body>
+
+<!-- PAGE -->
+
+<div class="container">
+
+	<div id="project-header">placeholder</div>
+	<div id="project-content">placeholder</div>
+	<br><br><br><br>
+</div>
+
+
+<template id="project-content-template" type="text/x-handlebars-template">
+	<div class="row marz row__"></div>
+
+	{{#each rows}}
+	
+	<div class="row marz row" 
+		onmouseenter="project.hi.light(this);" 
+		onmouseleave="project.hi.dark(this);">
+	<p class="col-xs-1 row-head marz">row</p>
+	<div class="border-left col-xs-11 marz" >
+	<p class="col-xs-2 row-head marz">Project#</p>
+	<p class="col-xs-3 row-head marz">Project</p>
+	<p class="col-xs-2 row-head marz">Client</p>
+	<p class="col-xs-2 row-head marz">Date</p>
+	<p class="col-xs-2 row-head marz">GC</p>
+	</div>	
+	</div>	
+	
+	<div class="row marz"
+		rowid="{{rowid}}"
+		onmouseenter="project.hi.light(this);"
+		onmouseleave="project.hi.dark(this);"
+		oncontextmenu="casbah.showMenu(project.menu, event)">
+
+	<p 	rowid="{{rowid}}" class="col-xs-1 marz">{{plusOne @index}}</p>		
+	<div class="border-left col-xs-11 marz" >
+	<p 	class="col-xs-2 marz"
+		field="pnum"
+		rowid="{{rowid}}"
+		onclick="project.click(this);">{{pnum}}</p>
+		
+	<p 	class="col-xs-3 marz"
+		field="pname"
+		rowid="{{rowid}}"
+		onclick="project.click(this);">{{pname}}</p>
+		
+	<p 	class="col-xs-2 marz"
+		field="client"
+		rowid="{{rowid}}"
+		onclick="project.click(this);">{{client}}</p>
+		
+	<p 	class="col-xs-2 marz"
+		field="date"
+		rowid="{{rowid}}"
+		onclick="project.click(this);">{{date}}</p>
+		
+	<p 	class="col-xs-2 marz"
+		field="contractor"
+		rowid="{{rowid}}"
+		onclick="project.click(this);">{{contractor}}</p>
+	</div>	
+	</div>
+	
+	<div class="row marz zebra-stripe" 
+		onmouseenter="project.hi.light(this);" 
+		onmouseleave="project.hi.dark(this);">
+	<p class="col-xs-1 row-head marz">row</p>
+	<div class="border-left col-xs-11 marz" >
+	
+	<p class="col-xs-2 row-head marz">Permit</p>
+	<p class="col-xs-3 row-head marz">Address</p>
+	<p class="col-xs-2 row-head marz">Status</p>
+	<p class="col-xs-2 row-head marz">Date Done</p>
+	<p class="col-xs-2 row-head marz">xdata</p>
+	</div>	
+	</div>
+	
+	<div class="row marz zebra-stripe"
+		rowid="{{rowid}}"
+		onmouseenter="project.hi.light(this);"
+		onmouseleave="project.hi.dark(this);"
+		oncontextmenu="casbah.showMenu(project.menu, event)">
+
+	<p class="col-xs-1 marz ">{{plusOne @index}}</p>
+	<div class="border-left marz col-xs-11">
+	<p 	class="col-xs-2 marz"
+		field="permit"
+		rowid="{{rowid}}"
+		style="height:100%;"
+		onclick="project.click(this);">{{permit}}</p>	
+			
+	<p 	class="col-xs-3 marz"
+		field="address"
+		rowid="{{rowid}}"
+		onclick="project.click(this);">{{address}}</p>
+		
+	<p 	class="col-xs-2 marz"
+		field="date_closed"
+		rowid="{{rowid}}"
+		onclick="project.click(this);">{{date_closed}}</p>
+		
+	<p 	class="col-xs-2 marz"
+		field="status"
+		rowid="{{rowid}}"
+		onclick="project.click(this);">{{status}}</p>
+		
+	<p 	class="col-xs-2 marz"
+		field="xdata"
+		rowid="{{rowid}}"
+		onclick="project.click(this);">{{xdata}}</p>
+	</div>		
+	</div>
+	{{/each}}	
+</template>
+
+
+<!-- MENUS -->
+<ul id="project-menu" onmouseleave="project.menu.hide()" class="hide9999">
+<li onclick="project.tv.add(true);">Add</li>
+<li onclick="project.open();">Current</li>
+<li onclick="project.menu.hide();project.tv.refresh();">Refresh</li>
+<li onclick="project.menu.hide()">Exit</li>
+</ul>
+
+

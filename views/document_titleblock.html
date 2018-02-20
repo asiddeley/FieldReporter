@@ -2,12 +2,13 @@
 
 <!-------------------
 A result like this {rows:[{pnum:'bldg', pname:'something'...}], ...} 
-is passed to this template, need to use #each keyword to access data.  There should only be one row
+is passed to this template, need to use #each keyword to access data.  
+There should only be one row in this case
 --------------------->
 
 {{#each rows}}
 <div class="row row__">
-	<strong class="col-xs-2">Project no.:</strong>
+	<strong class="col-xs-2">Project No.:</strong>
 	<p class="col-xs-4">{{pnum}}</p>
 	<strong class="col-xs-2">Doc No:</strong>
 	<p id="docName" class="col-xs-4">{{dnum}}</p>
@@ -16,21 +17,21 @@ is passed to this template, need to use #each keyword to access data.  There sho
 <div class="row row_">
 	<strong class="col-xs-2">Project Name:</strong>
 	<p class="col-xs-4">{{pname}}</p>
-	<strong id="docTitle" class="col-xs-2">Doc title:</strong>
+	<strong id="docTitle" class="col-xs-2">Doc Title:</strong>
 	<p class="col-xs-4">{{dtitle}}</p>
 </div>
 
 <div class="row row_">
-	<strong class="col-xs-2">Project Location:</strong>
-	<p class="col-xs-4">{{plocation}}</p>
-	<strong id="docDate" class="col-xs-2">Review date:</strong>
+	<strong class="col-xs-2">Project Address:</strong>
+	<p class="col-xs-4">{{address}}</p>
+	<strong id="docDate" class="col-xs-2">Date:</strong>
 	<p class="col-xs-4">{{date}}</p>
 </div>
 
 <div class="row row_">
 	<strong class="col-xs-2">Contractor:</strong>
-	<p class="col-xs-4">{{pcontractor}}</p>
-	<strong id="publish_date" class="col-xs-2">Issue date:</strong>
+	<p class="col-xs-4">{{contractor}}</p>
+	<strong id="publish_date" class="col-xs-2">Date Issued:</strong>
 	<p class="col-xs-4">{{date_issued}}</p>
 </div>
 

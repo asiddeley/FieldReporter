@@ -1,19 +1,13 @@
 <!doctype html>
 
 <script type='text/javascript'>
-//console.log("SCRIPT...");
-///// Global defs
 
-$PP.get("$pnum","BLDG-001");
-$PP.get("$dnum","SVR-A01");
+//default global parameters required for this page
+$PP.fetch("$pnum","BLDG-001");
+$PP.fetch("$dnum","SVR-A01");
+$PP.store("$dtype", "Site Visit Report");
 
 
-function selectFolder(e) {
-    var theFiles = e.target.files;
-    var relativePath = theFiles[0].webkitRelativePath;
-    var folder = relativePath.split("/");
-    alert(folder[0]);
-};
 
 ///// TableViews
 // Site visit report
@@ -23,7 +17,14 @@ svr.titleblock={};
 svr.titleblock.tv=new TableView(casbah.projects($PP), {
 	filter:"pnum=$pnum", 
 	refresh:function(result, delta){
-		renderFX("document-titleblock", svr.titleblock.template, result, delta);
+		//inject document info into result for titleblock template to render
+		result.rows[0].dnum=$PP.fetch("$dnum");
+		result.rows[0].dtitle=$PP.fetch("$dtitle");
+		result.rows[0].date=$PP.fetch("$date");
+		result.rows[0].date_issued=$PP.fetch("$date_issued");
+		result.rows[0].by=$PP.fetch("$by");		
+		//render
+		casbah.renderFX("document-titleblock", svr.titleblock.template, result, delta);
 	}}
 );
 
@@ -31,9 +32,14 @@ svr.titleblock.tv=new TableView(casbah.projects($PP), {
 svr.tv=new TableView(casbah.siteVisitReports($PP),
 	{refresh:function(result, diff){	
 		if (result.rows.length>0){
-			$PP.set("$rowid", result.rows[0].rowid);
-			$PP.set("$comment_ids", JSON.parse(result.rows[0].comment_ids)); 
-			//dependent table parameter update/refresh...
+			//pass various results to cookie jar for use by other tableviews ie titleblock...
+			$PP.store("$dtitle", result.rows[0].dtitle);
+			$PP.store("$date", result.rows[0].date);
+			$PP.store("$date_issued", result.rows[0].date_issued);
+			$PP.store("$by", result.rows[0].by);
+			$PP.store("$rowid", result.rows[0].rowid);
+			$PP.store("$comment_ids", JSON.parse(result.rows[0].comment_ids)); 
+			//refresh dependent tables...
 			svr.comments.tv.refresh();
 			svr.issues.tv.refresh();
 		}
@@ -54,24 +60,20 @@ svr.comments.onclick=function(el){
 };
 
 svr.comments.ondragstart=function(el, ev){
-	//console.log("dragstart");
 	ev.dataTransfer.setData("text/plain", "comment_id:"+$(el).attr("index"));
-
 };
 
 svr.comments.ondrop=function(el, ev){
 	var txt=ev.dataTransfer.getData("text/plain");
-	//console.log("drop ", txt);
 	var a=txt.indexOf("comment_id:");
 	if ( a > -1){
-		//from index
 		var fi=txt.slice(a+"comment_id:".length).split(/\s+/)[0];
-		//to index
 		var ti=$(el).attr("index");
-		console.log("before drop:",$PP.$comment_ids, "from:", fi, "to:",ti);
-		array_nth_to_nth($PP.$comment_ids, fi, ti);
-		console.log("after drop:",$PP.$comment_ids);
+		//console.log("before drop:",$PP.$comment_ids, "from:", fi, "to:",ti);
+		casbah.array_nth_to_nth($PP.$comment_ids, fi, ti);
+		//console.log("after drop:",$PP.$comment_ids);
 		if (fi!=ti){
+			//save only if there is a change
 			svr.tv.save({comment_ids:$PP.$comment_ids}, $PP.$rowid);
 			svr.comments.tv.refresh();
 		}
@@ -81,7 +83,7 @@ svr.comments.ondrop=function(el, ev){
 svr.comments.insert=function(el){
 	svr.comments.tv.add( function(r){
 		//update comment_id list in parameters object
-		array_insert_after($PP.$comment_ids, r.rowid, svr.hi.rowid());
+		casbah.array_insert_after($PP.$comment_ids, r.rowid, svr.hi.rowid());
 		//update the report table (using parameters), then don't refresh
 		svr.tv.save({comment_ids:$PP.$comment_ids}, $PP.$rowid);
 		//update the comments table, then refresh (true) to show change
@@ -91,9 +93,9 @@ svr.comments.insert=function(el){
 
 svr.comments.remove=function(el){
 	//CTV.remove(hi.rowid()); 
-	//only removing comment rowid from comment list in report, comment remains in comment table
+	//only remove comment rowid from comment list in report, comment remains in comment table
 	//console.log("remove comment_ids, rowid:",$PP.$comment_ids, svr.hi.rowid());
-	array_remove($PP.$comment_ids, svr.hi.rowid());
+	casbah.array_remove($PP.$comment_ids, svr.hi.rowid());
 	//console.log("remove ", $PP.$comment_ids);
 	svr.tv.update({comment_ids:$PP.$comment_ids}, $PP.$rowid);
 	svr.comments.tv.refresh();
@@ -104,19 +106,19 @@ svr.comments.template=function(r){console.log("default template...");};
 
 svr.comments.tv=new TableView(casbah.comments($PP),
 	{refresh:function(result, delta){
-		console.log("CTV refresh...");
+		//console.log("CTV refresh...");
 		//console.log("CTV refresh result.rows[0].comment:", JSON.stringify(result.rows));
-		array_rowidorder(result.rows, $PP.$comment_ids); 
+		casbah.array_rowidorder(result.rows, $PP.$comment_ids); 
 		//console.log("CTV refresh result.rows[0].comment ORDERED:", JSON.stringify(result.rows));
-		renderFX("#comments-placeholder", svr.comments.template, result, delta);
+		casbah.renderFX("#comments-placeholder", svr.comments.template, result, delta);
 	}}
 );
 
 
 // text editor
-svr.ed=new Editor();
+svr.ed=new casbah.Editor();
 // highligher
-svr.hi=new Highlighter("highlite");
+svr.hi=new casbah.Highlighter("highlite");
 
 
 
@@ -130,8 +132,8 @@ svr.issues={};
 svr.issues.tv=new TableView(casbah.issues($PP),
 	{refresh:function(result, delta){
 		//TODO: filter result based on applicable dates...
-		renderFX("#issues-closed-placeholder", svr.issues.template, result, delta);
-		renderFX("#issues-open-placeholder", svr.issuesOpen.template, result, delta);
+		casbah.renderFX("#issues-closed-placeholder", svr.issues.template, result, delta);
+		casbah.renderFX("#issues-open-placeholder", svr.issuesOpen.template, result, delta);
 	}}
 );
 //console.log("svr.issues.tv:",svr.issues.tv);
@@ -148,24 +150,20 @@ svr.issuesOpen={};
 svr.issuesOpen.template=Handlebars.compile($("#issues-open-template").html());
 
 // Start rendering the page 
-// function templates
-$("<div>template</div>").load("views/document_header.html", function(htm){
+// render svr first because it gets information needed by titleblock
+svr.tv.refresh();
+
+$.get("views/document_header.html", function(htm){
 	//console.log('tbh loaded:', htm);
 	svr.document_header=Handlebars.compile(htm);
-	renderFX("document-header", svr.document_header, $PP);
+	casbah.renderFX("document-header", svr.document_header, {dtype:$PP.get("$dtype")});
 });
 
-//$("#document-titleblock-template").load("views/document_titleblock.html", function(htm){
-$("<div>template</div>").load("views/document_titleblock.html", function(htm){
+$.get("views/document_titleblock.html", function(htm){
 	//console.log('tbt loaded:', htm);
 	svr.titleblock.template=Handlebars.compile(htm);
-	//renderFX("document-titleblock", svr.titleblock.template, $PP);
 	svr.titleblock.tv.refresh();	
 });
-
-//render report table which renders dependent comments and issues table-views also
-//$("#reportdock").one("load",svr.tv.refresh);
-svr.tv.refresh();
 
 
 </script>
@@ -189,7 +187,7 @@ svr.tv.refresh();
 
 	<div class="row marz" 
 		onmouseenter="svr.hi.light(this)"
-		oncontextmenu="showMenu(svr.comments.menu, event)" >
+		oncontextmenu="casbah.showMenu(svr.comments.menu, event)" >
 		<h3 class="col-xs-1 marz" >2.0</h3>
 		<h3 class="col-xs-10 border-left marz">Comments and Observatons</h3>
 		<h3 class="col-xs-1 marz" >Pic.</h3>
@@ -205,7 +203,7 @@ svr.tv.refresh();
 		ondragover="event.preventDefault()"
 		ondrop="svr.comments.ondrop(this, event)"
 		onmouseenter="svr.hi.light(this)"
-		oncontextmenu="showMenu(svr.comments.menu, event)">
+		oncontextmenu="casbah.showMenu(svr.comments.menu, event)">
 	<p 	rowid="{{rowid}}" class="col-xs-1 marz">2.{{plusOne @index}}</p>
 	<p 	field="comment"
 		rowid="{{rowid}}"
@@ -219,7 +217,7 @@ svr.tv.refresh();
 <template id='issues-closed-template' type="text/x-handlebars-template">
 
 	<div class="row marz"
-		oncontextmenu="showMenu(svr.issues.menu, event)"
+		oncontextmenu="casbah.showMenu(svr.issues.menu, event)"
 		onmouseenter="svr.hi.light(this)">
 		<h3 class="col-xs-1 marz">3.0</h3>
 		<h3 class="col-xs-10 border-left marz">Issues Resolved</h3>
@@ -231,7 +229,7 @@ svr.tv.refresh();
 		rowid="{{rowid}}"
 		index="{{@index}}"
 		onmouseenter="svr.hi.light(this)"
-		oncontextmenu="showMenu(svr.issues.menu, event)">
+		oncontextmenu="casbah.showMenu(svr.issues.menu, event)">
 	<p 	class="col-xs-1 marz"
 		rowid="{{rowid}}"
 		index="{{@index}}">3.{{plusOne @index}}</p>

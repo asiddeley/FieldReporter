@@ -28,8 +28,8 @@
 
 
 <script type="text/javascript">
-
-var $PP=parameters;
+//Global parameters
+var $PP=casbah.parameters;
 
 //prevent accidental image drop
 $(window).on({
@@ -75,34 +75,19 @@ $(function() {
 	});
 	
 	$("#about-btn").on("click", function(){
-		$("#welcomedock").load("views/projectForm.html");
+		$("#welcomedock").load("views/project_log.html");
 	});
 	
 	$("#projects-btn").on("click", function(){
-		$("#welcomedock").load("views/projectForm.html");
+		$("#welcomedock").load("views/project_log.html");
 	});
 	
 	$("#svr-btn").on("click", function(){
-		$("#reportdock").show().load("views/SVR-XX.html");
-		//$("#reportdock").one("load", svr.tv.refresh);
+		$("#reportdock").show().load("views/site_visit_report.html");
 	});
 	
 	$("#svrlog-btn").on("click", function(){
-		$("#reportdock").show().load("views/SVR-Log.html");
-	});
-	
-	$("#test-btn").on("click", function(){
-		//var params=getTable("projects")
-	
-		autoForm($("#welcomedock"),
-			{table:"TEST", 
-			rows:[
-			{id:"1", b:Math.random(), c:Math.random(), d:Math.random(), e:Math.random(49),
-			f:Math.random(), g:Math.random(), h:Math.random(), i:Math.random()},
-			{id:"2", b:Math.random(), c:Math.random(), d:Math.random(), e:Math.random(49),
-			f:Math.random(), g:Math.random(), h:Math.random(), i:Math.random()}	
-			]}
-		);
+		$("#reportdock").show().load("views/site_visit_report_log.html");
 	});
 	
 	$("#welcomedock").load("views/welcome.html");
@@ -265,8 +250,7 @@ $(function() {
 				<div class="btn-group" role="group" aria-label="...">
 					<button id="about-btn" type="button" class="btn btn-info">About</button>
 					<button type="button" class="btn btn-default">Help</button>
-					<button id="projects-btn" type="button" class="btn btn-info">Projects</button>
-					<button id="test-btn" type="button" class="btn btn-info">test</button>
+					<button id="projects-btn" type="button" class="btn btn-default">Projects</button>
 				</div>				
 				</div>
 				
