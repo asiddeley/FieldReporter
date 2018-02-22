@@ -60,11 +60,16 @@ svr.comments.onclick=function(el){
 };
 
 svr.comments.ondragstart=function(el, ev){
-	ev.dataTransfer.setData("text/plain", "comment_id:"+$(el).attr("index"));
+	//ev.dataTransfer.setData("text/plain", "comment_id:"+$(el).attr("index"));
+	//note "Text" argument as required by iexplorer
+	ev.dataTransfer.setData("Text", "comment_id:"+$(el).attr("index"));
+
 };
 
 svr.comments.ondrop=function(el, ev){
-	var txt=ev.dataTransfer.getData("text/plain");
+	//var txt=ev.dataTransfer.getData("text/plain");
+	//note "Text" argument as required by iexplorer
+	var txt=ev.dataTransfer.getData("Text");
 	var a=txt.indexOf("comment_id:");
 	if ( a > -1){
 		var fi=txt.slice(a+"comment_id:".length).split(/\s+/)[0];
