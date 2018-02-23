@@ -263,6 +263,11 @@ casbah.Editor=function (){
 	this.x$.on("click keyup resize", that.fit);
 	$(window).on("resize", that.fit);
 	
+	$(document).on("pageturn",function(){
+		console.log("pageturn detected");
+		that.x$.hide();
+	});
+	
 };
 
 ////////////////////////////////
@@ -310,6 +315,17 @@ casbah.Highlighter=function(hiclass){
 	};
 };
 
+//////////////////////////////
+casbah.pageturn=function(pageid, url){	
+	//heads up - close open editors etc
+	console.log("pageturn");
+	$(document).trigger("pageturn");
+	if (pageid.indexOf("#")==-1) {pageid="#"+pageid;}
+	$(".dock").hide();
+	$(pageid).show().load(url);
+};
+
+
 ///////////////////////////
 casbah.parameters={
 	expiry_days:30,
@@ -334,6 +350,8 @@ casbah.parameters={
 		return this;
 	}	
 };
+
+
 
 
 ///////////////
@@ -377,45 +395,6 @@ casbah.selectFolder=function (e) {
     var folder = relativePath.split("/");
     alert(folder[0]);
 };
-
-///////////////////////////
-function substitute(sql, params){
-	/**************
-	Returns a string from sql with key:value substitutions from params {} 
-	Note that placeholders for substitution must have '$' prefix
-	sql = "WHERE rowid in ( $rowidlist )"
-	params = {$rowidlist:"1,2,3,4"}
-	*************/
-	//exit early
-	if (typeof params=="undefined || params==null"){return sql;}
-
-	//console.log("sql_params...")
-	//ensure these aren't touching terms
-	sql=sql.replace(/\(/g, " ( "); 
-	sql=sql.replace(/\)/g, " ) ");
-	sql=sql.replace(/=/g, " = ");
-	sql=sql.replace(/,/g , " , ");
-	//console.log("sql after grooming...", sql)
-	var terms=sql.split(" ");
-	for (var i in terms){
-		//term starts with '$' meaning its a parameter so substitute it with it's corresponding vlaue
-		if ( terms[i].indexOf("$")==0 ) {
-			//console.log("term before...", terms[i].substring(1))
-			var p=params[terms[i]];
-			//add quotes if p is literal
-			if (typeof p =="string") {p="'"+p+"'";}
-			//evaluate if a function - hopfully the result is a string
-			else if (typeof p=="function") {p=p();}
-			//convert to string if an array
-			else if (p instanceof Array) {p=p.join(",");}
-			//////////////
-			terms[i]=p;
-			//console.log("term after...", terms[i])
-		}
-	}
-	return terms.join(" ");
-};
-
 
 
 //}); //load

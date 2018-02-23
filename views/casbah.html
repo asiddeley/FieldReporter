@@ -69,20 +69,20 @@ $(function() {
 		$("#shopdock").show();	
 	});
 
-	$("#welcometab").on("click", function(){
-		$(".dock").hide();
-		$("#welcomedock").show().load("views/welcome.html");
-	});
+	//$("#welcometab").on("click", function(){
+	//	$(".dock").hide();
+	//	$("#welcomedock").show().load("views/welcome.html");
+	//});
 	
 	$("#about-btn").on("click", function(){
 		$(".dock").hide();
 		$("#welcomedock").show().load("views/project_log.html");
 	});
 	
-	$("#projects-btn").on("click", function(){
-		$(".dock").hide();
-		$("#welcomedock").show().load("views/project_log.html");
-	});
+	//$("#projects-btn").on("click", function(){
+	//	$(".dock").hide();
+	//	$("#welcomedock").show().load("views/project_log.html");
+	//});
 	
 	$("#svr-btn").on("click", function(){
 		$(".dock").hide();
@@ -94,7 +94,7 @@ $(function() {
 		$("#reportdock").show().load("views/site_visit_report_log.html");
 	});
 	
-	$("#welcomedock").load("views/welcome.html");
+	$("#welcomepage").load("views/welcome.html");
 	
 }); 
 
@@ -115,8 +115,14 @@ $(function() {
 			<!-- Nav tabs -->
 			<ul class="nav nav-tabs" role="tablist">
 			
-			<li role="presentation" class="active">
-			<a href="#ACTION" aria-controls="admin" role="tab" data-toggle="tab" >Action</a>
+			<li class="dropdown" role="presentation" >
+			<a class="dropdown-toggle" href="#" role="tab" data-toggle="dropdown">Action<span class="caret"></span></a>
+			<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+				<li><a href="#">Action items</a></li>
+				<li><a href="#">Project status</a></li>
+				<li><a href="#">Outstanding RFIs</a></li>
+				<li><a href="#">Outstanding Shops</a></li>
+			</ul>
 			</li>
 	
 			<li role="presentation">
@@ -141,19 +147,18 @@ $(function() {
 			<li role="presentation">
 			<a href="#MTGS" aria-controls="cr" role="tab" data-toggle="tab" >Meetings</a>
 			</li>
-			
 	
 			<li class="dropdown">
 			<a class="dropdown-toggle" role="tab" href="#" data-toggle="dropdown" >Reports<span class="caret"></span></a>
 				<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-					<li id="svrlog-btn"><a href="#">Site Visit Report Log</a></li>
-					<li id="svr-btn"><a href="#">Site Visit Report</a></li>
-					<li class="divider"><li>
-					<li id="rpllog-btn"><a href="#">Room Punch List Log</a></li>
-					<li id="rpl-btn"><a href="#">Room Punch List</a></li>
-					<li class="divider"><li>
-					<li id="rfilog-btn"><a href="#">RFI Log</a></li>
-					<li id="rfi-btn"><a href="#">RFI</a></li>			
+				<li id="svrlog-btn"><a href="#">Site Visit Report Log</a></li>
+				<li onclick="casbah.pageturn('reportpage','views/site_visit_report.html')"><a href="#">Site Visit Report</a></li>
+				<li class="divider"><li>
+				<li id="rpllog-btn"><a href="#">Room Punch List Log</a></li>
+				<li id="rpl-btn"><a href="#">Room Punch List</a></li>
+				<li class="divider"><li>
+				<li id="rfilog-btn"><a href="#">RFI Log</a></li>
+				<li id="rfi-btn"><a href="#">RFI</a></li>			
 				</ul>	
 			</li>
 			
@@ -161,8 +166,15 @@ $(function() {
 			<a id="shopstab" href="#SHOPS" aria-controls="sdi" role="tab" data-toggle="tab" >Shops</a>
 			</li>
 
-			<li role="presentation">
-			<a id="welcometab" href="#WELCOME"  aria-controls="welcome" role="tab" data-toggle="tab" >Welcome</a>
+			<li class="dropdown" role="presentation">
+			<a class="dropdown-toggle" id="welcometab"  href="#" role="tab" data-toggle="dropdown" 
+			onclick="casbah.pageturn('welcomepage','views/welcome.html');"
+			>Welcome<span class="caret"></span></a>
+				<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+				<li id="about-btn"><a href="#">About</a></li>
+				<li><a href="#">Help</a></li>
+				<li onclick="casbah.pageturn('reportpage','views/project_log.html');"><a href="#">Projects</a></li>
+				</ul>			
 			</li>
 			
 			</ul>
@@ -170,14 +182,14 @@ $(function() {
 			<!-- Tab panes -->
 			<div class="tab-content">
 				
-				<div role="tabpanel" class="tab-pane" id="ACTION">
-				<div class="btn-group" role="group" aria-label="...">
+				<!-- div role="tabpanel" class="tab-pane" id="ACTION">
+				<! div class="btn-group" role="group" aria-label="...">
 					<button type="button" class="btn btn-default">Action items</button>
 					<button type="button" class="btn btn-default">Project status</button>
 					<button type="button" class="btn btn-default">Outstanding RFIs</button>
 					<button type="button" class="btn btn-default">Outstanding Shops</button>
 				</div>
-				</div>		
+				</div -->		
 
 				<div role="tabpanel" class="tab-pane" id="BILLING">
 				<div class="btn-group" role="group" aria-label="...">
@@ -236,8 +248,8 @@ $(function() {
 				
 				</div>
 				
-				<div role="tabpanel" class="tab-pane" id="REPORTS">Report panel
-					<!--div class="btn-group" role="group" aria-label="...">
+				<!-- div role="tabpanel" class="tab-pane" id="REPORTS">Report panel
+					<div class="btn-group" role="group" aria-label="...">
 					<button id="svrlog-btn" type="button" class="btn btn-info">Site Visit Report Log</button>
 					<button id="svr-btn" type="button" class="btn btn-default">Site Visit Report</button>
 					</div>
@@ -248,8 +260,8 @@ $(function() {
 					<div class="btn-group" role="group" aria-label="...">
 						<button type="button" class="btn btn-info">RFI Log</button>
 						<button type="button" class="btn btn-default">RFI (current)</button>
-					</div-->
-				</div>
+					</div>
+				</div -->
 				
 				<div role="tabpanel" class="tab-pane" id="SHOPS">
 				<div class="btn-group" role="group" aria-label="...">
@@ -258,13 +270,13 @@ $(function() {
 				</div>
 				</div>
 				
-				<div role="tabpanel" class="tab-pane active" id="WELCOME">
+				<!-- div role="tabpanel" class="tab-pane active" id="WELCOME">
 				<div class="btn-group" role="group" aria-label="...">
 					<button id="about-btn" type="button" class="btn btn-info">About</button>
 					<button type="button" class="btn btn-default">Help</button>
 					<button id="projects-btn" type="button" class="btn btn-default">Projects</button>
 				</div>				
-				</div>
+				</div -->
 				
 			</div>
 		</div>
@@ -278,9 +290,9 @@ $(function() {
 <div id="letterdock" class="dock" style="display:none;"><h3>letter area</h3></div>
 <div id="gallerydock" class="dock" style="display:none;"><h3>gallery area</h3></div>
 <div id="meetingdock" class="dock" style="display:none;"><h3>meeitng area</h3></div>
-<div id="reportdock" class="dock" style="display:none;"><h3>report area</h3></div>
+<div id="reportpage" class="dock" style="display:none;"><h3>report area</h3></div>
 <div id="shopdock" class="dock" style="display:none;"><h3>shop area</h3></div>
-<div id="welcomedock" class="dock" style="display:block;"><h3>welcome area</h3></div>	
+<div id="welcomepage" class="dock" style="display:block;"><h3>welcome area</h3></div>	
 
 
 </body>

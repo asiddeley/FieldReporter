@@ -16,6 +16,45 @@ Andrew Siddeley
 if (typeof casbah=="undefined") {casbah={};}
 
 
+///////////////////////////
+casbah.substitute=function(sql, params){
+	/**************
+	Returns a string from sql with key:value substitutions from params {} 
+	Note that placeholders for substitution must have '$' prefix
+	sql = "WHERE rowid in ( $rowidlist )"
+	params = {$rowidlist:"1,2,3,4"}
+	*************/
+	//exit early
+	if (typeof params=="undefined || params==null"){return sql;}
+
+	//console.log("sql_params...")
+	//ensure these aren't touching terms
+	sql=sql.replace(/\(/g, " ( "); 
+	sql=sql.replace(/\)/g, " ) ");
+	sql=sql.replace(/=/g, " = ");
+	sql=sql.replace(/,/g , " , ");
+	//console.log("sql after grooming...", sql)
+	var terms=sql.split(" ");
+	for (var i in terms){
+		//term starts with '$' meaning its a parameter so substitute it with it's corresponding vlaue
+		if ( terms[i].indexOf("$")==0 ) {
+			//console.log("term before...", terms[i].substring(1))
+			var p=params[terms[i]];
+			//add quotes if p is literal
+			if (typeof p =="string") {p="'"+p+"'";}
+			//evaluate if a function - hopfully the result is a string
+			else if (typeof p=="function") {p=p();}
+			//convert to string if an array
+			else if (p instanceof Array) {p=p.join(",");}
+			//////////////
+			terms[i]=p;
+			//console.log("term after...", terms[i])
+		}
+	}
+	return terms.join(" ");
+};
+
+
 function TableView(options, options1){
 	
 	this.options=options;
@@ -185,7 +224,7 @@ TableView.prototype.SQLinsert=function(row){
 
 TableView.prototype.SQLselect=function(){
 	var sql= "SELECT rowid, * FROM "+this.options.table+
-	" WHERE "+substitute(this.options.filter, this.options.params);
+	" WHERE "+casbah.substitute(this.options.filter, this.options.params);
 	//console.log("Table SQL:", sql);
 	return sql;
 };
