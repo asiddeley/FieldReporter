@@ -263,8 +263,8 @@ casbah.Editor=function (){
 	this.x$.on("click keyup resize", that.fit);
 	$(window).on("resize", that.fit);
 	
-	$(document).on("pageturn",function(){
-		console.log("pageturn detected");
+	$(document).one("pageturn",function(){
+		//console.log("pageturn detected");
 		that.x$.hide();
 	});
 	
@@ -313,16 +313,6 @@ casbah.Highlighter=function(hiclass){
 		}
 		return r;
 	};
-};
-
-//////////////////////////////
-casbah.pageturn=function(pageid, url){	
-	//heads up - close open editors etc
-	console.log("pageturn");
-	$(document).trigger("pageturn");
-	if (pageid.indexOf("#")==-1) {pageid="#"+pageid;}
-	$(".dock").hide();
-	$(pageid).show().load(url);
 };
 
 
@@ -396,5 +386,19 @@ casbah.selectFolder=function (e) {
     alert(folder[0]);
 };
 
-
+//////////////////////////////
+casbah.view=function(htmlfile){
+	console.log("pageturn");	
+	//heads up - close open editors etc
+	$(document).trigger("pageturn");
+	var id="view";
+	if (!$("#"+id).length){
+		//var el=$("<div></div>").addr("id",id);
+		$("body").append($("<div></div>").attr("id",id));		
+	}
+	//if (pageid.indexOf("#")==-1) {pageid="#"+pageid;}
+	//$(".dock").hide();
+	//$(pageid).show().load(url);
+	$("#"+id).load("views/"+htmlfile);
+};
 //}); //load

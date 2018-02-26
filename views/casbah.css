@@ -12,7 +12,7 @@
 	font-weight:bold;
 	font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
 	line-height:95%;
-	border-radius:10px;
+	border-radius:2px;
 	border-style:solid;
 	border-width:0px;
 	border-color:black; 
@@ -20,8 +20,8 @@
 	margin:5px 5px 0px 0px;
 	color:white;
 }
-.welcome {color:tan;}
-.jumbo{font-size:65px; }
+.welcome {color:tan;	float:left;font-size:x-large;}
+.jumbo{font-size:60px; }
 
 .border-left {border-left:2px solid #000; height:100%;}
 .bolivian {background: linear-gradient(red, yellow, yellow, green); }
