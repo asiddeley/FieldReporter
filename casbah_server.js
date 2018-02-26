@@ -5,6 +5,7 @@ const path = require('path')
 const sqlite=require('sqlite3').verbose()
 const bodyParser=require("body-parser") 
 const casql=require(__dirname+"/zdatabase/casql.js")
+const fileUpload = require('express-fileupload');
 
 
 const app = express()
@@ -73,6 +74,28 @@ app.post('/database', function (req, res) {
 	catch(err) {console.log("SQLITE ERROR...", err)}
 
 })
+
+
+
+/////////////////////////// 
+// File Upload
+app.use(fileUpload());
+app.post('/upload', function(req, res) {
+	console.log("Uploading files:", JSON.stringify(req.files)); // the uploaded file object
+	if (!req.files)
+    return res.status(400).send('No files were uploaded.');
+ 
+	// The name of the input field (i.e. "uploadee") is used to retrieve the uploaded file
+	let uploadee = req.files.uploadee;
+ 
+	// Use the mv() method to place the file somewhere on your server
+	uploadee.mv("/upload/"+uploadee.name, function(err) {
+    if (err)
+      return res.status(500).send(err);
+ 
+    res.send('File uploaded!');
+  });
+});
 
 
 //start serving
