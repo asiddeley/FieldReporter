@@ -82,7 +82,21 @@ svr.comments.ondrop=function(el, ev){
 			svr.tv.save({comment_ids:$PP.$comment_ids}, $PP.$rowid);
 			svr.comments.tv.refresh();
 		}
-	}
+	} else if (txt.length>0){
+		//console.log("Text:", txt, " Type:", (typeof txt), " length:", txt.length);
+		svr.comments.tv.add( function(r){
+			console.log("new rowid", r.rowid, "Ti:", ti); 
+			//update comment_id list in 
+			//TO DO Create array function like this but where ti arg is the index in list not value to match.
+			//this would allow droping payload next to target element, not at end of list
+			casbah.array_insert_after($PP.$comment_ids, r.rowid, ti);
+			//update the report table (using parameters), then don't refresh
+			svr.tv.save({comment_ids:$PP.$comment_ids}, $PP.$rowid);
+			//added row has default value so change to match current row by
+			//updating the comments table, then refresh (3rd arg is true)
+			svr.comments.tv.save({"comment":txt}, r.rowid, true);
+		});
+	}	
 };
 
 svr.comments.insert=function(el){
